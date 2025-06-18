@@ -1,10 +1,10 @@
 package forms4s
 
-import org.scalatest.freespec.AnyFreeSpec
-import sttp.apispec.{Schema => ASchema}
-import sttp.tapir.{Schema => TSchema}
-import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 import forms4s.ExampleModel.{Address, User}
+import org.scalatest.freespec.AnyFreeSpec
+import sttp.apispec.Schema as ASchema
+import sttp.tapir.Schema as TSchema
+import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 
 class FormFromJsonSchemaSpec extends AnyFreeSpec {
 

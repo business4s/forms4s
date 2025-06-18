@@ -1,9 +1,7 @@
 package forms4s
 
 import forms4s.ExampleModel.{Address, User}
-import sttp.apispec.{Schema => ASchema}
-import sttp.tapir.{Schema => TSchema}
-import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.apispec.Schema as ASchema
 
 case class Form(elements: List[FormElement])
 
@@ -57,7 +55,7 @@ object FormFromJsonSchema {
     }
 
     schemaType match {
-      case "string" => 
+      case "string" =>
         // For string fields with enum values, create a Select element
         val enumValues = Option(schema.`enum`).getOrElse(List.empty)
         if (enumValues.nonEmpty) {
@@ -68,11 +66,11 @@ object FormFromJsonSchema {
         }
       case "integer" | "number" => FormElement.Text(name) // Treat numbers as text inputs
       case "boolean" => FormElement.Checkbox(name)
-      case "object" => 
+      case "object" =>
         // For nested objects, create a subform
         val subElements = extractFormElements(schema)
         FormElement.Subform(name, Form(subElements))
-      case "array" => 
+      case "array" =>
         // For arrays, we could handle them in various ways
         // Here we'll just create a text field for simplicity
         FormElement.Text(name)
@@ -88,16 +86,19 @@ object ExampleModel {
 }
 
 object ExampleServer {
+
   import ExampleModel.{Address, User}
 
-  given TSchema[Address] = TSchema.derived
+  //  given TSchema[Address] = TSchema.derived
 
-  given userSchema: TSchema[User] = TSchema.derived
+  //  given userSchema: TSchema[User] = TSchema.derived
 
-  val jsonSchema: ASchema = TapirSchemaToJsonSchema(
-    userSchema,
-    markOptionsAsNullable = true,
-  )
+  //  val jsonSchema: ASchema = TapirSchemaToJsonSchema(
+  //    userSchema,
+  //    markOptionsAsNullable = true,
+  //  )
+
+  val jsonSchema: ASchema = ???
 
 }
 
