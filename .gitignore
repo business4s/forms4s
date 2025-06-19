@@ -14,3 +14,6 @@ target/
 
 ### Scala ###
 .bsp/
+
+dist/
+node_modules/
