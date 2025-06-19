@@ -50,13 +50,22 @@ object TyrianExample extends TyrianIOApp[Msg, Model]:
       (model, Cmd.None)
 
   def view(model: Model): Html[Msg] =
-    div(
-      h1("Forms4s Tyrian Example"),
-      TyrianForm.render(model.form, model.formState, Msg.UpdateField),
-      button(
-        onClick(Msg.Submit),
-        className := "submit-button"
-      )("Submit")
+    div(className := "container")(
+      div(className := "container")(
+        h1("Forms4s Tyrian Example"),
+        TyrianForm.render(
+          model.form, 
+          model.formState, 
+          Msg.UpdateField,
+          PicoStylesheet.stylesheet
+        ),
+        div(className := "grid")(
+          button(
+            onClick(Msg.Submit),
+            className := "submit-button"
+          )("Submit")
+        )
+      )
     )
 
   def subscriptions(model: Model): Sub[IO, Msg] =

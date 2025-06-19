@@ -17,23 +17,28 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
       val jsonSchema: ASchema = TapirSchemaToJsonSchema(
         userSchema,
-        markOptionsAsNullable = true
+        markOptionsAsNullable = true,
       )
 
       // When
       val form = FormFromJsonSchema.convert(jsonSchema)
 
       // Then
-      assert(form.elements == List(
-        FormElement.Text("name"),
-        FormElement.Text("age"),
-        FormElement.Subform(
-          "address",
-          Form(List(
-            FormElement.Text("street"),
-            FormElement.Text("city")
-          )))
-      ))
+      assert(
+        form.elements == List(
+          FormElement.Text("name"),
+          FormElement.Text("age"),
+          FormElement.Subform(
+            "address",
+            Form(
+              List(
+                FormElement.Text("street"),
+                FormElement.Text("city"),
+              ),
+            ),
+          ),
+        ),
+      )
     }
   }
 }
