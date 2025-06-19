@@ -46,6 +46,8 @@ object TyrianExample extends TyrianIOApp[Msg, Model]:
       val data = TyrianForm.extractData(model.form, model.formState)
       println(s"Form submitted with data: $data")
       (model, Cmd.None)
+    case Msg.SelectFramework(framework) =>
+      (model.copy(framework = framework), Cmd.None)
     case Msg.NoOp => 
       (model, Cmd.None)
 
@@ -53,17 +55,23 @@ object TyrianExample extends TyrianIOApp[Msg, Model]:
     div(className := "container")(
       div(className := "container")(
         h1("Forms4s Tyrian Example"),
-        TyrianForm.render(
-          model.form, 
-          model.formState, 
-          Msg.UpdateField,
-          PicoStylesheet.stylesheet
-        ),
-        div(className := "grid")(
-          button(
-            onClick(Msg.Submit),
-            className := "submit-button"
-          )("Submit")
+        StylesheetSwitcher.renderSwitcher(model.framework, Msg.SelectFramework),
+        StylesheetSwitcher.renderFormInIframe(
+          model.framework,
+          div()(
+            TyrianForm.render(
+              model.form, 
+              model.formState, 
+              Msg.UpdateField,
+              StylesheetSwitcher.getStylesheet(model.framework)
+            ),
+            div(className := "form-actions")(
+              button(
+                onClick(Msg.Submit),
+                className := "submit-button"
+              )("Submit")
+            )
+          )
         )
       )
     )
@@ -71,9 +79,10 @@ object TyrianExample extends TyrianIOApp[Msg, Model]:
   def subscriptions(model: Model): Sub[IO, Msg] =
     Sub.None
 
-case class Model(form: Form, formState: FormState)
+case class Model(form: Form, formState: FormState, framework: CssFramework = CssFramework.Pico)
 
 enum Msg:
   case UpdateField(name: String, value: String)
   case Submit
   case NoOp
+  case SelectFramework(framework: CssFramework)
