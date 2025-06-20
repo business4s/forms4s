@@ -17,7 +17,6 @@ trait FormRenderer {
       element: FormElement,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
 
@@ -25,7 +24,6 @@ trait FormRenderer {
       text: FormElement.Text,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
 
@@ -33,7 +31,6 @@ trait FormRenderer {
       select: FormElement.Select,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
 
@@ -41,7 +38,6 @@ trait FormRenderer {
       checkbox: FormElement.Checkbox,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
 
@@ -49,7 +45,6 @@ trait FormRenderer {
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
 }

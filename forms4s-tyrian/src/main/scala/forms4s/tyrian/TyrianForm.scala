@@ -22,63 +22,16 @@ object TyrianForm {
   case class FormState(values: Map[String, FormValue] = Map.empty) {
 
     def update(name: String, value: FormValue): FormState = {
-      val parts = name.split('.')
-      if (parts.length == 1) {
-        // Simple field
-        FormState(values + (name -> value))
-      } else {
-        // Nested field
-        val groupName = parts.head
-        val restPath = parts.tail.mkString(".")
-        val group = values.getOrElse(groupName, FormValue.Group(Map.empty)) match {
-          case g: FormValue.Group => g
-          case _ => FormValue.Group(Map.empty)
-        }
-
-        val updatedGroup = group.fields.get(restPath.split('.').head) match {
-          case Some(nestedGroup: FormValue.Group) =>
-            // If the next level is already a group, recursively update it
-            val nestedState = FormState(nestedGroup.fields)
-            val updatedNestedState = nestedState.update(restPath.split('.').tail.mkString("."), value)
-            FormValue.Group(group.fields + (restPath.split('.').head -> FormValue.Group(updatedNestedState.values)))
-          case _ =>
-            // Otherwise create a new value
-            val nestedValue = if (restPath.contains('.')) {
-              // If there are more levels, create a nested group
-              val nestedPath = restPath.split('.').tail.mkString(".")
-              val nestedState = FormState()
-              val updatedNestedState = nestedState.update(nestedPath, value)
-              FormValue.Group(updatedNestedState.values)
-            } else {
-              // Simple value at the end of the path
-              value
-            }
-            FormValue.Group(group.fields + (restPath.split('.').head -> nestedValue))
-        }
-
-        FormState(values + (groupName -> updatedGroup))
-      }
+      FormState(values + (name -> value))
     }
 
     def getValue(name: String): String = {
-      val parts = name.split('.')
-      if (parts.length == 1) {
-        // Simple field
-        values.get(name) match {
-          case Some(FormValue.Text(value)) => value
-          case Some(FormValue.Checkbox(checked)) => checked.toString
-          case Some(FormValue.Select(value)) => value
-          case _ => ""
-        }
-      } else {
-        // Nested field
-        val groupName = parts.head
-        val restPath = parts.tail.mkString(".")
-        values.get(groupName) match {
-          case Some(FormValue.Group(fields)) =>
-            FormState(fields).getValue(restPath)
-          case _ => ""
-        }
+      values.get(name) match {
+        case Some(FormValue.Text(value)) => value
+        case Some(FormValue.Checkbox(checked)) => checked.toString
+        case Some(FormValue.Select(value)) => value
+        case Some(FormValue.Group(_)) => "" // Groups don't have a simple string value
+        case _ => ""
       }
     }
   }

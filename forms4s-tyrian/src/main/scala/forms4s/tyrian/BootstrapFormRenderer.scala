@@ -11,14 +11,13 @@ object BootstrapFormRenderer extends DefaultFormRenderer {
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
-    val fullName = if prefix.isEmpty then subform.name else s"$prefix.${subform.name}"
+    val name = subform.name
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(subform.name),
       div(className := "card-body")(
-        subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, fullName, stylesheet))
+        subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, stylesheet))
       )
     )
   }

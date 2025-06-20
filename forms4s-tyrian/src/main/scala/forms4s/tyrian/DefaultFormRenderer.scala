@@ -12,7 +12,7 @@ class DefaultFormRenderer extends FormRenderer {
       stylesheet: FormStylesheet
   ): Html[Msg] = {
     div(className := stylesheet.formClass)(
-      form.elements.map(element => renderElement(element, state, onUpdate, "", stylesheet)),
+      form.elements.map(element => renderElement(element, state, onUpdate, stylesheet)),
     )
   }
 
@@ -20,18 +20,17 @@ class DefaultFormRenderer extends FormRenderer {
       element: FormElement,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
     element match {
       case text: FormElement.Text =>
-        renderTextInput(text, state, onUpdate, prefix, stylesheet)
+        renderTextInput(text, state, onUpdate, stylesheet)
       case select: FormElement.Select =>
-        renderSelect(select, state, onUpdate, prefix, stylesheet)
+        renderSelect(select, state, onUpdate, stylesheet)
       case checkbox: FormElement.Checkbox =>
-        renderCheckbox(checkbox, state, onUpdate, prefix, stylesheet)
+        renderCheckbox(checkbox, state, onUpdate, stylesheet)
       case subform: FormElement.Subform =>
-        renderSubform(subform, state, onUpdate, prefix, stylesheet)
+        renderSubform(subform, state, onUpdate, stylesheet)
     }
   }
 
@@ -39,22 +38,21 @@ class DefaultFormRenderer extends FormRenderer {
       text: FormElement.Text,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
-    val fullName = if prefix.isEmpty then text.name else s"$prefix.${text.name}"
+    val name = text.name
     div(className := stylesheet.formGroupClass)(
       label(
-        htmlFor   := fullName,
+        htmlFor   := name,
         className := stylesheet.labelClass,
       )(text.name),
       input(
         `type`    := "text",
-        id        := fullName,
-        name      := fullName,
+        id        := name,
+        Html.name := name,
         className := stylesheet.inputClass,
-        value     := state.getValue(fullName),
-        onInput(value => onUpdate(fullName, TyrianForm.FormValue.Text(value))),
+        value     := state.getValue(name),
+        onInput(value => onUpdate(name, TyrianForm.FormValue.Text(value))),
       ),
     )
   }
@@ -63,25 +61,24 @@ class DefaultFormRenderer extends FormRenderer {
       select: FormElement.Select,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
-    val fullName = if prefix.isEmpty then select.name else s"$prefix.${select.name}"
+    val name = select.name
     div(className := stylesheet.formGroupClass)(
       label(
-        htmlFor   := fullName,
+        htmlFor   := name,
         className := stylesheet.labelClass,
       )(select.name),
       tyrian.Html.select(
-        id        := fullName,
-        name      := fullName,
+        id        := name,
+        Html.name := name,
         className := stylesheet.selectClass,
-        onChange(value => onUpdate(fullName, TyrianForm.FormValue.Select(value))),
+        onChange(value => onUpdate(name, TyrianForm.FormValue.Select(value))),
       )(
         select.options.map(option =>
           tyrian.Html.option(
             value    := option,
-            selected := (state.getValue(fullName) == option),
+            selected := (state.getValue(name) == option),
           )(option),
         ),
       ),
@@ -92,22 +89,21 @@ class DefaultFormRenderer extends FormRenderer {
       checkbox: FormElement.Checkbox,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
-    val fullName = if prefix.isEmpty then checkbox.name else s"$prefix.${checkbox.name}"
+    val name = checkbox.name
     div(className := stylesheet.formGroupClass)(
       label(
-        htmlFor   := fullName,
+        htmlFor   := name,
         className := stylesheet.checkboxLabelClass,
       )(
         input(
           `type`    := "checkbox",
-          id        := fullName,
-          name      := fullName,
+          id        := name,
+          Html.name := name,
           className := stylesheet.checkboxClass,
-          checked   := (state.getValue(fullName) == "true"),
-          onChange(checked => onUpdate(fullName, TyrianForm.FormValue.Checkbox(checked == "true"))),
+          checked   := (state.getValue(name) == "true"),
+          onChange(checked => onUpdate(name, TyrianForm.FormValue.Checkbox(checked == "true"))),
         ),
         span(checkbox.name),
       ),
@@ -118,13 +114,11 @@ class DefaultFormRenderer extends FormRenderer {
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
       onUpdate: (String, TyrianForm.FormValue) => Msg,
-      prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
-    val fullName = if prefix.isEmpty then subform.name else s"$prefix.${subform.name}"
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(subform.name) ::
-        subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, fullName, stylesheet)),
+        subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, stylesheet)),
     )
   }
 }
