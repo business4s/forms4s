@@ -10,143 +10,87 @@ object TyrianForm {
 
   val defaultStylesheet: FormStylesheet = FormStylesheet()
 
-  case class FormState(values: Map[String, String] = Map.empty) {
+  sealed trait FormValue
 
-    def update(name: String, value: String): FormState =
-      FormState(values + (name -> value))
+  object FormValue {
+    case class Text(value: String) extends FormValue
+    case class Checkbox(checked: Boolean) extends FormValue
+    case class Select(value: String) extends FormValue
+    case class Group(fields: Map[String, FormValue]) extends FormValue
+  }
 
-    def getValue(name: String): String =
-      values.getOrElse(name, "")
+  case class FormState(values: Map[String, FormValue] = Map.empty) {
+
+    def update(name: String, value: FormValue): FormState = {
+      val parts = name.split('.')
+      if (parts.length == 1) {
+        // Simple field
+        FormState(values + (name -> value))
+      } else {
+        // Nested field
+        val groupName = parts.head
+        val restPath = parts.tail.mkString(".")
+        val group = values.getOrElse(groupName, FormValue.Group(Map.empty)) match {
+          case g: FormValue.Group => g
+          case _ => FormValue.Group(Map.empty)
+        }
+
+        val updatedGroup = group.fields.get(restPath.split('.').head) match {
+          case Some(nestedGroup: FormValue.Group) =>
+            // If the next level is already a group, recursively update it
+            val nestedState = FormState(nestedGroup.fields)
+            val updatedNestedState = nestedState.update(restPath.split('.').tail.mkString("."), value)
+            FormValue.Group(group.fields + (restPath.split('.').head -> FormValue.Group(updatedNestedState.values)))
+          case _ =>
+            // Otherwise create a new value
+            val nestedValue = if (restPath.contains('.')) {
+              // If there are more levels, create a nested group
+              val nestedPath = restPath.split('.').tail.mkString(".")
+              val nestedState = FormState()
+              val updatedNestedState = nestedState.update(nestedPath, value)
+              FormValue.Group(updatedNestedState.values)
+            } else {
+              // Simple value at the end of the path
+              value
+            }
+            FormValue.Group(group.fields + (restPath.split('.').head -> nestedValue))
+        }
+
+        FormState(values + (groupName -> updatedGroup))
+      }
+    }
+
+    def getValue(name: String): String = {
+      val parts = name.split('.')
+      if (parts.length == 1) {
+        // Simple field
+        values.get(name) match {
+          case Some(FormValue.Text(value)) => value
+          case Some(FormValue.Checkbox(checked)) => checked.toString
+          case Some(FormValue.Select(value)) => value
+          case _ => ""
+        }
+      } else {
+        // Nested field
+        val groupName = parts.head
+        val restPath = parts.tail.mkString(".")
+        values.get(groupName) match {
+          case Some(FormValue.Group(fields)) =>
+            FormState(fields).getValue(restPath)
+          case _ => ""
+        }
+      }
+    }
   }
 
   def render[Msg](
       form: Form,
       state: FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, FormValue) => Msg,
       stylesheet: FormStylesheet = defaultStylesheet,
       renderer: FormRenderer = DefaultFormRenderer,
   ): Html[Msg] = {
     renderer.renderForm(form, state, onUpdate, stylesheet)
   }
 
-  def extractData(form: Form, state: FormState): Map[String, Any] = {
-    val result = mutable.Map[String, Any]()
-
-    def processElement(element: FormElement, prefix: String): Unit = {
-      element match {
-        case subform: FormElement.Subform =>
-          val fullName  = if prefix.isEmpty then subform.name else s"$prefix.${subform.name}"
-          val subResult = mutable.Map[String, Any]()
-          subform.form.elements.foreach(subElement => processSubElement(subElement, fullName, subResult))
-          if prefix.isEmpty then {
-            result(subform.name) = subResult.toMap
-          } else {
-            val parts   = prefix.split('.')
-            var current = result
-            for i <- 0 until parts.length - 1 do {
-              if !current.contains(parts(i)) then {
-                current(parts(i)) = mutable.Map[String, Any]()
-              }
-              current = current(parts(i)).asInstanceOf[mutable.Map[String, Any]]
-            }
-            if !current.contains(parts.last) then {
-              current(parts.last) = mutable.Map[String, Any]()
-            }
-            val lastMap = current(parts.last).asInstanceOf[mutable.Map[String, Any]]
-            lastMap(subform.name) = subResult.toMap
-          }
-
-        case text: FormElement.Text =>
-          val fullName = if prefix.isEmpty then text.name else s"$prefix.${text.name}"
-          val value    = state.getValue(fullName)
-          if prefix.isEmpty then {
-            result(text.name) = value
-          } else {
-            val parts   = prefix.split('.')
-            var current = result
-            for i <- 0 until parts.length - 1 do {
-              if !current.contains(parts(i)) then {
-                current(parts(i)) = mutable.Map[String, Any]()
-              }
-              current = current(parts(i)).asInstanceOf[mutable.Map[String, Any]]
-            }
-            if !current.contains(parts.last) then {
-              current(parts.last) = mutable.Map[String, Any]()
-            }
-            val lastMap = current(parts.last).asInstanceOf[mutable.Map[String, Any]]
-            lastMap(text.name) = value
-          }
-
-        case select: FormElement.Select =>
-          val fullName = if prefix.isEmpty then select.name else s"$prefix.${select.name}"
-          val value    = state.getValue(fullName)
-          if prefix.isEmpty then {
-            result(select.name) = value
-          } else {
-            val parts   = prefix.split('.')
-            var current = result
-            for i <- 0 until parts.length - 1 do {
-              if !current.contains(parts(i)) then {
-                current(parts(i)) = mutable.Map[String, Any]()
-              }
-              current = current(parts(i)).asInstanceOf[mutable.Map[String, Any]]
-            }
-            if !current.contains(parts.last) then {
-              current(parts.last) = mutable.Map[String, Any]()
-            }
-            val lastMap = current(parts.last).asInstanceOf[mutable.Map[String, Any]]
-            lastMap(select.name) = value
-          }
-
-        case checkbox: FormElement.Checkbox =>
-          val fullName = if prefix.isEmpty then checkbox.name else s"$prefix.${checkbox.name}"
-          val value    = state.getValue(fullName)
-          if prefix.isEmpty then {
-            result(checkbox.name) = value
-          } else {
-            val parts   = prefix.split('.')
-            var current = result
-            for i <- 0 until parts.length - 1 do {
-              if !current.contains(parts(i)) then {
-                current(parts(i)) = mutable.Map[String, Any]()
-              }
-              current = current(parts(i)).asInstanceOf[mutable.Map[String, Any]]
-            }
-            if !current.contains(parts.last) then {
-              current(parts.last) = mutable.Map[String, Any]()
-            }
-            val lastMap = current(parts.last).asInstanceOf[mutable.Map[String, Any]]
-            lastMap(checkbox.name) = value
-          }
-      }
-    }
-
-    def processSubElement(element: FormElement, prefix: String, result: mutable.Map[String, Any]): Unit = {
-      element match {
-        case subform: FormElement.Subform =>
-          val subResult = mutable.Map[String, Any]()
-          subform.form.elements.foreach(subElement => processSubElement(subElement, s"$prefix.${subform.name}", subResult))
-          result(subform.name) = subResult.toMap
-
-        case text: FormElement.Text =>
-          val fullName = s"$prefix.${text.name}"
-          val value    = state.getValue(fullName)
-          result(text.name) = value
-
-        case select: FormElement.Select =>
-          val fullName = s"$prefix.${select.name}"
-          val value    = state.getValue(fullName)
-          result(select.name) = value
-
-        case checkbox: FormElement.Checkbox =>
-          val fullName = s"$prefix.${checkbox.name}"
-          val value    = state.getValue(fullName)
-          result(checkbox.name) = value
-      }
-    }
-
-    form.elements.foreach(element => processElement(element, ""))
-
-    result.toMap
-  }
 }

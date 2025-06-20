@@ -8,7 +8,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderForm[Msg](
       form: Form,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
     div(className := stylesheet.formClass)(
@@ -19,7 +19,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderElement[Msg](
       element: FormElement,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
@@ -38,7 +38,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderTextInput[Msg](
       text: FormElement.Text,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
@@ -54,7 +54,7 @@ class DefaultFormRenderer extends FormRenderer {
         name      := fullName,
         className := stylesheet.inputClass,
         value     := state.getValue(fullName),
-        onInput(value => onUpdate(fullName, value)),
+        onInput(value => onUpdate(fullName, TyrianForm.FormValue.Text(value))),
       ),
     )
   }
@@ -62,7 +62,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderSelect[Msg](
       select: FormElement.Select,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
@@ -76,7 +76,7 @@ class DefaultFormRenderer extends FormRenderer {
         id        := fullName,
         name      := fullName,
         className := stylesheet.selectClass,
-        onChange(value => onUpdate(fullName, value)),
+        onChange(value => onUpdate(fullName, TyrianForm.FormValue.Select(value))),
       )(
         select.options.map(option =>
           tyrian.Html.option(
@@ -91,7 +91,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderCheckbox[Msg](
       checkbox: FormElement.Checkbox,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
@@ -107,7 +107,7 @@ class DefaultFormRenderer extends FormRenderer {
           name      := fullName,
           className := stylesheet.checkboxClass,
           checked   := (state.getValue(fullName) == "true"),
-          onChange(checked => onUpdate(fullName, if checked == "true" then "true" else "false")),
+          onChange(checked => onUpdate(fullName, TyrianForm.FormValue.Checkbox(checked == "true"))),
         ),
         span(checkbox.name),
       ),
@@ -117,7 +117,7 @@ class DefaultFormRenderer extends FormRenderer {
   override def renderSubform[Msg](
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {

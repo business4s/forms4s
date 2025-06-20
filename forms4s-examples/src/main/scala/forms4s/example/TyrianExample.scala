@@ -45,8 +45,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       val newState = model.formState.update(name, value)
       (model.copy(formState = newState), Cmd.None)
     case Msg.Submit                     =>
-      val data = TyrianForm.extractData(model.form, model.formState)
-      println(s"Form submitted with data: $data")
+      println(s"Form submitted with data: ${model.formState}")
       (model, Cmd.None)
     case Msg.NoOp                       =>
       (model, Cmd.None)
@@ -60,7 +59,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
           TyrianForm.render(
             model.form,
             model.formState,
-            Msg.UpdateField,
+            Msg.UpdateField.apply,
             BulmaStylesheet.stylesheet,
             DefaultFormRenderer,
           ),
@@ -81,7 +80,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
 case class Model(form: Form, formState: FormState)
 
 enum Msg {
-  case UpdateField(name: String, value: String)
+  case UpdateField(name: String, value: forms4s.tyrian.TyrianForm.FormValue)
   case Submit
   case NoOp
 }

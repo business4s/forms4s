@@ -9,14 +9,14 @@ trait FormRenderer {
   def renderForm[Msg](
       form: Form,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       stylesheet: FormStylesheet
   ): Html[Msg]
 
   def renderElement[Msg](
       element: FormElement,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
@@ -24,7 +24,7 @@ trait FormRenderer {
   def renderTextInput[Msg](
       text: FormElement.Text,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
@@ -32,7 +32,7 @@ trait FormRenderer {
   def renderSelect[Msg](
       select: FormElement.Select,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
@@ -40,7 +40,7 @@ trait FormRenderer {
   def renderCheckbox[Msg](
       checkbox: FormElement.Checkbox,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]
@@ -48,7 +48,7 @@ trait FormRenderer {
   def renderSubform[Msg](
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg]

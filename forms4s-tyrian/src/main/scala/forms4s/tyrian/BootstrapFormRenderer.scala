@@ -10,7 +10,7 @@ object BootstrapFormRenderer extends DefaultFormRenderer {
   override def renderSubform[Msg](
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
-      onUpdate: (String, String) => Msg,
+      onUpdate: (String, TyrianForm.FormValue) => Msg,
       prefix: String,
       stylesheet: FormStylesheet
   ): Html[Msg] = {
