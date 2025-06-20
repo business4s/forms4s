@@ -3,7 +3,9 @@ package forms4s.example
 import cats.effect.IO
 import forms4s.tyrian.TyrianForm
 import forms4s.tyrian.TyrianForm.FormState
+import forms4s.tyrian.DefaultFormRenderer
 import forms4s.{Form, FormFromJsonSchema}
+import forms4s.example.BulmaStylesheet
 import tyrian.*
 import tyrian.Html.*
 
@@ -46,8 +48,6 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       val data = TyrianForm.extractData(model.form, model.formState)
       println(s"Form submitted with data: $data")
       (model, Cmd.None)
-    case Msg.SelectFramework(framework) =>
-      (model.copy(framework = framework), Cmd.None)
     case Msg.NoOp                       =>
       (model, Cmd.None)
   }
@@ -56,23 +56,19 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     div(className := "container")(
       div(className := "container")(
         h1("Forms4s Tyrian Example"),
-        StylesheetSwitcher.renderSwitcher(model.framework, Msg.SelectFramework),
-        StylesheetSwitcher.renderFormInIframe(
-          model.framework,
-          div()(
-            TyrianForm.render(
-              model.form,
-              model.formState,
-              Msg.UpdateField,
-              StylesheetSwitcher.getStylesheet(model.framework),
-              StylesheetSwitcher.getRenderer(model.framework),
-            ),
-            div(className := "form-actions")(
-              button(
-                onClick(Msg.Submit),
-                className := "submit-button",
-              )("Submit"),
-            ),
+        div()(
+          TyrianForm.render(
+            model.form,
+            model.formState,
+            Msg.UpdateField,
+            BulmaStylesheet.stylesheet,
+            DefaultFormRenderer,
+          ),
+          div(className := "form-actions")(
+            button(
+              onClick(Msg.Submit),
+              className := "button is-primary",
+            )("Submit"),
           ),
         ),
       ),
@@ -82,11 +78,10 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     Sub.None
 }
 
-case class Model(form: Form, formState: FormState, framework: CssFramework = CssFramework.Pico)
+case class Model(form: Form, formState: FormState)
 
 enum Msg {
   case UpdateField(name: String, value: String)
   case Submit
   case NoOp
-  case SelectFramework(framework: CssFramework)
 }
