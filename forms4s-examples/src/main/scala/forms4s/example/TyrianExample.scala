@@ -63,7 +63,8 @@ object TyrianExample extends TyrianIOApp[Msg, Model]:
               model.form, 
               model.formState, 
               Msg.UpdateField,
-              StylesheetSwitcher.getStylesheet(model.framework)
+              StylesheetSwitcher.getStylesheet(model.framework),
+              StylesheetSwitcher.getRenderer(model.framework)
             ),
             div(className := "form-actions")(
               button(

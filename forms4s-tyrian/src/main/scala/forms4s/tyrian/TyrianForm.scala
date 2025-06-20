@@ -50,6 +50,8 @@ object TyrianForm {
     *   A function that will be called when a field is updated.
     * @param stylesheet
     *   The stylesheet to use for rendering the form. Defaults to defaultStylesheet.
+    * @param renderer
+    *   The renderer to use for rendering the form. Defaults to defaultRenderer.
     * @return
     *   The HTML representation of the form.
     */
@@ -58,99 +60,9 @@ object TyrianForm {
       state: FormState,
       onUpdate: (String, String) => Msg,
       stylesheet: FormStylesheet = defaultStylesheet,
+      renderer: FormRenderer = DefaultFormRenderer,
   ): Html[Msg] = {
-    div(className := stylesheet.formClass)(
-      form.elements.map(element => renderElement(element, state, onUpdate, "", stylesheet)),
-    )
-  }
-
-  /** Renders a form element as Tyrian HTML.
-    * @param element
-    *   The form element to render.
-    * @param state
-    *   The current state of the form.
-    * @param onUpdate
-    *   A function that will be called when a field is updated.
-    * @param prefix
-    *   A prefix to add to the field name (used for nested forms).
-    * @param stylesheet
-    *   The stylesheet to use for rendering the form element.
-    * @return
-    *   The HTML representation of the form element.
-    */
-  private def renderElement[Msg](
-      element: FormElement,
-      state: FormState,
-      onUpdate: (String, String) => Msg,
-      prefix: String,
-      stylesheet: FormStylesheet,
-  ): Html[Msg] = {
-    element match {
-      case text: FormElement.Text =>
-        val fullName = if prefix.isEmpty then text.name else s"$prefix.${text.name}"
-        div(className := stylesheet.formGroupClass)(
-          label(
-            htmlFor   := fullName,
-            className := stylesheet.labelClass,
-          )(text.name),
-          input(
-            `type`    := "text",
-            id        := fullName,
-            name      := fullName,
-            className := stylesheet.inputClass,
-            value     := state.getValue(fullName),
-            onInput(value => onUpdate(fullName, value)),
-          ),
-        )
-
-      case select: FormElement.Select =>
-        val fullName = if prefix.isEmpty then select.name else s"$prefix.${select.name}"
-        div(className := stylesheet.formGroupClass)(
-          label(
-            htmlFor   := fullName,
-            className := stylesheet.labelClass,
-          )(select.name),
-          tyrian.Html.select(
-            id        := fullName,
-            name      := fullName,
-            className := stylesheet.selectClass,
-            onChange(value => onUpdate(fullName, value)),
-          )(
-            select.options.map(option =>
-              tyrian.Html.option(
-                value    := option,
-                selected := (state.getValue(fullName) == option),
-              )(option),
-            ),
-          ),
-        )
-
-      case checkbox: FormElement.Checkbox =>
-        val fullName = if prefix.isEmpty then checkbox.name else s"$prefix.${checkbox.name}"
-        div(className := stylesheet.formGroupClass)(
-          label(
-            htmlFor   := fullName,
-            className := stylesheet.checkboxLabelClass,
-          )(
-            input(
-              `type`    := "checkbox",
-              id        := fullName,
-              name      := fullName,
-              className := stylesheet.checkboxClass,
-              checked   := (state.getValue(fullName) == "true"),
-              onChange(checked => onUpdate(fullName, if checked == "true" then "true" else "false")),
-            ),
-            span(checkbox.name),
-          ),
-        )
-
-      case subform: FormElement.Subform =>
-        val fullName = if prefix.isEmpty then subform.name else s"$prefix.${subform.name}"
-        div(className := stylesheet.subformClass)(
-          h3(className := stylesheet.subformTitleClass)(subform.name) ::
-            subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, fullName, stylesheet)),
-        )
-    }
+    renderer.renderForm(form, state, onUpdate, stylesheet)
   }
 
   /** Extracts data from a form state based on a form definition.
