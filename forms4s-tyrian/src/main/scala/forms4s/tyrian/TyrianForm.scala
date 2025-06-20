@@ -6,55 +6,19 @@ import tyrian.Html.*
 
 import scala.collection.mutable
 
-/** Provides functionality to render forms with Tyrian and extract data from them.
-  */
 object TyrianForm {
 
-  /** Default stylesheet with basic styling
-    */
   val defaultStylesheet: FormStylesheet = FormStylesheet()
 
-  /** Represents a form state that can be updated by user interactions.
-    * @param values
-    *   The current values of the form fields.
-    */
   case class FormState(values: Map[String, String] = Map.empty) {
 
-    /** Updates the value of a field in the form state.
-      * @param name
-      *   The name of the field.
-      * @param value
-      *   The new value of the field.
-      * @return
-      *   A new FormState with the updated value.
-      */
     def update(name: String, value: String): FormState =
       FormState(values + (name -> value))
 
-    /** Gets the value of a field in the form state.
-      * @param name
-      *   The name of the field.
-      * @return
-      *   The value of the field, or an empty string if the field is not found.
-      */
     def getValue(name: String): String =
       values.getOrElse(name, "")
   }
 
-  /** Renders a form as Tyrian HTML.
-    * @param form
-    *   The form to render.
-    * @param state
-    *   The current state of the form.
-    * @param onUpdate
-    *   A function that will be called when a field is updated.
-    * @param stylesheet
-    *   The stylesheet to use for rendering the form. Defaults to defaultStylesheet.
-    * @param renderer
-    *   The renderer to use for rendering the form. Defaults to defaultRenderer.
-    * @return
-    *   The HTML representation of the form.
-    */
   def render[Msg](
       form: Form,
       state: FormState,
@@ -65,14 +29,6 @@ object TyrianForm {
     renderer.renderForm(form, state, onUpdate, stylesheet)
   }
 
-  /** Extracts data from a form state based on a form definition.
-    * @param form
-    *   The form definition.
-    * @param state
-    *   The current state of the form.
-    * @return
-    *   A Map containing the extracted data.
-    */
   def extractData(form: Form, state: FormState): Map[String, Any] = {
     val result = mutable.Map[String, Any]()
 

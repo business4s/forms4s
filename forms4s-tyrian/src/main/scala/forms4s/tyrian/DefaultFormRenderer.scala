@@ -4,12 +4,7 @@ import forms4s.{Form, FormElement, FormStylesheet}
 import tyrian.Html
 import tyrian.Html.*
 
-/** Default implementation of FormRenderer.
-  * This implementation replicates the default rendering behavior.
-  */
 class DefaultFormRenderer extends FormRenderer {
-  /** Renders a form as Tyrian HTML.
-    */
   override def renderForm[Msg](
       form: Form,
       state: TyrianForm.FormState,
@@ -21,8 +16,6 @@ class DefaultFormRenderer extends FormRenderer {
     )
   }
 
-  /** Renders a form element as Tyrian HTML.
-    */
   override def renderElement[Msg](
       element: FormElement,
       state: TyrianForm.FormState,
@@ -42,8 +35,6 @@ class DefaultFormRenderer extends FormRenderer {
     }
   }
 
-  /** Renders a text input element.
-    */
   override def renderTextInput[Msg](
       text: FormElement.Text,
       state: TyrianForm.FormState,
@@ -68,8 +59,6 @@ class DefaultFormRenderer extends FormRenderer {
     )
   }
 
-  /** Renders a select element.
-    */
   override def renderSelect[Msg](
       select: FormElement.Select,
       state: TyrianForm.FormState,
@@ -99,8 +88,6 @@ class DefaultFormRenderer extends FormRenderer {
     )
   }
 
-  /** Renders a checkbox element.
-    */
   override def renderCheckbox[Msg](
       checkbox: FormElement.Checkbox,
       state: TyrianForm.FormState,
@@ -127,8 +114,6 @@ class DefaultFormRenderer extends FormRenderer {
     )
   }
 
-  /** Renders a subform element.
-    */
   override def renderSubform[Msg](
       subform: FormElement.Subform,
       state: TyrianForm.FormState,
