@@ -1,11 +1,8 @@
 package forms4s.example
 
 import cats.effect.IO
-import forms4s.tyrian.TyrianForm
-import forms4s.tyrian.TyrianForm.FormState
-import forms4s.tyrian.DefaultFormRenderer
-import forms4s.{Form, FormFromJsonSchema}
-import forms4s.example.BulmaStylesheet
+import forms4s.FormFromJsonSchema
+import forms4s.tyrian.{FormState, FormUpdate}
 import tyrian.*
 import tyrian.Html.*
 
@@ -37,17 +34,17 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = {
     val form = FormFromJsonSchema.convert(ExampleServer.jsonSchema)
-    (Model(form, FormState()), Cmd.None)
+    (Model(FormState.empty(form)), Cmd.None)
   }
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = {
-    case Msg.UpdateField(name, value)   =>
-      val newState = model.formState.update(name, value)
+    case Msg.UpdateMyForm(raw: FormUpdate) =>
+      val newState = model.formState.update(raw)
       (model.copy(formState = newState), Cmd.None)
-    case Msg.Submit                     =>
+    case Msg.Submit                       =>
       println(s"Form submitted with data: ${model.formState}")
       (model, Cmd.None)
-    case Msg.NoOp                       =>
+    case Msg.NoOp                         =>
       (model, Cmd.None)
   }
 
@@ -56,13 +53,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       div(className := "container")(
         h1("Forms4s Tyrian Example"),
         div()(
-          TyrianForm.render(
-            model.form,
-            model.formState,
-            Msg.UpdateField.apply,
-            BulmaStylesheet.stylesheet,
-            DefaultFormRenderer,
-          ),
+          model.formState.render(BulmaStylesheet.stylesheet).map(Msg.UpdateMyForm.apply),
           div(className := "form-actions")(
             button(
               onClick(Msg.Submit),
@@ -77,10 +68,10 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     Sub.None
 }
 
-case class Model(form: Form, formState: FormState)
+case class Model(formState: FormState)
 
 enum Msg {
-  case UpdateField(name: String, value: forms4s.tyrian.TyrianForm.FormValue)
+  case UpdateMyForm(raw: FormUpdate)
   case Submit
   case NoOp
 }

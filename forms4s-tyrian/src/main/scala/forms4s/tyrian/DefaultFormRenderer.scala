@@ -1,97 +1,71 @@
 package forms4s.tyrian
 
-import forms4s.{Form, FormElement, FormStylesheet}
+import forms4s.FormStylesheet
 import tyrian.Html
 import tyrian.Html.*
 
 class DefaultFormRenderer extends FormRenderer {
-  override def renderForm[Msg](
-      form: Form,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
+  override def renderForm(
+      state: FormState,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
     div(className := stylesheet.formClass)(
-      form.elements.map(element => renderElement(element, state, onUpdate, stylesheet)),
+      state.values.map(element => renderElement(element, stylesheet)),
     )
   }
 
-  override def renderElement[Msg](
-      element: FormElement,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
-    element match {
-      case text: FormElement.Text =>
-        renderTextInput(text, state, onUpdate, stylesheet)
-      case select: FormElement.Select =>
-        renderSelect(select, state, onUpdate, stylesheet)
-      case checkbox: FormElement.Checkbox =>
-        renderCheckbox(checkbox, state, onUpdate, stylesheet)
-      case subform: FormElement.Subform =>
-        renderSubform(subform, state, onUpdate, stylesheet)
-    }
-  }
-
-  override def renderTextInput[Msg](
-      text: FormElement.Text,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
-    val name = text.name
+  override def renderTextInput(
+      state: FormState.Text,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
+    val name = state.element.name
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(text.name),
+      )(name),
       input(
         `type`    := "text",
         id        := name,
         Html.name := name,
         className := stylesheet.inputClass,
-        value     := state.getValue(name),
-        onInput(value => onUpdate(name, TyrianForm.FormValue.Text(value))),
+        value     := state.value,
+        onInput(value => FormUpdate(state.element.name, FormValue.Text(value))),
       ),
     )
   }
 
-  override def renderSelect[Msg](
-      select: FormElement.Select,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
-    val name = select.name
+  override def renderSelect(
+      state: FormState.Select,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
+    val name = state.element.name
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(select.name),
+      )(name),
       tyrian.Html.select(
         id        := name,
         Html.name := name,
         className := stylesheet.selectClass,
-        onChange(value => onUpdate(name, TyrianForm.FormValue.Select(value))),
+        onChange(value => FormUpdate(name, FormValue.Select(value))),
       )(
-        select.options.map(option =>
+        state.element.options.map(option =>
           tyrian.Html.option(
             value    := option,
-            selected := (state.getValue(name) == option),
+            selected := (state.value == option),
           )(option),
         ),
       ),
     )
   }
 
-  override def renderCheckbox[Msg](
-      checkbox: FormElement.Checkbox,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
-    val name = checkbox.name
+  override def renderCheckbox(
+      state: FormState.Checkbox,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
+    val name = state.element.name
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
@@ -102,23 +76,24 @@ class DefaultFormRenderer extends FormRenderer {
           id        := name,
           Html.name := name,
           className := stylesheet.checkboxClass,
-          checked   := (state.getValue(name) == "true"),
-          onChange(checked => onUpdate(name, TyrianForm.FormValue.Checkbox(checked == "true"))),
+          checked   := state.value,
+          onChange(checked => FormUpdate(name, FormValue.Checkbox(checked == "true"))),
         ),
-        span(checkbox.name),
+        span(name),
       ),
     )
   }
 
-  override def renderSubform[Msg](
-      subform: FormElement.Subform,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg] = {
+  override def renderGroup(
+      state: FormState.Group,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
+    val name = state.element.name
     div(className := stylesheet.subformClass)(
-      h3(className := stylesheet.subformTitleClass)(subform.name) ::
-        subform.form.elements.map(subElement => renderElement(subElement, state, onUpdate, stylesheet)),
+      h3(className := stylesheet.subformTitleClass)(name) ::
+        state.value.values.map(subElement =>
+          renderElement(subElement, stylesheet),
+        ),
     )
   }
 }

@@ -6,45 +6,38 @@ import tyrian.Html.*
 
 /** Abstraction for rendering form elements with Tyrian */
 trait FormRenderer {
-  def renderForm[Msg](
-      form: Form,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderForm(
+      state: FormState,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
 
-  def renderElement[Msg](
-      element: FormElement,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderElement(
+      state: FormState.Element,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = state match {
+    case text: FormState.Text         => renderTextInput(text, stylesheet)
+    case select: FormState.Select     => renderSelect(select, stylesheet)
+    case checkbox: FormState.Checkbox => renderCheckbox(checkbox, stylesheet)
+    case subform: FormState.Group     => renderGroup(subform, stylesheet)
+  }
 
-  def renderTextInput[Msg](
-      text: FormElement.Text,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderTextInput(
+      state: FormState.Text,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
 
-  def renderSelect[Msg](
-      select: FormElement.Select,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderSelect(
+      state: FormState.Select,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
 
-  def renderCheckbox[Msg](
-      checkbox: FormElement.Checkbox,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderCheckbox(
+      state: FormState.Checkbox,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
 
-  def renderSubform[Msg](
-      subform: FormElement.Subform,
-      state: TyrianForm.FormState,
-      onUpdate: (String, TyrianForm.FormValue) => Msg,
-      stylesheet: FormStylesheet
-  ): Html[Msg]
+  def renderGroup(
+      state: FormState.Group,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
 }

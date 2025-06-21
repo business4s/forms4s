@@ -5,7 +5,9 @@ import sttp.apispec.Schema as ASchema
 
 case class Form(elements: List[FormElement])
 
-sealed trait FormElement
+sealed trait FormElement {
+  def name: String
+}
 
 object FormElement {
   case class Text(name: String) extends FormElement
