@@ -1,8 +1,7 @@
 package forms4s.tyrian
 
-import forms4s.{Form, FormElement, FormStylesheet}
+import forms4s.{FormState, FormStylesheet}
 import tyrian.Html
-import tyrian.Html.*
 
 /** Abstraction for rendering form elements with Tyrian */
 trait FormRenderer {

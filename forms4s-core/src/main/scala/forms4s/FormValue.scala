@@ -1,4 +1,4 @@
-package forms4s.tyrian
+package forms4s
 
 sealed trait FormValue
 

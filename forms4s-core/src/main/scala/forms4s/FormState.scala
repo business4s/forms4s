@@ -1,25 +1,15 @@
-package forms4s.tyrian
-
-import forms4s.{Form, FormElement, FormStylesheet}
-import tyrian.Html
+package forms4s
 
 case class FormState(definition: Form, values: List[FormState.Element]) {
 
-  def update(msg: FormUpdate): FormState = {
+  def update(field: String, value: FormValue): FormState = {
     FormState(
       definition,
       values.map({
-        case x if x.name == msg.field => x.update(msg.value)
+        case x if x.name == field => x.update(value)
         case x                        => x
       }),
     )
-  }
-
-  def render(
-      stylesheet: FormStylesheet = FormStylesheet(),
-      renderer: FormRenderer = DefaultFormRenderer,
-  ): Html[FormUpdate] = {
-    renderer.renderForm(this, stylesheet)
   }
 
 }
@@ -44,7 +34,7 @@ object FormState {
         case (Text(e, _), FormValue.Text(newValue))                => Text(e, newValue)
         case (Checkbox(e, _), FormValue.Checkbox(newValue))        => Checkbox(e, newValue)
         case (Select(e, _), FormValue.Select(newValue))            => Select(e, newValue)
-        case (Group(e, fields), FormValue.Nested(field, newValue)) => Group(e, fields.update(FormUpdate(field, newValue)))
+        case (Group(e, fields), FormValue.Nested(field, newValue)) => Group(e, fields.update(field, newValue))
         case _                                                     => ???
       }
     }

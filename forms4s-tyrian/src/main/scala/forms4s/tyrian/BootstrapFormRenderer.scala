@@ -1,6 +1,6 @@
 package forms4s.tyrian
 
-import forms4s.{FormElement, FormStylesheet}
+import forms4s.{FormState, FormStylesheet}
 import tyrian.Html
 import tyrian.Html.*
 

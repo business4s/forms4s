@@ -1,23 +1,6 @@
 package forms4s
 
-import forms4s.ExampleModel.{Address, User}
 import sttp.apispec.Schema as ASchema
-
-case class Form(elements: List[FormElement])
-
-sealed trait FormElement {
-  def name: String
-}
-
-object FormElement {
-  case class Text(name: String) extends FormElement
-
-  case class Select(name: String, options: List[String]) extends FormElement
-
-  case class Checkbox(name: String) extends FormElement
-
-  case class Subform(name: String, form: Form) extends FormElement
-}
 
 object FormFromJsonSchema {
   def convert(schema: ASchema): Form = {
@@ -79,33 +62,4 @@ object FormFromJsonSchema {
       case _                    => FormElement.Text(name) // Default to text for unknown types
     }
   }
-}
-
-object ExampleModel {
-  case class User(name: String, age: Int, address: Address)
-
-  case class Address(street: String, city: String)
-}
-
-object ExampleServer {
-
-  import ExampleModel.{Address, User}
-
-  //  given TSchema[Address] = TSchema.derived
-
-  //  given userSchema: TSchema[User] = TSchema.derived
-
-  //  val jsonSchema: ASchema = TapirSchemaToJsonSchema(
-  //    userSchema,
-  //    markOptionsAsNullable = true,
-  //  )
-
-  val jsonSchema: ASchema = ???
-
-}
-
-object ExampleClient {
-
-  val form = FormFromJsonSchema.convert(ExampleServer.jsonSchema)
-
 }
