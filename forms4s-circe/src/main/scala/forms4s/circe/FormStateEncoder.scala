@@ -11,9 +11,7 @@ object FormStateEncoder {
       element.name -> encodeElement(element)
     }.toMap
 
-    Json.obj(
-      "values" -> Json.fromFields(valueMap)
-    )
+    Json.fromFields(valueMap)
   }
 
   private def encodeElement(element: FormState.Element): Json = element match {
@@ -23,9 +21,7 @@ object FormStateEncoder {
     case FormState.Group(_, subState) => encodeFormState(subState)
   }
 
-  implicit val formStateEncoder: Encoder[FormState] = Encoder.instance(encodeFormState)
-
   // Extension method for easier conversion
   extension (formState: FormState)
-    def asJson: Json = encodeFormState(formState)
+    def extractJson: Json = encodeFormState(formState)
 }

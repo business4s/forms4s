@@ -1,6 +1,7 @@
 package forms4s.example
 
 import cats.effect.IO
+import forms4s.circe.FormStateEncoder.extractJson
 import forms4s.tyrian.*
 import forms4s.{FormFromJsonSchema, FormState}
 import tyrian.*
@@ -42,7 +43,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       val newState = model.formState.update(raw.field, raw.value)
       (model.copy(formState = newState), Cmd.None)
     case Msg.Submit                       =>
-      println(s"Form submitted with data: ${model.formState}")
+      println(s"Form submitted with data: ${model.formState.extractJson}")
       (model, Cmd.None)
     case Msg.NoOp                         =>
       (model, Cmd.None)

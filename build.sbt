@@ -20,7 +20,7 @@ lazy val `forms4s-core` = (project in file("forms4s-core"))
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.14.14",
+      "io.circe" %%% "circe-core" % "0.14.14",
     ),
   )
   .enablePlugins(ScalaJSPlugin)
@@ -76,4 +76,4 @@ lazy val `forms4s-examples` =
         "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
       ),
     )
-    .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`)
+    .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`, `forms4s-circe`)
