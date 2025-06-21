@@ -1,5 +1,6 @@
 package forms4s.tyrian
 
+import forms4s.FormValue.Nested
 import forms4s.{FormState, FormStylesheet, FormValue}
 import tyrian.Html
 import tyrian.Html.*
@@ -92,7 +93,8 @@ class DefaultFormRenderer extends FormRenderer {
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(name) ::
         state.value.values.map(subElement =>
-          renderElement(subElement, stylesheet),
+          renderElement(subElement, stylesheet)
+            .map(x => FormUpdate(name, FormValue.Nested(x.field, x.value))),
         ),
     )
   }

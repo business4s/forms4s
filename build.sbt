@@ -15,12 +15,12 @@ lazy val root = (project in file("."))
     `forms4s-examples`,
   )
 
-
 lazy val `forms4s-core` = (project in file("forms4s-core"))
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.14.14",
+      "io.circe"     %%% "circe-core"         % "0.14.14",
+      "org.scalatest" %% "scalatest-freespec" % "3.2.19" % "test",
     ),
   )
   .enablePlugins(ScalaJSPlugin)

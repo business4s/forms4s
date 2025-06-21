@@ -1,6 +1,6 @@
 package forms4s.tyrian
 
-import forms4s.{FormState, FormStylesheet}
+import forms4s.{FormState, FormStylesheet, FormValue}
 import tyrian.Html
 import tyrian.Html.*
 
@@ -15,7 +15,10 @@ object BootstrapFormRenderer extends DefaultFormRenderer {
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(name),
       div(className := "card-body")(
-        state.value.values.map(subElement => renderElement(subElement, stylesheet)),
+        state.value.values.map(subElement =>
+          renderElement(subElement, stylesheet)
+            .map(x => FormUpdate(name, FormValue.Nested(x.field, x.value))),
+        ),
       ),
     )
   }
