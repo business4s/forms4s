@@ -1,23 +1,49 @@
 package forms4s.example
 
 import cats.effect.IO
+import forms4s.FormState
 import forms4s.circe.FormStateEncoder.extractJson
+import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
-import forms4s.{FormFromJsonSchema, FormState}
 import tyrian.*
 import tyrian.Html.*
 
 import scala.scalajs.js.annotation.*
 
-object ExampleServer {
+object MyForm {
 
-  import forms4s.ExampleModel.{Address, User}
   import sttp.apispec.Schema as ASchema
   import sttp.tapir.Schema as TSchema
   import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 
-  given TSchema[Address] = TSchema.derived
+  case class Address(
+      street: String,
+      city: String,
+      country: String,
+      notes: Option[String], // long multiline optional text
+  )
 
+  enum Theme {
+    case Light, Dark, Auto
+  }
+
+  case class UserPreferences(
+      newsletter: Boolean,
+      theme: Option[Theme], // enum: "light", "dark", "auto"
+  )
+
+  case class User(
+      name: String,
+      age: Option[Int],          // optional number
+      income: Double,            // required number
+      biography: Option[String], // long multiline optional text
+      address: Address,          // nested subform
+      preferences: UserPreferences, // nested subform with enum and checkbox
+  )
+
+  given TSchema[Address] = TSchema.derived
+  given TSchema[Theme] = TSchema.derived
+  given TSchema[UserPreferences] = TSchema.derived
   given userSchema: TSchema[User] = TSchema.derived
 
   val jsonSchema: ASchema = TapirSchemaToJsonSchema(
@@ -34,7 +60,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     Routing.none(Msg.NoOp)
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = {
-    val form = FormFromJsonSchema.convert(ExampleServer.jsonSchema)
+    val form = FormFromJsonSchema.convert(MyForm.jsonSchema)
     (Model(FormState.empty(form)), Cmd.None)
   }
 
@@ -42,10 +68,10 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     case Msg.UpdateMyForm(raw: FormUpdate) =>
       val newState = model.formState.update(raw.field, raw.value)
       (model.copy(formState = newState), Cmd.None)
-    case Msg.Submit                       =>
+    case Msg.Submit                        =>
       println(s"Form submitted with data: ${model.formState.extractJson}")
       (model, Cmd.None)
-    case Msg.NoOp                         =>
+    case Msg.NoOp                          =>
       (model, Cmd.None)
   }
 

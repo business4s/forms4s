@@ -19,19 +19,40 @@ class DefaultFormRenderer extends FormRenderer {
       state: FormState.Text,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate] = {
-    val name = state.element.name
+    val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(name),
+      )(state.element.label),
       input(
         `type`    := "text",
         id        := name,
         Html.name := name,
         className := stylesheet.inputClass,
         value     := state.value,
-        onInput(value => FormUpdate(state.element.name, FormValue.Text(value))),
+        onInput(value => FormUpdate(state.element.id, FormValue.Text(value))),
+      ),
+    )
+  }
+
+  override def renderNumberInput(
+      state: FormState.Number,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate] = {
+    val name = state.element.id
+    div(className := stylesheet.formGroupClass)(
+      label(
+        htmlFor   := name,
+        className := stylesheet.labelClass,
+      )(state.element.label),
+      input(
+        `type`    := "number",
+        id        := name,
+        Html.name := name,
+        className := stylesheet.inputClass,
+        value     := state.value.toString,
+        onInput(value => FormUpdate(state.element.id, FormValue.Number(value.toDouble))),
       ),
     )
   }
@@ -40,12 +61,12 @@ class DefaultFormRenderer extends FormRenderer {
       state: FormState.Select,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate] = {
-    val name = state.element.name
+    val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(name),
+      )(state.element.label),
       tyrian.Html.select(
         id        := name,
         Html.name := name,
@@ -66,7 +87,7 @@ class DefaultFormRenderer extends FormRenderer {
       state: FormState.Checkbox,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate] = {
-    val name = state.element.name
+    val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
@@ -80,7 +101,7 @@ class DefaultFormRenderer extends FormRenderer {
           checked   := state.value,
           onChange(checked => FormUpdate(name, FormValue.Checkbox(checked == "true"))),
         ),
-        span(name),
+        span(state.element.label),
       ),
     )
   }
@@ -89,7 +110,7 @@ class DefaultFormRenderer extends FormRenderer {
       state: FormState.Group,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate] = {
-    val name = state.element.name
+    val name = state.element.id
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(name) ::
         state.value.values.map(subElement =>

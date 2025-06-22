@@ -1,3 +1,4 @@
+
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "org.business4s"
 
@@ -8,34 +9,39 @@ lazy val root = (project in file("."))
     name := "forms4s",
   )
   .aggregate(
-    `forms4s-core`,
-    `forms4s-jsonschema`,
+    `forms4s-core`.js,
+    `forms4s-core`.jvm,
+    `forms4s-jsonschema`.js,
+    `forms4s-jsonschema`.jvm,
+    `forms4s-circe`.js,
+    `forms4s-circe`.jvm,
     `forms4s-tyrian`,
-    `forms4s-circe`,
     `forms4s-examples`,
   )
 
-lazy val `forms4s-core` = (project in file("forms4s-core"))
+lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("forms4s-core"))
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"     %%% "circe-core"         % "0.14.14",
-      "org.scalatest" %% "scalatest-freespec" % "3.2.19" % "test",
+      "io.circe"      %%% "circe-core"         % "0.14.14",
+      "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % "test",
     ),
   )
   .enablePlugins(ScalaJSPlugin)
 
-// TODO crossproject
-lazy val `forms4s-jsonschema` = (project in file("forms4s-jsonschema"))
+lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("forms4s-jsonschema"))
   .settings(
     name := "forms4s-jsonschema",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.9",
-      "com.softwaremill.sttp.tapir"    %% "tapir-apispec-docs" % "1.11.34" % "test",
-      "org.scalatest"                  %% "scalatest-freespec" % "3.2.19"  % "test",
+      "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34" % "test",
+      "org.scalatest"                 %%% "scalatest-freespec" % "3.2.19"  % "test",
     ),
   )
-  .enablePlugins(ScalaJSPlugin)
   .dependsOn(`forms4s-core`)
 
 lazy val `forms4s-tyrian` = (project in file("forms4s-tyrian"))
@@ -46,19 +52,19 @@ lazy val `forms4s-tyrian` = (project in file("forms4s-tyrian"))
     ),
   )
   .enablePlugins(ScalaJSPlugin)
-  .dependsOn(`forms4s-core`)
+  .dependsOn(`forms4s-core`.js)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-// TODO crossproject
-lazy val `forms4s-circe` = (project in file("forms4s-circe"))
+lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("forms4s-circe"))
   .settings(
     name := "forms4s-circe",
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.14.14",
+      "io.circe" %%% "circe-core" % "0.14.14",
     ),
   )
-  .enablePlugins(ScalaJSPlugin)
   .dependsOn(`forms4s-core`)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -76,4 +82,4 @@ lazy val `forms4s-examples` =
         "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
       ),
     )
-    .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`, `forms4s-circe`)
+    .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)

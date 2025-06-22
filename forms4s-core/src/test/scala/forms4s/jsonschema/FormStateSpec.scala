@@ -1,5 +1,6 @@
-package forms4s
+package forms4s.jsonschema
 
+import forms4s.{Form, FormElement, FormState, FormValue}
 import org.scalatest.freespec.AnyFreeSpec
 
 class FormStateSpec extends AnyFreeSpec {
@@ -9,8 +10,8 @@ class FormStateSpec extends AnyFreeSpec {
       "should update a text field" in {
         // Given
         val fields @ List(field1, field2) = List(
-          FormElement.Text("name"),
-          FormElement.Text("email"),
+          FormElement.Text("name", "Name", None, false, false),
+          FormElement.Text("email", "Email", None, false, false),
         )
         val formState                     = FormState.empty(Form(fields))
         val newValue                      = "John Doe"
@@ -30,8 +31,8 @@ class FormStateSpec extends AnyFreeSpec {
       "should update a checkbox field" in {
         // Given
         val fields @ List(field1, field2) = List(
-          FormElement.Checkbox("agree"),
-          FormElement.Checkbox("xxxx"),
+          FormElement.Checkbox("agree", "Agree", None, false),
+          FormElement.Checkbox("xxxx", "Xxxx", None, false),
         )
 
         val formState = FormState.empty(Form(fields))
@@ -51,8 +52,8 @@ class FormStateSpec extends AnyFreeSpec {
       "should update a select field" in {
         // Given
         val fields @ List(field1, field2) = List(
-          FormElement.Select("country", List("USA", "Canada", "UK")),
-          FormElement.Select("foo", List("bar", "baz")),
+          FormElement.Select("country", List("USA", "Canada", "UK"), "", None, false),
+          FormElement.Select("foo", List("bar", "baz"), "", None, false),
         )
 
         val formState = FormState.empty(Form(fields))
@@ -72,10 +73,10 @@ class FormStateSpec extends AnyFreeSpec {
 
       "should update a nested field" in {
         // Given
-        val field                         = FormElement.Text("street")
+        val field                         = FormElement.Text("street", "", None, false, false)
         val fields @ List(field1, field2) = List(
-          FormElement.Subform("address", Form(List(field))),
-          FormElement.Subform("address2", Form(List(field))),
+          FormElement.Subform("address", Form(List(field)), "", None, false),
+          FormElement.Subform("address2", Form(List(field)), "", None, false),
         )
         val formState                     = FormState.empty(Form(fields))
 

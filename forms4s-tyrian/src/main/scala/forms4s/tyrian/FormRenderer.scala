@@ -18,10 +18,16 @@ trait FormRenderer {
     case select: FormState.Select     => renderSelect(select, stylesheet)
     case checkbox: FormState.Checkbox => renderCheckbox(checkbox, stylesheet)
     case subform: FormState.Group     => renderGroup(subform, stylesheet)
+    case number: FormState.Number     => renderNumberInput(number, stylesheet)
   }
 
   def renderTextInput(
       state: FormState.Text,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
+
+  def renderNumberInput(
+      state: FormState.Number,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate]
 

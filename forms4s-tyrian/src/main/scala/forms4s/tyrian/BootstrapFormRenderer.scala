@@ -11,7 +11,7 @@ object BootstrapFormRenderer extends DefaultFormRenderer {
       state: FormState.Group,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate] = {
-    val name = state.element.name
+    val name = state.element.id
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(name),
       div(className := "card-body")(

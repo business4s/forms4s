@@ -16,6 +16,7 @@ object FormStateEncoder {
 
   private def encodeElement(element: FormState.Element): Json = element match {
     case FormState.Text(_, value) => Json.fromString(value)
+    case FormState.Number(_, value) => Json.fromDoubleOrNull(value)
     case FormState.Checkbox(_, value) => Json.fromBoolean(value)
     case FormState.Select(_, value) => Json.fromString(value)
     case FormState.Group(_, subState) => encodeFormState(subState)

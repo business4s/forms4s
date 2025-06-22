@@ -1,0 +1,125 @@
+package forms4s.jsonschema
+
+import cats.data.{Ior, ValidatedNel}
+import cats.syntax.all.*
+import forms4s.{Form, FormElement}
+import sttp.apispec.{AnySchema, SchemaType, Schema as ASchema}
+
+object FormFromJsonSchema {
+
+  /** Entry point: pull top-level required set, then extract elements */
+  def convert(root: ASchema): Form = {
+    val required      = root.required.toSet
+    val (errs, elems) = extractElements(root, required).fold(
+      fa = a => (a, List.empty),
+      fb = b => (List.empty, b),
+      fab = (a, b) => (a, b),
+    )
+    // TODO expose errors
+    Form(elems)
+  }
+
+  type Result = Ior[List[String], List[FormElement]]
+
+  /** Recursively extract all properties as FormElements */
+  private def extractElements(
+      schema: ASchema,
+      requiredFields: Set[String],
+  ): Result = {
+    schema.properties.toList
+      .map({ case (name, subschema) =>
+        val isReq = requiredFields.contains(name)
+        subschema match {
+          case schema: AnySchema =>
+            schema match {
+              case AnySchema.Anything => FormElement.Text(name, capitalizeAndSplitWords(name), None, isReq, multiline = true).rightIor
+              case AnySchema.Nothing  => List("Nothing schema for a property is not expected").leftIor
+            }
+          case aSchema: ASchema  => createElement(name, aSchema, isReq)
+        }
+      })
+      .map(_.map(List(_)))
+      .combineAllOption
+      .getOrElse(Ior.left(List("No properties found")))
+  }
+   private def capitalizeAndSplitWords(str: String): String =
+    str.split("(?=\\p{Upper})").map(_.capitalize).mkString(" ")
+
+  private def createElement(
+      name: String,
+      schema: ASchema,
+      required: Boolean,
+  ): Ior[List[String], FormElement] = {
+
+    val label = schema.title.getOrElse(capitalizeAndSplitWords(name))
+    val description = schema.description
+    val enumOptions = schema.`enum`.getOrElse(Nil).map(_.toString)
+
+    // TODO we dont support alternative represenation (multiple schema types)
+    val tpe = schema.`type`.flatMap(_.headOption)
+
+    tpe match {
+      case Some(tpe) =>
+        tpe match {
+          case SchemaType.Boolean                     =>
+            FormElement
+              .Checkbox(
+                name,
+                label = label,
+                description = description,
+                required = required,
+              )
+              .rightIor
+          case SchemaType.Object                      =>
+            extractElements(schema, schema.required.toSet).map(subElems =>
+              FormElement.Subform(
+                name,
+                form = Form(subElems),
+                label = label,
+                description = description,
+                required = required,
+              ),
+            )
+          case SchemaType.Array                       => List("Arrays are not yet supported").leftIor
+          case SchemaType.Number | SchemaType.Integer =>
+            FormElement
+              .Number(
+                name,
+                label = label,
+                description = description,
+                required = required,
+              )
+              .rightIor
+          case SchemaType.String                      =>
+            if (enumOptions.nonEmpty) {
+              FormElement
+                .Select(
+                  name,
+                  options = enumOptions,
+                  label = label,
+                  description = description,
+                  required = required,
+                )
+                .rightIor
+            } else {
+              val maxLen      = schema.maxLength.getOrElse(100)
+              val minLen      = schema.minLength.getOrElse(100)
+              val formatHint  = schema.format.contains("multiline")
+              val isMultiline = formatHint || maxLen > 120 || minLen > 120
+              FormElement
+                .Text(
+                  name,
+                  label = label,
+                  description = description,
+                  required = required,
+                  multiline = isMultiline,
+                )
+                .rightIor
+            }
+          case SchemaType.Null                        => List("Null schema for a property is not expected").leftIor
+        }
+      case None      => List("Schema type not specified").leftIor
+    }
+  }
+
+}

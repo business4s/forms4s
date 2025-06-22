@@ -7,7 +7,7 @@ case class FormState(definition: Form, values: List[FormState.Element]) {
       definition,
       values.map({
         case x if x.name == field => x.update(value)
-        case x                        => x
+        case x                    => x
       }),
     )
   }
@@ -22,25 +22,29 @@ object FormState {
       case x: FormElement.Select   => Select(x, x.options.headOption.getOrElse(""))
       case x: FormElement.Checkbox => Checkbox(x, false)
       case x: FormElement.Subform  => Group(x, FormState.empty(x.form))
+      case x: FormElement.Number   => Number(x, 0.0)
     }
     FormState(form, form.elements.map(toState))
   }
 
   sealed trait Element {
     def element: FormElement
-    def name: String                    = element.name
+    def name: String                    = element.id
     def update(msg: FormValue): Element = {
       (this, msg) match {
         case (Text(e, _), FormValue.Text(newValue))                => Text(e, newValue)
         case (Checkbox(e, _), FormValue.Checkbox(newValue))        => Checkbox(e, newValue)
         case (Select(e, _), FormValue.Select(newValue))            => Select(e, newValue)
         case (Group(e, fields), FormValue.Nested(field, newValue)) => Group(e, fields.update(field, newValue))
+        case (Number(e, _), FormValue.Number(newValue))            => Number(e, newValue)
         case _                                                     => ???
       }
     }
   }
 
   case class Text(element: FormElement.Text, value: String) extends Element
+
+  case class Number(element: FormElement.Number, value: Double) extends Element
 
   case class Select(element: FormElement.Select, value: String) extends Element
 
