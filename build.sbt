@@ -54,8 +54,6 @@ lazy val `forms4s-tyrian` = (project in file("forms4s-tyrian"))
   .enablePlugins(ScalaJSPlugin)
   .dependsOn(`forms4s-core`.js)
 
-Global / onChangedBuildSource := ReloadOnSourceChanges
-
 lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("forms4s-circe"))
@@ -66,8 +64,6 @@ lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
     ),
   )
   .dependsOn(`forms4s-core`)
-
-Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val `forms4s-examples` =
   (project in file("forms4s-examples"))
@@ -83,3 +79,6 @@ lazy val `forms4s-examples` =
       ),
     )
     .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)
+
+// tODO check how it got here and if it should be here
+Global / onChangedBuildSource := ReloadOnSourceChanges
