@@ -1,5 +1,6 @@
 package forms4s.jsonschema
 
+import forms4s.FormElement.{Select, Subform}
 import forms4s.{Form, FormElement}
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
@@ -10,9 +11,17 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
   "convert derived schemas from Scala types" - {
 
     object Models {
+      enum Color {
+        case Red, Green, Blue
+      }
+
       case class Simple(a: String, b: Int, c: Boolean)
+
       case class Address(street: String, city: String)
+
       case class User(name: String, address: Address)
+
+      case class WithSelect(color: Color)
     }
 
     "simple product → Text, Number, Checkbox (all required)" in {
@@ -59,5 +68,44 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
       assert(form == expected)
     }
+
+    "enum → Select with options" in {
+      import Models.{Color, WithSelect}
+      given TSchema[Color]                      = TSchema.derivedEnumeration.defaultStringBased
+      val withSelectSchema: TSchema[WithSelect] = TSchema.derived
+      val aschema                               = TapirSchemaToJsonSchema(withSelectSchema, markOptionsAsNullable = false)
+      val form                                  = FormFromJsonSchema.convert(aschema)
+
+      val expected = Form(
+        List(
+          FormElement.Select(
+            "color",
+            options = List("Blue", "Green", "Red"),
+            label = "Color",
+            description = None,
+            required = true,
+          ),
+        ),
+      )
+
+      assert(form == expected)
+    }
+
+    "optional object field" in {
+      enum A {
+        case A1, A2
+      }
+      given TSchema[A] = TSchema.derivedEnumeration.defaultStringBased
+      case class Interim(a: Option[A]) derives TSchema
+      case class Foo(x: Interim) derives TSchema
+      val form1        = getForm[Foo](nullableOptions = true)
+      // this doesnt work yet, its here to document the problem
+      assert(form1 == Form(List(Subform("x", Form(List(Select("a", List("A1", "A2"), "_$A", None, false))), "Interim", None, true))))
+    }
+  }
+
+  def getForm[T](nullableOptions: Boolean = false)(implicit tschema: TSchema[T]): Form = {
+    val aschema = TapirSchemaToJsonSchema(tschema, markOptionsAsNullable = nullableOptions)
+    FormFromJsonSchema.convert(aschema)
   }
 }

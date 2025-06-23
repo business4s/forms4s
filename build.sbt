@@ -1,3 +1,4 @@
+import org.scalajs.linker.interface.ModuleSplitStyle
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "org.business4s"
@@ -71,11 +72,16 @@ lazy val `forms4s-examples` =
     .settings( // Normal settings
       name            := "forms4s-examples",
       scalaJSLinkerConfig ~= {
-        _.withModuleKind(ModuleKind.CommonJSModule)
+        _.withModuleKind(ModuleKind.ESModule)
+          .withModuleSplitStyle(
+            ModuleSplitStyle.SmallModulesFor(List("forms4s"))
+          )
       },
+      scalaJSUseMainModuleInitializer := true,
       autoAPIMappings := true,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
+        "org.scalatest"               %%% "scalatest-freespec" % "3.2.19" % "test",
       ),
     )
     .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)

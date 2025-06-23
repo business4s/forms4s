@@ -112,7 +112,7 @@ class DefaultFormRenderer extends FormRenderer {
   ): Html[FormUpdate] = {
     val name = state.element.id
     div(className := stylesheet.subformClass)(
-      h3(className := stylesheet.subformTitleClass)(name) ::
+      h3(className := stylesheet.subformTitleClass)(state.element.label) ::
         state.value.values.map(subElement =>
           renderElement(subElement, stylesheet)
             .map(x => FormUpdate(name, FormValue.Nested(x.field, x.value))),

@@ -42,7 +42,7 @@ object MyForm {
   )
 
   given TSchema[Address] = TSchema.derived
-  given TSchema[Theme] = TSchema.derived
+  given TSchema[Theme] = TSchema.derivedEnumeration.defaultStringBased
   given TSchema[UserPreferences] = TSchema.derived
   given userSchema: TSchema[User] = TSchema.derived
 
@@ -53,7 +53,11 @@ object MyForm {
 
 }
 
-@JSExportTopLevel("TyrianApp")
+@main
+def runTyrianApp(): Unit = {
+  TyrianExample.launch("app")
+}
+
 object TyrianExample extends TyrianIOApp[Msg, Model] {
 
   def router: Location => Msg =

@@ -3,7 +3,9 @@ package forms4s.jsonschema
 import cats.data.{Ior, ValidatedNel}
 import cats.syntax.all.*
 import forms4s.{Form, FormElement}
-import sttp.apispec.{AnySchema, Schema as ASchema, SchemaLike, SchemaType}
+import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, SchemaLike, SchemaType, Schema as ASchema}
+
+import scala.annotation.tailrec
 
 object FormFromJsonSchema {
 
@@ -40,6 +42,7 @@ object FormFromJsonSchema {
   private def capitalizeAndSplitWords(str: String): String =
     str.split("(?=\\p{Upper})").map(_.capitalize).mkString(" ")
 
+  @tailrec
   private def createElement(
       name: String,
       schema: SchemaLike,
@@ -69,9 +72,12 @@ object FormFromJsonSchema {
   private def handleSchema(name: String, schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]) = {
     val label       = schema.title.getOrElse(capitalizeAndSplitWords(name))
     val description = schema.description
-    val enumOptions = schema.`enum`.getOrElse(Nil).map(_.toString)
+    val enumOptions = schema.`enum`.getOrElse(Nil).collect {
+      case ExampleSingleValue(value) => value.toString
+      case ExampleMultipleValue(values) => ??? // TODO proper error
+    }
 
-    // TODO we dont support alternative represenation (multiple schema types)
+    // TODO we dont support alternative represenations (multiple schema types)
     val tpe = schema.`type`.flatMap(_.headOption)
 
     tpe match {
