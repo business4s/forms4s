@@ -1,7 +1,7 @@
 package forms4s.example
 
 import cats.effect.IO
-import forms4s.FormState
+import forms4s.{FormElementState, FormElementUpdate}
 import forms4s.circe.FormStateEncoder.extractJson
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
@@ -62,32 +62,33 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = {
     val form = FormFromJsonSchema.convert(MyForm.jsonSchema)
-    (Model(FormState.empty(form)), Cmd.None)
+    (Model(FormElementState.empty(form)), Cmd.None)
   }
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = {
-    case Msg.UpdateMyForm(raw: FormUpdate) =>
-      val newState = model.formState.update(raw.field, raw.value)
+    case Msg.UpdateMyForm(raw: FormElementUpdate) =>
+      val newState = model.formState.update(raw)
       (model.copy(formState = newState), Cmd.None)
-    case Msg.Submit                        =>
+    case Msg.Submit                               =>
       println(s"Form submitted with data: ${model.formState.extractJson}")
       (model, Cmd.None)
-    case Msg.NoOp                          =>
+    case Msg.NoOp                                 =>
       (model, Cmd.None)
   }
 
+  val renderer: FormRenderer = DefaultFormRenderer(BulmaStylesheet.stylesheet)
+
   def view(model: Model): Html[Msg] =
     div(className := "container")(
-      div(className := "container")(
-        h1("Forms4s Tyrian Example"),
-        div()(
-          model.formState.render(BulmaStylesheet.stylesheet).map(Msg.UpdateMyForm.apply),
-          div(className := "form-actions")(
-            button(
-              onClick(Msg.Submit),
-              className := "button is-primary",
-            )("Submit"),
-          ),
+      h1("Forms4s Tyrian Example"),
+      hr(),
+      div()(
+        renderer.renderElement(model.formState).map(Msg.UpdateMyForm.apply),
+        div(className := "form-actions")(
+          button(
+            onClick(Msg.Submit),
+            className := "button is-primary",
+          )("Submit"),
         ),
       ),
     )
@@ -96,10 +97,10 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     Sub.None
 }
 
-case class Model(formState: FormState)
+case class Model(formState: FormElementState)
 
 enum Msg {
-  case UpdateMyForm(raw: FormUpdate)
+  case UpdateMyForm(raw: FormElementUpdate)
   case Submit
   case NoOp
 }

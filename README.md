@@ -12,6 +12,7 @@
 
 - [x] Multi-value field support (`List[_]`)
 - [ ] Proper handling of empty and `null` values
+- [ ] Better support for numbers (double vs integer)
 - [ ] Validation
   - [ ] Infrastructure for field validation
   - [ ] Support for JSON Schema constraints
@@ -23,6 +24,7 @@
   - [ ] Artifact publishing
   - [ ] scalafix/sbt-tpolecat
 - [ ] Derivation from Scala types
+- [ ] Hydrate form with json (e.g. for persistent urls or other cache)
 
 ---
 

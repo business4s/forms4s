@@ -1,7 +1,5 @@
 package forms4s
 
-case class Form(elements: List[FormElement])
-
 sealed trait FormElement {
   def id: String
 
@@ -43,9 +41,9 @@ object FormElement {
       required: Boolean,
   ) extends FormElement
 
-  case class Subform(
+  case class Group(
       id: String,
-      form: Form,
+      elements: List[FormElement],
       label: String,
       description: Option[String],
       required: Boolean,

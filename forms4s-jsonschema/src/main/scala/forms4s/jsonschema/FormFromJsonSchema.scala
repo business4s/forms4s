@@ -1,25 +1,18 @@
 package forms4s.jsonschema
 
-import cats.data.{Ior, ValidatedNel}
+import cats.data.Ior
 import cats.syntax.all.*
-import forms4s.{Form, FormElement}
+import forms4s.FormElement
 import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
 import scala.annotation.tailrec
 
 object FormFromJsonSchema {
 
-  /** Entry point: pull top-level required set, then extract elements */
-  def convert(root: ASchema): Form = {
-    val required      = root.required.toSet
-    val defs          = root.$defs.getOrElse(Map.empty)
-    val (errs, elems) = extractElements(root, required, defs).fold(
-      fa = a => (a, List.empty),
-      fb = b => (List.empty, b),
-      fab = (a, b) => (a, b),
-    )
-    // TODO expose errors
-    Form(elems)
+  def convert(root: ASchema): FormElement = {
+    createElement(None, root, required = true, root.$defs.getOrElse(Map()))
+      .right
+      .getOrElse(???) // TODO errors
   }
 
   type Result = Ior[List[String], List[FormElement]]
@@ -33,24 +26,26 @@ object FormFromJsonSchema {
     schema.properties.toList
       .map({ case (name, subschema) =>
         val isReq = requiredFields.contains(name)
-        createElement(name, subschema, isReq, defs)
+        createElement(name.some, subschema, isReq, defs)
       })
       .map(_.map(List(_)))
       .combineAllOption
       .getOrElse(Ior.left(List("No properties found")))
   }
+
   private def capitalizeAndSplitWords(str: String): String =
     str.split("(?=\\p{Upper})").map(_.capitalize).mkString(" ")
 
   @tailrec
   private def createElement(
-      name: String,
+      nameOverride: Option[String],
       schema: SchemaLike,
       required: Boolean,
       defs: Map[String, SchemaLike],
   ): Ior[List[String], FormElement] = {
     schema match {
       case schema: AnySchema   =>
+        val name = nameOverride.getOrElse("")
         schema match {
           case AnySchema.Anything => FormElement.Text(name, capitalizeAndSplitWords(name), None, required, multiline = true).rightIor
           case AnySchema.Nothing  => List("Nothing schema for a property is not expected").leftIor
@@ -60,16 +55,17 @@ object FormFromJsonSchema {
           case Some(value) =>
             val key = value.split("/").last
             defs.get(key) match {
-              case Some(schema) => createElement(name, schema, required, defs)
-              case None         => List(s"Schema for $name not found in $defs").leftIor
+              case Some(schema) => createElement(nameOverride, schema, required, defs)
+              case None         => List(s"Schema for $key not found in $defs").leftIor
             }
-          case None        => handleSchema(name, unresolved, required, defs)
+          case None        => handleSchema(nameOverride, unresolved, required, defs)
         }
 
     }
   }
 
-  private def handleSchema(name: String, schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]): Ior[List[String], FormElement] = {
+  private def handleSchema(nameOverride: Option[String], schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]): Ior[List[String], FormElement] = {
+    val name = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
     val label       = schema.title.getOrElse(capitalizeAndSplitWords(name))
     val description = schema.description
     val enumOptions = schema.`enum`.getOrElse(Nil).collect {
@@ -94,9 +90,9 @@ object FormFromJsonSchema {
               .rightIor
           case SchemaType.Object                      =>
             extractElements(schema, schema.required.toSet, defs).map(subElems =>
-              FormElement.Subform(
+              FormElement.Group(
                 name,
-                form = Form(subElems),
+                elements = subElems,
                 label = label,
                 description = description,
                 required = required,
@@ -104,7 +100,7 @@ object FormFromJsonSchema {
             )
           case SchemaType.Array                       =>
             schema.items
-              .map(schema => createElement(name = s"Item", schema, required = false, defs))
+              .map(schema => createElement(None, schema, false, defs))
               .getOrElse(List(s"No items schema for array $name").leftIor)
               .map(itemElem =>
                 FormElement.Multivalue(

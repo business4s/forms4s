@@ -6,23 +6,15 @@ import io.circe.syntax._
 
 object FormStateEncoder {
 
-  def encodeFormState(formState: FormState): Json = {
-    val valueMap = formState.values.map { element =>
-      element.name -> encodeElement(element)
-    }.toMap
-
-    Json.fromFields(valueMap)
-  }
-
-  private def encodeElement(element: FormState.Element): Json = element match {
-    case FormState.Text(_, value)       => Json.fromString(value)
-    case FormState.Number(_, value)     => Json.fromDoubleOrNull(value)
-    case FormState.Checkbox(_, value)   => Json.fromBoolean(value)
-    case FormState.Select(_, value)     => Json.fromString(value)
-    case FormState.Group(_, subState)   => encodeFormState(subState)
-    case FormState.Multivalue(_, elems) => Json.fromValues(elems.map(encodeElement))
+  def encode(element: FormElementState): Json = element match {
+    case FormElementState.Text(_, value)       => Json.fromString(value)
+    case FormElementState.Number(_, value)     => Json.fromDoubleOrNull(value)
+    case FormElementState.Checkbox(_, value)   => Json.fromBoolean(value)
+    case FormElementState.Select(_, value)     => Json.fromString(value)
+    case FormElementState.Group(_, values)     => Json.fromFields(values.map(elem => elem.name -> encode(elem)))
+    case FormElementState.Multivalue(_, elems) => Json.fromValues(elems.map(encode))
   }
 
   // Extension method for easier conversion
-  extension (formState: FormState) def extractJson: Json = encodeFormState(formState)
+  extension (formState: FormElementState) def extractJson: Json = encode(formState)
 }

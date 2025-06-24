@@ -1,24 +1,15 @@
 package forms4s.tyrian
 
-import forms4s.FormValue.{MultivalueUpdate, Nested}
-import forms4s.{FormState, FormStylesheet, FormValue}
+import forms4s.FormElementUpdate.MultivalueUpdate
+import forms4s.{FormElementState, FormStylesheet, FormElementUpdate}
 import tyrian.Html
 import tyrian.Html.*
 
-class DefaultFormRenderer extends FormRenderer {
-  override def renderForm(
-      state: FormState,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
-    div(className := stylesheet.formClass)(
-      state.values.map(element => renderElement(element, stylesheet)),
-    )
-  }
+class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
 
   override def renderTextInput(
-      state: FormState.Text,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
+      state: FormElementState.Text,
+  ): Html[FormElementUpdate] = {
     val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
@@ -31,15 +22,14 @@ class DefaultFormRenderer extends FormRenderer {
         Html.name := name,
         className := stylesheet.inputClass,
         value     := state.value,
-        onInput(value => FormUpdate(state.element.id, FormValue.Text(value))),
+        onInput(value => FormElementUpdate.Text(value)),
       ),
     )
   }
 
   override def renderNumberInput(
-      state: FormState.Number,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
+      state: FormElementState.Number,
+  ): Html[FormElementUpdate] = {
     val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
@@ -52,15 +42,14 @@ class DefaultFormRenderer extends FormRenderer {
         Html.name := name,
         className := stylesheet.inputClass,
         value     := state.value.toString,
-        onInput(value => FormUpdate(state.element.id, FormValue.Number(value.toDouble))),
+        onInput(value => FormElementUpdate.Number(value.toDouble)),
       ),
     )
   }
 
   override def renderSelect(
-      state: FormState.Select,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
+      state: FormElementState.Select,
+  ): Html[FormElementUpdate] = {
     val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
@@ -71,7 +60,7 @@ class DefaultFormRenderer extends FormRenderer {
         id        := name,
         Html.name := name,
         className := stylesheet.selectClass,
-        onChange(value => FormUpdate(name, FormValue.Select(value))),
+        onChange(value => FormElementUpdate.Select(value)),
       )(
         state.element.options.map(option =>
           tyrian.Html.option(
@@ -84,9 +73,8 @@ class DefaultFormRenderer extends FormRenderer {
   }
 
   override def renderCheckbox(
-      state: FormState.Checkbox,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
+      state: FormElementState.Checkbox,
+  ): Html[FormElementUpdate] = {
     val name = state.element.id
     div(className := stylesheet.formGroupClass)(
       label(
@@ -99,7 +87,7 @@ class DefaultFormRenderer extends FormRenderer {
           Html.name := name,
           className := stylesheet.checkboxClass,
           checked   := state.value,
-          onChange(checked => FormUpdate(name, FormValue.Checkbox(checked == "true"))),
+          onChange(checked => FormElementUpdate.Checkbox(checked == "true")),
         ),
         span(state.element.label),
       ),
@@ -107,34 +95,32 @@ class DefaultFormRenderer extends FormRenderer {
   }
 
   override def renderGroup(
-      state: FormState.Group,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = {
+      state: FormElementState.Group,
+  ): Html[FormElementUpdate] = {
     val name = state.element.id
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(state.element.label) ::
-        state.value.values.map(subElement =>
-          renderElement(subElement, stylesheet)
-            .map(x => FormUpdate(name, FormValue.Nested(x.field, x.value))),
+        state.values.map(subElement =>
+          renderElement(subElement)
+            .map(x => FormElementUpdate.Nested(subElement.name, x)),
         ),
     )
   }
 
-  override def renderMultivalue(state: FormState.Multivalue, stylesheet: FormStylesheet): Html[FormUpdate] = {
+  override def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate] = {
     val name = state.element.id
 
     // TODO classes are bulma-specific
     fieldset(cls := "box")(
       Html.legend(cls := "title is-4")(state.element.label) ::
-        state.value.toList.zipWithIndex.flatMap { case (item, idx) =>
+        state.values.toList.zipWithIndex.flatMap { case (item, idx) =>
           List(
-            renderElement(item, stylesheet)
-              .map(x => FormUpdate(name, MultivalueUpdate(idx, x.value))),
+            renderElement(item).map(x => MultivalueUpdate(idx, x)),
             div(cls := "field is-grouped is-grouped-right")(
               p(cls := "control")(
                 button(
                   cls := "button is-danger is-light is-small",
-                  onClick(FormUpdate(name, FormValue.MultivalueRemove(idx))),
+                  onClick(FormElementUpdate.MultivalueRemove(idx)),
                 )("Remove"),
               ),
             ),
@@ -144,8 +130,8 @@ class DefaultFormRenderer extends FormRenderer {
           div(cls := "field is-grouped is-grouped-right")(
             p(cls := "control")(
               button(
-                cls := "button is-primary is-light",
-                onClick(FormUpdate(name, FormValue.MultivalueAppend())),
+                cls := "button is-primary is-light is-small",
+                onClick(FormElementUpdate.MultivalueAppend()),
               )("+ Add"),
             ),
           ),
@@ -154,4 +140,4 @@ class DefaultFormRenderer extends FormRenderer {
   }
 }
 
-object DefaultFormRenderer extends DefaultFormRenderer
+object DefaultFormRenderer extends DefaultFormRenderer(FormStylesheet())

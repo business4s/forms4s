@@ -1,54 +1,29 @@
 package forms4s.tyrian
 
-import forms4s.{FormState, FormStylesheet}
+import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html
 
 /** Abstraction for rendering form elements with Tyrian */
 trait FormRenderer {
-  def renderForm(
-      state: FormState,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
 
-  def renderElement(
-      state: FormState.Element,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate] = state match {
-    case text: FormState.Text         => renderTextInput(text, stylesheet)
-    case select: FormState.Select     => renderSelect(select, stylesheet)
-    case checkbox: FormState.Checkbox => renderCheckbox(checkbox, stylesheet)
-    case subform: FormState.Group     => renderGroup(subform, stylesheet)
-    case number: FormState.Number     => renderNumberInput(number, stylesheet)
-    case number: FormState.Multivalue => renderMultivalue(number, stylesheet)
+  def renderElement(state: FormElementState): Html[FormElementUpdate] = state match {
+    case text: FormElementState.Text         => renderTextInput(text)
+    case select: FormElementState.Select     => renderSelect(select)
+    case checkbox: FormElementState.Checkbox => renderCheckbox(checkbox)
+    case subform: FormElementState.Group     => renderGroup(subform)
+    case number: FormElementState.Number     => renderNumberInput(number)
+    case number: FormElementState.Multivalue => renderMultivalue(number)
   }
 
-  def renderTextInput(
-      state: FormState.Text,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]
 
-  def renderNumberInput(
-      state: FormState.Number,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate]
 
-  def renderSelect(
-      state: FormState.Select,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderSelect(state: FormElementState.Select): Html[FormElementUpdate]
 
-  def renderCheckbox(
-      state: FormState.Checkbox,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderCheckbox(state: FormElementState.Checkbox): Html[FormElementUpdate]
 
-  def renderGroup(
-      state: FormState.Group,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderGroup(state: FormElementState.Group): Html[FormElementUpdate]
 
-  def renderMultivalue(
-      state: FormState.Multivalue,
-      stylesheet: FormStylesheet,
-  ): Html[FormUpdate]
+  protected def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate]
 }
