@@ -10,25 +10,9 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
   "convert derived schemas from Scala types" - {
 
-    object Models {
-      enum Color {
-        case Red, Green, Blue
-      }
-
-      case class Simple(a: String, b: Int, c: Boolean)
-
-      case class Address(street: String, city: String)
-
-      case class User(name: String, address: Address)
-
-      case class WithSelect(color: Color)
-    }
-
     "simple product → Text, Number, Checkbox (all required)" in {
-      import Models.Simple
-      implicit val s: TSchema[Simple] = TSchema.derived
-      val aschema                     = TapirSchemaToJsonSchema(s, markOptionsAsNullable = false)
-      val form                        = FormFromJsonSchema.convert(aschema)
+      case class Simple(a: String, b: Int, c: Boolean) derives TSchema
+      val form = getForm[Simple]()
 
       val expected = Form(
         List(
@@ -42,11 +26,9 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
     }
 
     "nested case class → Subform with Text inside" in {
-      import Models.{Address, User}
-      implicit val addrSchema: TSchema[Address] = TSchema.derived
-      implicit val userSchema: TSchema[User]    = TSchema.derived
-      val aschema                               = TapirSchemaToJsonSchema(userSchema, markOptionsAsNullable = false)
-      val form                                  = FormFromJsonSchema.convert(aschema)
+      case class Address(street: String, city: String) derives TSchema
+      case class User(name: String, address: Address) derives TSchema
+      val form = getForm[User]()
 
       val expected = Form(
         List(
@@ -70,11 +52,12 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
     }
 
     "enum → Select with options" in {
-      import Models.{Color, WithSelect}
-      given TSchema[Color]                      = TSchema.derivedEnumeration.defaultStringBased
-      val withSelectSchema: TSchema[WithSelect] = TSchema.derived
-      val aschema                               = TapirSchemaToJsonSchema(withSelectSchema, markOptionsAsNullable = false)
-      val form                                  = FormFromJsonSchema.convert(aschema)
+      enum Color {
+        case Red, Green, Blue
+      }
+      given TSchema[Color] = TSchema.derivedEnumeration.defaultStringBased
+      case class WithSelect(color: Color) derives TSchema
+      val form             = getForm[WithSelect]()
 
       val expected = Form(
         List(
@@ -102,7 +85,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       // this doesnt work yet, its here to document the problem
       assert(form1 == Form(List(Subform("x", Form(List(Select("a", List("A1", "A2"), "_$A", None, false))), "Interim", None, true))))
     }
-    
+
     "list → Multivalue with Text inside" in {
       case class ContactInfo(phones: List[String]) derives TSchema
       val form = getForm[ContactInfo]()
@@ -111,7 +94,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
         List(
           FormElement.Multivalue(
             "phones",
-            item = FormElement.Text("Item", label = "", description = None, required = true, multiline = false),
+            item = FormElement.Text("Item", label = "Item", description = None, required = true, multiline = false),
             label = "Phones",
             description = None,
             required = true,
@@ -121,7 +104,6 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
       assert(form == expected)
     }
-
 
   }
 

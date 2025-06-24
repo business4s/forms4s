@@ -21,16 +21,17 @@ object MyForm {
       city: String,
       country: String,
       notes: Option[String], // long multiline optional text
-  )
+  ) derives TSchema
 
   enum Theme {
     case Light, Dark, Auto
   }
+  given TSchema[Theme] = TSchema.derivedEnumeration.defaultStringBased
 
   case class UserPreferences(
       newsletter: Boolean,
       theme: Option[Theme], // enum: "light", "dark", "auto"
-  )
+  ) derives TSchema
 
   case class User(
       name: String,
@@ -40,15 +41,10 @@ object MyForm {
       emails: List[String],
       addresses: List[Address],  // nested subform
       preferences: UserPreferences, // nested subform with enum and checkbox
-  )
-
-  given TSchema[Address]          = TSchema.derived
-  given TSchema[Theme]            = TSchema.derivedEnumeration.defaultStringBased
-  given TSchema[UserPreferences]  = TSchema.derived
-  given userSchema: TSchema[User] = TSchema.derived
+  ) derives TSchema
 
   val jsonSchema: ASchema = TapirSchemaToJsonSchema(
-    userSchema,
+    summon[TSchema[User]],
     markOptionsAsNullable = true,
   )
 
