@@ -1,6 +1,6 @@
 package forms4s.tyrian
 
-import forms4s.FormValue.Nested
+import forms4s.FormValue.{MultivalueUpdate, Nested}
 import forms4s.{FormState, FormStylesheet, FormValue}
 import tyrian.Html
 import tyrian.Html.*
@@ -116,6 +116,39 @@ class DefaultFormRenderer extends FormRenderer {
         state.value.values.map(subElement =>
           renderElement(subElement, stylesheet)
             .map(x => FormUpdate(name, FormValue.Nested(x.field, x.value))),
+        ),
+    )
+  }
+
+  override def renderMultivalue(state: FormState.Multivalue, stylesheet: FormStylesheet): Html[FormUpdate] = {
+    val name = state.element.id
+
+    // TODO classes are bulma-specific
+    fieldset(cls := "box")(
+      Html.legend(cls := "title is-4")(state.element.label) ::
+        state.value.toList.zipWithIndex.flatMap { case (item, idx) =>
+          List(
+            renderElement(item, stylesheet)
+              .map(x => FormUpdate(name, MultivalueUpdate(idx, x.value))),
+            div(cls := "field is-grouped is-grouped-right")(
+              p(cls := "control")(
+                button(
+                  cls := "button is-danger is-light is-small",
+                  onClick(FormUpdate(name, FormValue.MultivalueRemove(idx))),
+                )("Remove"),
+              ),
+            ),
+          )
+        } ++ List(
+          hr(),
+          div(cls := "field is-grouped is-grouped-right")(
+            p(cls := "control")(
+              button(
+                cls := "button is-primary is-light",
+                onClick(FormUpdate(name, FormValue.MultivalueAppend())),
+              )("+ Add"),
+            ),
+          ),
         ),
     )
   }

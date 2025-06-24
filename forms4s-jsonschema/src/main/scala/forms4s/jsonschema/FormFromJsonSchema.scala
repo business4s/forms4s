@@ -3,7 +3,7 @@ package forms4s.jsonschema
 import cats.data.{Ior, ValidatedNel}
 import cats.syntax.all.*
 import forms4s.{Form, FormElement}
-import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, SchemaLike, SchemaType, Schema as ASchema}
+import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
 import scala.annotation.tailrec
 
@@ -69,11 +69,11 @@ object FormFromJsonSchema {
     }
   }
 
-  private def handleSchema(name: String, schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]) = {
+  private def handleSchema(name: String, schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]): Ior[List[String], FormElement] = {
     val label       = schema.title.getOrElse(capitalizeAndSplitWords(name))
     val description = schema.description
     val enumOptions = schema.`enum`.getOrElse(Nil).collect {
-      case ExampleSingleValue(value) => value.toString
+      case ExampleSingleValue(value)    => value.toString
       case ExampleMultipleValue(values) => ??? // TODO proper error
     }
 
@@ -102,7 +102,19 @@ object FormFromJsonSchema {
                 required = required,
               ),
             )
-          case SchemaType.Array                       => List("Arrays are not yet supported").leftIor
+          case SchemaType.Array                       =>
+            schema.items
+              .map(schema => createElement(name = s"Item", schema, required = false, defs))
+              .getOrElse(List(s"No items schema for array $name").leftIor)
+              .map(itemElem =>
+                FormElement.Multivalue(
+                  id = name,
+                  item = itemElem,
+                  label = label,
+                  description = description,
+                  required = required,
+                ),
+              )
           case SchemaType.Number | SchemaType.Integer =>
             FormElement
               .Number(

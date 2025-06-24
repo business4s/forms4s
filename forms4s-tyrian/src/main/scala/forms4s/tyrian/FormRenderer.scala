@@ -19,6 +19,7 @@ trait FormRenderer {
     case checkbox: FormState.Checkbox => renderCheckbox(checkbox, stylesheet)
     case subform: FormState.Group     => renderGroup(subform, stylesheet)
     case number: FormState.Number     => renderNumberInput(number, stylesheet)
+    case number: FormState.Multivalue => renderMultivalue(number, stylesheet)
   }
 
   def renderTextInput(
@@ -43,6 +44,11 @@ trait FormRenderer {
 
   def renderGroup(
       state: FormState.Group,
+      stylesheet: FormStylesheet,
+  ): Html[FormUpdate]
+
+  def renderMultivalue(
+      state: FormState.Multivalue,
       stylesheet: FormStylesheet,
   ): Html[FormUpdate]
 }

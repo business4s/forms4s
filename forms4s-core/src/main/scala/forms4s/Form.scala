@@ -12,7 +12,6 @@ sealed trait FormElement {
 }
 
 object FormElement {
-  
 
   case class Text(
       id: String,
@@ -50,5 +49,14 @@ object FormElement {
       label: String,
       description: Option[String],
       required: Boolean,
-  ) extends FormElement {}
+  ) extends FormElement
+
+  case class Multivalue(
+      id: String,
+      item: FormElement,
+      label: String,
+      description: Option[String],
+      required: Boolean,
+  ) extends FormElement
+
 }

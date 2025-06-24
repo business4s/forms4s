@@ -10,16 +10,18 @@
 
 ## 🚧 Roadmap / TODO
 
-- [ ] Multi-value field support (`List[_]`)
+- [x] Multi-value field support (`List[_]`)
 - [ ] Proper handling of empty and `null` values
 - [ ] Validation
   - [ ] Infrastructure for field validation
   - [ ] Support for JSON Schema constraints
-  - [ ] Integration with `iron` / `newtype`
+  - [ ] Integration with `iron` / `neotype`
 - [ ] Improved checkbox rendering
 - [ ] `oneOf` support for sealed traits
 - [ ] Website and documentation
-- [ ] Artifact publishing
+- [ ] CI/CD
+  - [ ] Artifact publishing
+  - [ ] scalafix/sbt-tpolecat
 - [ ] Derivation from Scala types
 
 ---

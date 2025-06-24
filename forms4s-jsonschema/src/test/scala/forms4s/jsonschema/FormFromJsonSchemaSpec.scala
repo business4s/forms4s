@@ -1,6 +1,6 @@
 package forms4s.jsonschema
 
-import forms4s.FormElement.{Select, Subform}
+import forms4s.FormElement.{Multivalue, Select, Subform}
 import forms4s.{Form, FormElement}
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
@@ -102,6 +102,27 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       // this doesnt work yet, its here to document the problem
       assert(form1 == Form(List(Subform("x", Form(List(Select("a", List("A1", "A2"), "_$A", None, false))), "Interim", None, true))))
     }
+    
+    "list → Multivalue with Text inside" in {
+      case class ContactInfo(phones: List[String]) derives TSchema
+      val form = getForm[ContactInfo]()
+
+      val expected = Form(
+        List(
+          FormElement.Multivalue(
+            "phones",
+            item = FormElement.Text("Item", label = "", description = None, required = true, multiline = false),
+            label = "Phones",
+            description = None,
+            required = true,
+          ),
+        ),
+      )
+
+      assert(form == expected)
+    }
+
+
   }
 
   def getForm[T](nullableOptions: Boolean = false)(implicit tschema: TSchema[T]): Form = {

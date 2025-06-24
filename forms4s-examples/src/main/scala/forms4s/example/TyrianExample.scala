@@ -37,13 +37,14 @@ object MyForm {
       age: Option[Int],          // optional number
       income: Double,            // required number
       biography: Option[String], // long multiline optional text
-      address: Address,          // nested subform
+      emails: List[String],
+      addresses: List[Address],  // nested subform
       preferences: UserPreferences, // nested subform with enum and checkbox
   )
 
-  given TSchema[Address] = TSchema.derived
-  given TSchema[Theme] = TSchema.derivedEnumeration.defaultStringBased
-  given TSchema[UserPreferences] = TSchema.derived
+  given TSchema[Address]          = TSchema.derived
+  given TSchema[Theme]            = TSchema.derivedEnumeration.defaultStringBased
+  given TSchema[UserPreferences]  = TSchema.derived
   given userSchema: TSchema[User] = TSchema.derived
 
   val jsonSchema: ASchema = TapirSchemaToJsonSchema(
