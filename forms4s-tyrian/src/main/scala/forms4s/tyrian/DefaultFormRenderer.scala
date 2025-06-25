@@ -100,7 +100,7 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
     val name = state.element.core.id
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(state.element.core.label) ::
-        state.values.map(subElement =>
+        state.value.map(subElement =>
           renderElement(subElement)
             .map(x => FormElementUpdate.Nested(subElement.id, x)),
         ),
@@ -111,7 +111,7 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
     // TODO classes are bulma-specific
     fieldset(cls := "box")(
       Html.legend(cls := "title is-4")(state.element.core.label) ::
-        state.values.toList.zipWithIndex.flatMap { case (item, idx) =>
+        state.value.toList.zipWithIndex.flatMap { case (item, idx) =>
           List(
             renderElement(item).map(x => MultivalueUpdate(idx, x)),
             div(cls := "field is-grouped is-grouped-right")(
@@ -129,7 +129,7 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
             p(cls := "control")(
               button(
                 cls := "button is-primary is-light is-small",
-                onClick(FormElementUpdate.MultivalueAppend()),
+                onClick(FormElementUpdate.MultivalueAppend),
               )("+ Add"),
             ),
           ),

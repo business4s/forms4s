@@ -57,7 +57,7 @@ object FormFromJsonSchema {
               case Some(schema) => createElement(nameOverride, schema, required, defs)
               case None         => List(s"Schema for $key not found in $defs").leftIor
             }
-          case None        => handleSchema(nameOverride, unresolved, required, defs)
+          case None        => handleSchema(nameOverride, unresolved, defs)
         }
 
     }
@@ -66,13 +66,11 @@ object FormFromJsonSchema {
   private def handleSchema(
       nameOverride: Option[String],
       schema: ASchema,
-      required: Boolean,
       defs: Map[String, SchemaLike],
   ): Ior[List[String], FormElement] = {
-    val name                                                                   = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
-    val label                                                                  = schema.title.getOrElse(capitalizeAndSplitWords(name))
-    val description                                                            = schema.description
-    def core[T <: FormElementState](validators: Seq[FormElement.Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
+    val name                                               = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
+    val label                                              = schema.title.getOrElse(capitalizeAndSplitWords(name))
+    def core[T](validators: Seq[FormElement.Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
 
     val enumOptions = schema.`enum`.getOrElse(Nil).collect {
       case ExampleSingleValue(value)    => value.toString

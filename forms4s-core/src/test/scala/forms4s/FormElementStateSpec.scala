@@ -22,9 +22,9 @@ class FormElementStateSpec extends AnyFreeSpec {
 
         // Then
         assert(
-          updatedState.values == List(
-            FormElementState.Text(field1, newValue),
-            FormElementState.Text(field2, ""),
+          updatedState.value == List(
+            FormElementState.Text(field1, newValue, Nil),
+            FormElementState.Text(field2, "", Nil),
           ),
         )
       }
@@ -43,9 +43,9 @@ class FormElementStateSpec extends AnyFreeSpec {
 
         // Then
         assert(
-          updatedState.values == List(
-            FormElementState.Checkbox(field1, false),
-            FormElementState.Checkbox(field2, true),
+          updatedState.value == List(
+            FormElementState.Checkbox(field1, false, Nil),
+            FormElementState.Checkbox(field2, true, Nil),
           ),
         )
       }
@@ -65,9 +65,9 @@ class FormElementStateSpec extends AnyFreeSpec {
 
         // Then
         assert(
-          updatedState.values == List(
-            FormElementState.Select(field1, newValue),
-            FormElementState.Select(field2, "bar"),
+          updatedState.value == List(
+            FormElementState.Select(field1, newValue, Nil),
+            FormElementState.Select(field2, "bar", Nil),
           ),
         )
       }
@@ -94,20 +94,23 @@ class FormElementStateSpec extends AnyFreeSpec {
             List(
               FormElementState.Group(
                 field1,
-                List(FormElementState.Text(field, "")),
+                List(FormElementState.Text(field, "", Nil)),
+                Nil,
               ),
               FormElementState.Group(
                 field2,
-                List(FormElementState.Text(field, newValue)),
+                List(FormElementState.Text(field, newValue, Nil)),
+                Nil,
               ),
             ),
+            Nil,
           ),
         )
       }
     }
   }
 
-  def randCore(): FormElement.Core[FormElementState] = {
+  def randCore(): FormElement.Core[Any] = {
     val name = Random.alphanumeric.take(8).mkString
     FormElement.Core(name, name, None, Seq())
   }

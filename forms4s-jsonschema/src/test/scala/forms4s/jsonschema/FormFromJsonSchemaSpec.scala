@@ -90,6 +90,6 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
     FormFromJsonSchema.convert(aschema)
   }
 
-  def simpleCore(name: String, label: String = null): FormElement.Core[FormElementState] =
+  def simpleCore(name: String, label: String = null): FormElement.Core[Any] =
     FormElement.Core(name, Option(label).getOrElse(name), None, Seq())
 }
