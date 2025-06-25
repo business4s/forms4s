@@ -1,6 +1,6 @@
 package forms4s.jsonschema
 
-import forms4s.FormElement
+import forms4s.{FormElement, FormElementState}
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
@@ -14,15 +14,12 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       val form = getForm[Simple]()
 
       val expected = FormElement.Group(
-        "Simple",
+        simpleCore("Simple"),
         List(
-          FormElement.Text("a", label = "A", description = None, required = true, multiline = false),
-          FormElement.Number("b", label = "B", description = None, required = true),
-          FormElement.Checkbox("c", label = "C", description = None, required = true),
+          FormElement.Text(simpleCore("a", "A"), multiline = false),
+          FormElement.Number(simpleCore("b", "B")),
+          FormElement.Checkbox(simpleCore("c", "C")),
         ),
-        label = "Simple",
-        description = None,
-        required = true,
       )
 
       assert(form == expected)
@@ -34,21 +31,15 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       val form = getForm[User]()
 
       val expected = FormElement.Group(
-        "User",
+        simpleCore("User"),
         List(
           FormElement.Group(
-            "address",
+            simpleCore("address", "Address"),
             List(
-              FormElement.Text("street", label = "Street", description = None, required = true, multiline = false),
+              FormElement.Text(simpleCore("street", "Street"), multiline = false),
             ),
-            label = "Address",
-            description = None,
-            required = true,
           ),
         ),
-        label = "User",
-        description = None,
-        required = true,
       )
 
       assert(form == expected)
@@ -62,11 +53,8 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       val form             = getForm[Color]()
 
       val expected = FormElement.Select(
-        "_$Color",
+        simpleCore("_$Color"),
         options = List("Blue", "Green", "Red"),
-        label = "_$Color",
-        description = None,
-        required = true,
       )
 
       assert(form == expected)
@@ -87,14 +75,9 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
     "list → Multivalue with Text inside" in {
       val form = getForm[List[String]]()
 
-      val expected = List(
-        FormElement.Multivalue(
-          "phones",
-          item = FormElement.Text("Item", label = "Item", description = None, required = true, multiline = false),
-          label = "Phones",
-          description = None,
-          required = true,
-        ),
+      val expected = FormElement.Multivalue(
+        simpleCore("unknown", "Unknown"),
+        item = FormElement.Text(simpleCore("unknown", "Unknown"), multiline = false),
       )
 
       assert(form == expected)
@@ -106,4 +89,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
     val aschema = TapirSchemaToJsonSchema(tschema, markOptionsAsNullable = nullableOptions)
     FormFromJsonSchema.convert(aschema)
   }
+
+  def simpleCore(name: String, label: String = null): FormElement.Core[FormElementState] =
+    FormElement.Core(name, Option(label).getOrElse(name), None, Seq())
 }

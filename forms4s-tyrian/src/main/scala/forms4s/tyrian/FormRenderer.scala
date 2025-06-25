@@ -27,3 +27,12 @@ trait FormRenderer {
 
   protected def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate]
 }
+
+object FormRenderer {
+
+  case class Path(segments: List[String]) {
+    def /(segment: String): Path = Path(segment :: segments)
+    def asString: String         = segments.mkString(".")
+  }
+
+}

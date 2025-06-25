@@ -20,14 +20,14 @@ lazy val root = (project in file("."))
     `forms4s-examples`,
   )
 
-lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
+lazy val `forms4s-core` = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("forms4s-core"))
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"      %%% "circe-core"         % "0.14.14",
-      "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % "test",
+      "io.circe"      %%% "circe-core" % "0.14.14",
+      "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
     ),
   )
   .enablePlugins(ScalaJSPlugin)
@@ -70,15 +70,15 @@ lazy val `forms4s-examples` =
   (project in file("forms4s-examples"))
     .enablePlugins(ScalaJSPlugin)
     .settings( // Normal settings
-      name            := "forms4s-examples",
+      name                            := "forms4s-examples",
       scalaJSLinkerConfig ~= {
         _.withModuleKind(ModuleKind.ESModule)
           .withModuleSplitStyle(
-            ModuleSplitStyle.SmallModulesFor(List("forms4s"))
+            ModuleSplitStyle.SmallModulesFor(List("forms4s")),
           )
       },
       scalaJSUseMainModuleInitializer := true,
-      autoAPIMappings := true,
+      autoAPIMappings                 := true,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
         "org.scalatest"               %%% "scalatest-freespec" % "3.2.19" % "test",

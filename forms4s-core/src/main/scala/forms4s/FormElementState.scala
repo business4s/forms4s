@@ -3,7 +3,7 @@ package forms4s
 sealed trait FormElementState {
   type Self <: FormElementState
   def element: FormElement
-  def name: String                 = element.id
+  def id: String                           = element.core.id
   def update(msg: FormElementUpdate): Self = this.updatePF(msg)
 
   protected def updatePF: PartialFunction[FormElementUpdate, Self]
@@ -48,7 +48,7 @@ object FormElementState {
   case class Group(element: FormElement.Group, values: List[FormElementState])             extends FormElementState {
     override type Self = Group
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Nested(field, value) =>
-      val idx = values.indexWhere(_.name == field)
+      val idx = values.indexWhere(_.id == field)
       copy(values = values.updated(idx, values(idx).update(value)))
     }
   }

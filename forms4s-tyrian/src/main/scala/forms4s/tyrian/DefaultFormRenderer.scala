@@ -10,12 +10,12 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   override def renderTextInput(
       state: FormElementState.Text,
   ): Html[FormElementUpdate] = {
-    val name = state.element.id
+    val name = state.element.core.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(state.element.label),
+      )(state.element.core.label),
       input(
         `type`    := "text",
         id        := name,
@@ -30,12 +30,12 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   override def renderNumberInput(
       state: FormElementState.Number,
   ): Html[FormElementUpdate] = {
-    val name = state.element.id
+    val name = state.element.core.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(state.element.label),
+      )(state.element.core.label),
       input(
         `type`    := "number",
         id        := name,
@@ -50,12 +50,12 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   override def renderSelect(
       state: FormElementState.Select,
   ): Html[FormElementUpdate] = {
-    val name = state.element.id
+    val name = state.element.core.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
         className := stylesheet.labelClass,
-      )(state.element.label),
+      )(state.element.core.label),
       tyrian.Html.select(
         id        := name,
         Html.name := name,
@@ -75,7 +75,7 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   override def renderCheckbox(
       state: FormElementState.Checkbox,
   ): Html[FormElementUpdate] = {
-    val name = state.element.id
+    val name = state.element.core.id
     div(className := stylesheet.formGroupClass)(
       label(
         htmlFor   := name,
@@ -89,7 +89,7 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
           checked   := state.value,
           onChange(checked => FormElementUpdate.Checkbox(checked == "true")),
         ),
-        span(state.element.label),
+        span(state.element.core.label),
       ),
     )
   }
@@ -97,22 +97,20 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   override def renderGroup(
       state: FormElementState.Group,
   ): Html[FormElementUpdate] = {
-    val name = state.element.id
+    val name = state.element.core.id
     div(className := stylesheet.subformClass)(
-      h3(className := stylesheet.subformTitleClass)(state.element.label) ::
+      h3(className := stylesheet.subformTitleClass)(state.element.core.label) ::
         state.values.map(subElement =>
           renderElement(subElement)
-            .map(x => FormElementUpdate.Nested(subElement.name, x)),
+            .map(x => FormElementUpdate.Nested(subElement.id, x)),
         ),
     )
   }
 
   override def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate] = {
-    val name = state.element.id
-
     // TODO classes are bulma-specific
     fieldset(cls := "box")(
-      Html.legend(cls := "title is-4")(state.element.label) ::
+      Html.legend(cls := "title is-4")(state.element.core.label) ::
         state.values.toList.zipWithIndex.flatMap { case (item, idx) =>
           List(
             renderElement(item).map(x => MultivalueUpdate(idx, x)),

@@ -2,7 +2,7 @@ package forms4s.jsonschema
 
 import cats.data.Ior
 import cats.syntax.all.*
-import forms4s.FormElement
+import forms4s.{FormElement, FormElementState}
 import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
 import scala.annotation.tailrec
@@ -10,8 +10,7 @@ import scala.annotation.tailrec
 object FormFromJsonSchema {
 
   def convert(root: ASchema): FormElement = {
-    createElement(None, root, required = true, root.$defs.getOrElse(Map()))
-      .right
+    createElement(None, root, required = true, root.$defs.getOrElse(Map())).right
       .getOrElse(???) // TODO errors
   }
 
@@ -47,7 +46,7 @@ object FormFromJsonSchema {
       case schema: AnySchema   =>
         val name = nameOverride.getOrElse("")
         schema match {
-          case AnySchema.Anything => FormElement.Text(name, capitalizeAndSplitWords(name), None, required, multiline = true).rightIor
+          case AnySchema.Anything => FormElement.Text(FormElement.Core(name, capitalizeAndSplitWords(name), None, Seq()), multiline = true).rightIor
           case AnySchema.Nothing  => List("Nothing schema for a property is not expected").leftIor
         }
       case unresolved: ASchema =>
@@ -64,10 +63,17 @@ object FormFromJsonSchema {
     }
   }
 
-  private def handleSchema(nameOverride: Option[String], schema: ASchema, required: Boolean, defs: Map[String, SchemaLike]): Ior[List[String], FormElement] = {
-    val name = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
-    val label       = schema.title.getOrElse(capitalizeAndSplitWords(name))
-    val description = schema.description
+  private def handleSchema(
+      nameOverride: Option[String],
+      schema: ASchema,
+      required: Boolean,
+      defs: Map[String, SchemaLike],
+  ): Ior[List[String], FormElement] = {
+    val name                                                                   = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
+    val label                                                                  = schema.title.getOrElse(capitalizeAndSplitWords(name))
+    val description                                                            = schema.description
+    def core[T <: FormElementState](validators: Seq[FormElement.Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
+
     val enumOptions = schema.`enum`.getOrElse(Nil).collect {
       case ExampleSingleValue(value)    => value.toString
       case ExampleMultipleValue(values) => ??? // TODO proper error
@@ -79,72 +85,24 @@ object FormFromJsonSchema {
     tpe match {
       case Some(tpe) =>
         tpe match {
-          case SchemaType.Boolean                     =>
-            FormElement
-              .Checkbox(
-                name,
-                label = label,
-                description = description,
-                required = required,
-              )
-              .rightIor
+          case SchemaType.Boolean                     => FormElement.Checkbox(core(Seq())).rightIor
           case SchemaType.Object                      =>
-            extractElements(schema, schema.required.toSet, defs).map(subElems =>
-              FormElement.Group(
-                name,
-                elements = subElems,
-                label = label,
-                description = description,
-                required = required,
-              ),
-            )
+            extractElements(schema, schema.required.toSet, defs)
+              .map(subElems => FormElement.Group(core(Seq()), subElems))
           case SchemaType.Array                       =>
             schema.items
               .map(schema => createElement(None, schema, false, defs))
               .getOrElse(List(s"No items schema for array $name").leftIor)
-              .map(itemElem =>
-                FormElement.Multivalue(
-                  id = name,
-                  item = itemElem,
-                  label = label,
-                  description = description,
-                  required = required,
-                ),
-              )
-          case SchemaType.Number | SchemaType.Integer =>
-            FormElement
-              .Number(
-                name,
-                label = label,
-                description = description,
-                required = required,
-              )
-              .rightIor
+              .map(itemElem => FormElement.Multivalue(core(Seq()), itemElem))
+          case SchemaType.Number | SchemaType.Integer => FormElement.Number(core(Seq())).rightIor
           case SchemaType.String                      =>
-            if (enumOptions.nonEmpty) {
-              FormElement
-                .Select(
-                  name,
-                  options = enumOptions,
-                  label = label,
-                  description = description,
-                  required = required,
-                )
-                .rightIor
-            } else {
+            if (enumOptions.nonEmpty) FormElement.Select(core(Seq()), enumOptions).rightIor
+            else {
               val maxLen      = schema.maxLength.getOrElse(100)
               val minLen      = schema.minLength.getOrElse(100)
               val formatHint  = schema.format.contains("multiline")
               val isMultiline = formatHint || maxLen > 120 || minLen > 120
-              FormElement
-                .Text(
-                  name,
-                  label = label,
-                  description = description,
-                  required = required,
-                  multiline = isMultiline,
-                )
-                .rightIor
+              FormElement.Text(core(Seq()), multiline = isMultiline).rightIor
             }
           case SchemaType.Null                        => List("Null schema for a property is not expected").leftIor
         }
