@@ -15,10 +15,10 @@
 - [ ] Better support for numbers (double vs integer)
 - [ ] Support for time
 - [ ] Validation
-  - [ ] Infrastructure for field validation
+  - [x] Infrastructure for field validation
   - [ ] Support for JSON Schema constraints
   - [ ] Integration with `iron` / `neotype`
-- [ ] Improved checkbox rendering
+- [x] Improved checkbox rendering
 - [ ] `oneOf` support for sealed traits
 - [ ] Website and documentation
   - [ ] cool interactive page with scala/jsonschema/form side by side

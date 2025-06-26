@@ -2,37 +2,34 @@ package forms4s.tyrian
 
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate, FormStylesheet}
-import tyrian.{Empty, Html}
+import tyrian.{Empty, Html, Text}
 import tyrian.Html.*
 
 class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
 
   override def renderTextInput(
-                                state: FormElementState.Text
-                              ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
+      state: FormElementState.Text,
+  ): Html[FormElementUpdate] = {
+    val name     = state.element.core.id
     val hasError = state.errors.nonEmpty
 
     Html.div(`class` := "field")(
       Html.label(`class` := "label", htmlFor := name)(state.element.core.label),
-
       Html.div(`class` := "control")(
         Html.input(
-          `type` := "text",
-          id := name,
-          Html.name := name,
-          `class` := {
+          `type`     := "text",
+          id         := name,
+          Html.name  := name,
+          `class`    := {
             if hasError then "input is-danger"
             else "input"
           },
           Html.value := state.value,
-          onInput(value => FormElementUpdate.Text(value))
-        )
+          onInput(value => FormElementUpdate.Text(value)),
+        ),
       ),
-
-      if hasError then
-        Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
-      else tyrian.Empty
+      if hasError then Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
+      else tyrian.Empty,
     )
   }
 
@@ -82,31 +79,30 @@ class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
   }
 
   override def renderCheckbox(
-      state: FormElementState.Checkbox,
-  ): Html[FormElementUpdate] = {
+                               state: FormElementState.Checkbox,
+                             ): Html[FormElementUpdate] = {
     val name = state.element.core.id
-    div(className := stylesheet.formGroupClass)(
-      label(
-        htmlFor   := name,
-        className := stylesheet.checkboxLabelClass,
-      )(
-        input(
-          `type`    := "checkbox",
-          id        := name,
-          Html.name := name,
-          className := stylesheet.checkboxClass,
-          checked   := state.value,
-          onChange(checked => FormElementUpdate.Checkbox(checked == "true")),
-        ),
-        span(state.element.core.label),
-      ),
+
+    div(className := "field")(
+      div(className := "control")(
+        label(className := "checkbox")(
+          input(
+            `type` := "checkbox",
+            id := name,
+            Html.name := name,
+            checked := state.value,
+            onChange(checked => FormElementUpdate.Checkbox(checked == "true"))
+          ),
+          Text(" "), // space between checkbox and label
+          Text(state.element.core.label)
+        )
+      )
     )
   }
 
   override def renderGroup(
       state: FormElementState.Group,
   ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
     div(className := stylesheet.subformClass)(
       h3(className := stylesheet.subformTitleClass)(state.element.core.label) ::
         state.value.map(subElement =>

@@ -13,7 +13,7 @@ object FormElementUpdate {
   case object MultivalueAppend                                      extends Change
   case class MultivalueRemove(index: Int)                           extends Change
 
-  case object Debounced       extends FormElementUpdate
-  case object SubmitAttempted extends FormElementUpdate
-  case object Unfocused       extends FormElementUpdate
+  case class Debounced(fields: List[String]) extends FormElementUpdate
+  case object SubmitAttempted                extends FormElementUpdate
+  case class Unfocused(fields: List[String]) extends FormElementUpdate
 }
