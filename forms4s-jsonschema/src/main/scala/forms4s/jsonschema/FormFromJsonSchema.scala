@@ -2,10 +2,13 @@ package forms4s.jsonschema
 
 import cats.data.Ior
 import cats.syntax.all.*
+import forms4s.FormElement.Validator
+import forms4s.jsonschema.FormFromJsonSchema.FormatValidator
 import forms4s.{FormElement, FormElementState}
 import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
 import scala.annotation.tailrec
+import scala.util.matching.Regex
 
 object FormFromJsonSchema {
 
@@ -96,16 +99,31 @@ object FormFromJsonSchema {
           case SchemaType.String                      =>
             if (enumOptions.nonEmpty) FormElement.Select(core(Seq()), enumOptions).rightIor
             else {
-              val maxLen      = schema.maxLength.getOrElse(100)
-              val minLen      = schema.minLength.getOrElse(100)
-              val formatHint  = schema.format.contains("multiline")
-              val isMultiline = formatHint || maxLen > 120 || minLen > 120
-              FormElement.Text(core(Seq()), multiline = isMultiline).rightIor
+              val maxLen           = schema.maxLength.getOrElse(100)
+              val minLen           = schema.minLength.getOrElse(100)
+              val formatHint       = schema.format.contains("multiline")
+              val patternValidator = schema.pattern.map(pattern => FormatValidator(Regex(pattern.value)))
+              val isMultiline      = formatHint || maxLen > 120 || minLen > 120
+              val validators       = Seq(
+                patternValidator,
+              ).flatten
+              FormElement
+                .Text(core(validators), multiline = isMultiline)
+                .rightIor
             }
           case SchemaType.Null                        => List("Null schema for a property is not expected").leftIor
         }
       case None      => List("Schema type not specified").leftIor
     }
+  }
+
+  class FormatValidator(format: Regex) extends FormElement.Validator[String] {
+    override def validate(in: String): Option[String] =
+      if format.matches(in) then None
+      else Some(s"Value does not match format ${format.pattern}")
+
+    override def triggers: Set[Validator.ExecutionTrigger] =
+      Set(Validator.ExecutionTrigger.Change)
   }
 
 }

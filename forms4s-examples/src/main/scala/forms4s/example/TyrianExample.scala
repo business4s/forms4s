@@ -5,6 +5,8 @@ import forms4s.{FormElementState, FormElementUpdate}
 import forms4s.circe.FormStateEncoder.extractJson
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
+import sttp.tapir.Schema.annotations.validate
+import sttp.tapir.Validator.Pattern
 import tyrian.*
 import tyrian.Html.*
 
@@ -19,6 +21,8 @@ object MyForm {
   case class Address(
       street: String,
       city: String,
+      @validate(Pattern("^[A-Za-z0-9\\- ]{0,10}$"))
+      postalCode: String,
       country: String,
       notes: Option[String], // long multiline optional text
   ) derives TSchema

@@ -1,29 +1,38 @@
 package forms4s.tyrian
 
 import forms4s.FormElementUpdate.MultivalueUpdate
-import forms4s.{FormElementState, FormStylesheet, FormElementUpdate}
-import tyrian.Html
+import forms4s.{FormElementState, FormElementUpdate, FormStylesheet}
+import tyrian.{Empty, Html}
 import tyrian.Html.*
 
 class DefaultFormRenderer(stylesheet: FormStylesheet) extends FormRenderer {
 
   override def renderTextInput(
-      state: FormElementState.Text,
-  ): Html[FormElementUpdate] = {
+                                state: FormElementState.Text
+                              ): Html[FormElementUpdate] = {
     val name = state.element.core.id
-    div(className := stylesheet.formGroupClass)(
-      label(
-        htmlFor   := name,
-        className := stylesheet.labelClass,
-      )(state.element.core.label),
-      input(
-        `type`    := "text",
-        id        := name,
-        Html.name := name,
-        className := stylesheet.inputClass,
-        value     := state.value,
-        onInput(value => FormElementUpdate.Text(value)),
+    val hasError = state.errors.nonEmpty
+
+    Html.div(`class` := "field")(
+      Html.label(`class` := "label", htmlFor := name)(state.element.core.label),
+
+      Html.div(`class` := "control")(
+        Html.input(
+          `type` := "text",
+          id := name,
+          Html.name := name,
+          `class` := {
+            if hasError then "input is-danger"
+            else "input"
+          },
+          Html.value := state.value,
+          onInput(value => FormElementUpdate.Text(value))
+        )
       ),
+
+      if hasError then
+        Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
+      else tyrian.Empty
     )
   }
 

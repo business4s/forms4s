@@ -3,6 +3,8 @@ package forms4s.jsonschema
 import forms4s.{FormElement, FormElementState}
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
+import sttp.tapir.Schema.annotations.{format, validate}
+import sttp.tapir.Validator.Pattern
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 
 class FormFromJsonSchemaSpec extends AnyFreeSpec {
@@ -81,6 +83,17 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       )
 
       assert(form == expected)
+    }
+
+    "regex validator" in {
+      case class WithFromat(@validate(Pattern("[a|b]")) a: String) derives TSchema
+      val form = getForm[WithFromat]()
+
+      val validators = form.asInstanceOf[FormElement.Group].elements.head.asInstanceOf[FormElement.Text].core.validators
+      assert(validators.size == 1)
+      assert(validators.head.validate("a") == None)
+      assert(validators.head.validate("b") == None)
+      assert(validators.head.validate("c") == Some("Value does not match format [a|b]"))
     }
 
   }
