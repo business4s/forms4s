@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
     title: 'Forms4s',
     tagline: 'Automatically generated input forms for rapid development',
-    favicon: 'img/favicon.ico',
+    favicon: 'img/favicon/favicon.ico',
 
     // GitHub pages deployment config.
     url: 'https://business4s.github.io/',
@@ -58,7 +58,7 @@ const config: Config = {
             title: 'Forms4s',
             logo: {
                 alt: 'Forms4s Logo',
-                src: 'img/forms4s-logo.png',
+                src: 'img/forms4s-logo.drawio.svg',
             },
             items: [
                 {
@@ -67,6 +67,7 @@ const config: Config = {
                     position: 'left',
                     label: 'Docs',
                 },
+                { to: '/demo', label: 'Demo', position: 'left' },
                 {
                     href: 'https://github.com/business4s/forms4s',
                     label: 'GitHub',

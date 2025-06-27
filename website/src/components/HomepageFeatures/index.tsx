@@ -13,8 +13,8 @@ const FeatureList: FeatureItem[] = [
         title: 'Automatic',
         description: (
             <>
-                Forms4s derives form structure directly from your Scala types, so your UI always matches your domain
-                model without manual syncing.
+                Forms4s derives form structure from your Scala types, so your UI always matches your
+                model.
             </>
         ),
     },
@@ -31,7 +31,7 @@ const FeatureList: FeatureItem[] = [
         description: (
             <>
                 Forms4s supports user interaction, validation, dynamic updates and extracting structured JSON from the
-                UI, all without boilerplate.
+                UI, and more.
             </>
         ),
     },

@@ -13,9 +13,9 @@
 - Core
   - [x] Multi-value field support (`List[_]`)
   - [x] Hydrate form with json (e.g. for persistent urls or other cache)
-    - [ ] Proper handling of empty and `null` values
-    - [ ] Better support for numbers (double vs integer)
-    - [ ] Support for time
+  - [ ] Proper handling of empty and `null` values
+  - [ ] Better support for numbers (double vs integer)
+  - [ ] Support for time
 - Json schema
   - [ ] `oneOf` support for sealed traits
 - Validation
@@ -25,8 +25,8 @@
 - Rendering
   - [x] Improved checkbox rendering
 - Website and documentation
-  - [ ] Basic page
-  - [ ] Demo inside docosaurus
+  - [x] Basic page
+  - [x] Demo inside docosaurus
   - [ ] Interactive page with scala/jsonschema/form side by side
 - [ ] CI/CD
   - [ ] Artifact publishing

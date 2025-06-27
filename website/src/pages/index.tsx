@@ -14,21 +14,21 @@ function HomepageHeader() {
         <header className={clsx('hero hero--primary', styles.heroBanner)}>
             <div className="container">
                 <div className="text--center">
-                    <img className={styles.roundedImage} src="img/workflows4s-logo.drawio.svg"/>
+                    <img className={styles.roundedImage} src="img/forms4s-logo.drawio.svg"/>
                 </div>
                 <Heading as="h1" className="hero__title">
                     {siteConfig.title}
                 </Heading>
                 <p className="hero__subtitle">{siteConfig.tagline}</p>
                 {/*<div className={styles.dependency}>*/}
-                {/*    <SbtDependency moduleName={"workflows4s-core"}/>*/}
+                {/*    <SbtDependency možduleName={"workflows4s-core"}/>*/}
                 {/*</div>*/}
                 <div className={styles.buttons}>
                     <Link
                         className="button button--secondary button--lg"
                         style={{marginRight: '1em'}}
                         to="/docs">
-                        See the Demo
+                        Check the Demo
                     </Link>
                     <Link
                         className="button button--secondary button--lg"
