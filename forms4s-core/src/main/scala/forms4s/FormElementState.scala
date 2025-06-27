@@ -14,9 +14,10 @@ sealed trait FormElementState {
 
   def update(msg: FormElementUpdate): FormElementState = msg match {
     case change: FormElementUpdate.Change  => updatePF(change).validate(ExecutionTrigger.Change)
-    case FormElementUpdate.Debounced       => this.validate(ExecutionTrigger.Debounce)
+    // TODO this is wrong, doesnt handle recursion of groups/multivalues
     case FormElementUpdate.SubmitAttempted => this.validate(ExecutionTrigger.Submit)
-    case FormElementUpdate.Unfocused       => this.validate(ExecutionTrigger.Unfocus)
+    case FormElementUpdate.Debounced(_)    => this.validate(ExecutionTrigger.Debounce)
+    case FormElementUpdate.Unfocused(_)    => this.validate(ExecutionTrigger.Unfocus)
   }
 
   private def validate(trigger: Validator.ExecutionTrigger): Self = {
@@ -70,7 +71,7 @@ object FormElementState {
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Checkbox(v) => copy(value = v) }
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
   }
-  case class Group(element: FormElement.Group, value: List[FormElementState], errors: Seq[String])            extends FormElementState {
+  case class Group(element: FormElement.Group, value: List[FormElementState], errors: Seq[String])             extends FormElementState {
     override type Self  = Group
     override type Value = List[FormElementState]
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Nested(field, newValue) =>
@@ -80,8 +81,8 @@ object FormElementState {
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
   }
   case class Multivalue(element: FormElement.Multivalue, value: Vector[FormElementState], errors: Seq[String]) extends FormElementState {
-    override type Self = Multivalue
-    override type Value         = Vector[FormElementState]
+    override type Self  = Multivalue
+    override type Value = Vector[FormElementState]
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = {
       case FormElementUpdate.MultivalueUpdate(idx, newValue) => copy(value = value.updated(idx, value(idx).update(newValue)))
       case FormElementUpdate.MultivalueAppend                => copy(value = value.appended(empty(element.item)))

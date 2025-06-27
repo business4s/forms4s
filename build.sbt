@@ -26,7 +26,7 @@ lazy val `forms4s-core` = crossProject(JVMPlatform, JSPlatform)
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"      %%% "circe-core" % "0.14.14",
+      "io.circe"     %%% "circe-core" % "0.14.14",
       "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
     ),
   )
@@ -81,6 +81,7 @@ lazy val `forms4s-examples` =
       autoAPIMappings                 := true,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
+        "io.circe"                    %%% "circe-parser"       % "0.14.14",
         "org.scalatest"               %%% "scalatest-freespec" % "3.2.19" % "test",
       ),
     )
