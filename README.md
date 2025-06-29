@@ -35,7 +35,8 @@
   - [x] Demo inside docosaurus
     - [ ] Auto build, even on local (yarn task)
   - [ ] Proper docs
-  - [ ] Interactive page with scala/jsonschema/form side by side
+  - [x] Interactive page with scala/jsonschema/form side by side
+    - [ ] ability to edit code
 - [ ] CI/CD
   - [ ] Artifact publishing
   - [ ] scalafix/sbt-tpolecat

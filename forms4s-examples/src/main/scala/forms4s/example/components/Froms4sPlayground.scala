@@ -29,16 +29,17 @@ class SchemaView(schema: ASchema)           {
     import sttp.apispec.openapi.circe.*
     div(
       textarea(
-        value := schema.asJson.spaces2,
-        rows := 20,
-        Html.className := "textarea",
-      )()
+        value          := schema.asJson.spaces2,
+        rows           := 20,
+        Html.className := "textarea ",
+        onChange(value => Msg.SchemaUpdated(value))
+      )(),
     )
   }
 }
 case class FormView(form: FormElementState) {
   private val renderer: FormRenderer = BulmaFormRenderer
-  def render: Html[Msg]      =
+  def render: Html[Msg]              =
     div()(
       renderer.renderElement(form).map(Msg.FormUpdated.apply),
       div(className := "form-actions")(
@@ -54,10 +55,11 @@ class JsonView(json: Json) {
   def render: Html[Msg] = {
     div(
       textarea(
-        value := json.spaces2,
-        rows := 20,
+        value          := json.spaces2,
+        rows           := 20,
         Html.className := "textarea",
-      )()
+        onChange(value => Msg.JsonUpdated(value)),
+      )(),
     )
   }
 }
@@ -74,8 +76,25 @@ case class Froms4sPlayground(
       val newState = formView.form.update(raw)
       val newJson  = FormStateToJson.extract(newState)
       copy(formView = FormView(newState), jsonView = JsonView(newJson)) -> Cmd.None
-    case Msg.SchemaUpdated(rawSchema) => (this, Cmd.None)
-    case Msg.JsonUpdated(rawJson)     => (this, Cmd.None)
+    case Msg.SchemaUpdated(rawSchema) =>
+      import sttp.apispec.openapi.circe.*
+      io.circe.parser.decode[ASchema](rawSchema) match {
+        case Left(value)  =>
+          // TODO error logging
+          (this, Cmd.None)
+        case Right(value) =>
+          val newForm  = FormFromJsonSchema.convert(value)
+          val newState = FormElementState.empty(newForm)
+          val newJson  = FormStateToJson.extract(newState)
+          copy(schemaView = SchemaView(value), formView = FormView(newState), jsonView = JsonView(newJson)) -> Cmd.None
+
+      }
+    case Msg.JsonUpdated(rawJson)     =>
+      (for {
+        parsed  <- io.circe.parser.parse(rawJson).toOption // TODO error logging
+        updates  = FormStateFromJson.hydrate(formView.form, parsed)
+        newState = updates.foldLeft(formView.form)((acc, update) => acc.update(update))
+      } yield this.copy(jsonView = JsonView(parsed), formView = FormView(newState)) -> Cmd.None).getOrElse((this, Cmd.None))
     case Msg.Submit                   => (this, Cmd.None)
     case Msg.NoOp                     => (this, Cmd.None)
     case Msg.HydrateFormFromUrl(json) => (this, Cmd.None)
@@ -83,28 +102,26 @@ case class Froms4sPlayground(
 
   def render: Html[Msg] =
     div(className := "container")(
-      div(className := "grid")(
-        div(className := "cell")(
+      div(className := "columns is-multiline")(
+        div(className := "column is-half")(
           section(className := "box")(
             h2(className := "title is-5")("Scala Source Code"),
-            div(id := "scala-code")(
-              codeView.render,
-            ),
+            div(id := "scala-code")(codeView.render),
           ),
         ),
-        div(className := "cell")(
+        div(className := "column is-half")(
           section(className := "box")(
             h2(className := "title is-5")("JSON Schema"),
             div(id := "json-schema")(schemaView.render),
           ),
         ),
-        div(className := "cell")(
+        div(className := "column is-half")(
           section(className := "box")(
             h2(className := "title is-5")("Generated Form"),
             div(id := "form-container")(formView.render),
           ),
         ),
-        div(className := "cell")(
+        div(className := "column is-half")(
           section(className := "box")(
             h2(className := "title is-5")("Extracted JSON"),
             div(id := "json-output")(jsonView.render),
