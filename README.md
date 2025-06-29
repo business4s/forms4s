@@ -16,6 +16,12 @@
   - [ ] Proper handling of empty and `null` values
   - [ ] Better support for numbers (double vs integer)
   - [ ] Support for time
+  - [ ] Adjustment of forms
+  - [ ] Derivation from Scala types
+- Rendering
+  - [x] Specialize on bulma
+  - [ ] Bootstrap renderer
+  - [ ] Raw/Pico renderer
 - Json schema
   - [ ] `oneOf` support for sealed traits
 - Validation
@@ -27,11 +33,12 @@
 - Website and documentation
   - [x] Basic page
   - [x] Demo inside docosaurus
+    - [ ] Auto build, even on local (yarn task)
+  - [ ] Proper docs
   - [ ] Interactive page with scala/jsonschema/form side by side
 - [ ] CI/CD
   - [ ] Artifact publishing
   - [ ] scalafix/sbt-tpolecat
-- [ ] Derivation from Scala types
 
 ---
 

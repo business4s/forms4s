@@ -77,12 +77,13 @@ lazy val `forms4s-examples` =
             ModuleSplitStyle.SmallModulesFor(List("forms4s")),
           )
       },
-      scalaJSUseMainModuleInitializer := true,
+//      scalaJSUseMainModuleInitializer := true,
       autoAPIMappings                 := true,
       libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.tapir" %%% "tapir-apispec-docs" % "1.11.34",
-        "io.circe"                    %%% "circe-parser"       % "0.14.14",
-        "org.scalatest"               %%% "scalatest-freespec" % "3.2.19" % "test",
+        "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34",
+        "io.circe"                      %%% "circe-parser"       % "0.14.14",
+        "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.11.10",
+        "org.scalatest"                 %%% "scalatest-freespec" % "3.2.19" % "test",
       ),
     )
     .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)
