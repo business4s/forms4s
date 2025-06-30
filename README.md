@@ -36,7 +36,7 @@
     - [ ] Auto build, even on local (yarn task)
   - [ ] Proper docs
   - [x] Interactive page with scala/jsonschema/form side by side
-    - [ ] ability to edit code
+    - [ ] Ability to edit code
 - [ ] CI/CD
   - [ ] Artifact publishing
   - [ ] scalafix/sbt-tpolecat

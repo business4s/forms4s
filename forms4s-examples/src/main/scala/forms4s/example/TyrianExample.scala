@@ -3,7 +3,7 @@ package forms4s.example
 import cats.effect.IO
 import forms4s.circe.FormStateFromJson
 import forms4s.circe.FormStateToJson.extractJson
-import forms4s.example.components.Froms4sPlayground
+import forms4s.example.components.{CssFramework, Froms4sPlayground}
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
 import forms4s.{FormElementState, FormElementUpdate}
@@ -86,4 +86,5 @@ enum Msg {
   case Submit
   case NoOp
   case HydrateFormFromUrl(json: String)
+  case FrameworkSelected(framework: CssFramework)
 }

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "bootstrap": "^5.3.7",
     "bulma": "^0.9.4"
   },
   "devDependencies": {

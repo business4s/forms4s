@@ -1,29 +1,20 @@
 package forms4s.example.components
 
-import forms4s.FormElementState
-import forms4s.example.{BulmaStylesheet, Model, Msg, MyForm}
-import forms4s.tyrian.{BulmaFormRenderer, FormRenderer}
-import sttp.apispec.Schema as ASchema
 import cats.effect.IO
+import forms4s.FormElementState
 import forms4s.circe.{FormStateFromJson, FormStateToJson}
-import forms4s.circe.FormStateToJson.extractJson
-import forms4s.example.components.Froms4sPlayground
+import forms4s.example.{Msg, MyForm}
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
-import forms4s.{FormElementState, FormElementUpdate}
-import org.scalajs.dom
-import org.scalajs.dom.{URLSearchParams, document}
-import sttp.tapir.Schema.annotations.validate
-import sttp.tapir.Validator.Pattern
+import io.circe.Json
+import sttp.apispec.Schema as ASchema
 import tyrian.*
 import tyrian.Html.*
-import io.circe.Json
-import forms4s.circe.FormStateToJson.extractJson
 
-class CodeView()                            {
+class CodeView()                  {
   def render: Html[Msg] = div()
 }
-class SchemaView(schema: ASchema)           {
+class SchemaView(schema: ASchema) {
   def render: Html[Msg] = {
     import io.circe.syntax.*
     import sttp.apispec.openapi.circe.*
@@ -32,23 +23,58 @@ class SchemaView(schema: ASchema)           {
         value          := schema.asJson.spaces2,
         rows           := 20,
         Html.className := "textarea ",
-        onChange(value => Msg.SchemaUpdated(value))
+        onChange(value => Msg.SchemaUpdated(value)),
       )(),
     )
   }
 }
-case class FormView(form: FormElementState) {
-  private val renderer: FormRenderer = BulmaFormRenderer
-  def render: Html[Msg]              =
-    div()(
-      renderer.renderElement(form).map(Msg.FormUpdated.apply),
-      div(className := "form-actions")(
-        button(
-          onClick(Msg.Submit),
-          className := "button is-primary",
-        )("Submit"),
+
+enum CssFramework {
+  case Bulma, Bootstrap, Raw
+}
+
+case class FormView(form: FormElementState, framework: CssFramework) {
+  private val renderer: FormRenderer = framework match {
+    case CssFramework.Bulma     => BulmaFormRenderer
+    case CssFramework.Bootstrap => BootstrapFormRenderer
+    case CssFramework.Raw       => BootstrapFormRenderer // TODO
+  }
+  private val rendererLabel: String  = framework match {
+    case CssFramework.Bulma     => "bulma"
+    case CssFramework.Bootstrap => "bootstrap"
+    case CssFramework.Raw       => "raw"
+  }
+  def render: Html[Msg]              = {
+    div(
+      Html.div(`class` := "framework-selector")(
+        Html.label(`for` := "css-framework")("CSS Framework:"),
+        Html.select(
+          id   := "css-framework",
+          name := "css-framework",
+          onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value))),
+        )(
+          Html.option(value := CssFramework.Raw.toString, selected := (framework == CssFramework.Raw))("Raw"),
+          Html.option(value := CssFramework.Bulma.toString, selected := (framework == CssFramework.Bulma))("Bulma"),
+          Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap"),
+        ),
+      ),
+      tyrian.Tag(
+        "css-separator",
+        List(
+          Attribute("renderer", rendererLabel),
+        ),
+        List(
+          renderer.renderElement(form).map(Msg.FormUpdated.apply),
+          div(className := "form-actions")(
+            button(
+              onClick(Msg.Submit),
+              className := "button is-primary",
+            )("Submit"),
+          ),
+        ),
       ),
     )
+  }
 
 }
 class JsonView(json: Json) {
@@ -75,7 +101,7 @@ case class Froms4sPlayground(
     case Msg.FormUpdated(raw)         =>
       val newState = formView.form.update(raw)
       val newJson  = FormStateToJson.extract(newState)
-      copy(formView = FormView(newState), jsonView = JsonView(newJson)) -> Cmd.None
+      copy(formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
     case Msg.SchemaUpdated(rawSchema) =>
       import sttp.apispec.openapi.circe.*
       io.circe.parser.decode[ASchema](rawSchema) match {
@@ -86,7 +112,7 @@ case class Froms4sPlayground(
           val newForm  = FormFromJsonSchema.convert(value)
           val newState = FormElementState.empty(newForm)
           val newJson  = FormStateToJson.extract(newState)
-          copy(schemaView = SchemaView(value), formView = FormView(newState), jsonView = JsonView(newJson)) -> Cmd.None
+          copy(schemaView = SchemaView(value), formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
 
       }
     case Msg.JsonUpdated(rawJson)     =>
@@ -94,10 +120,11 @@ case class Froms4sPlayground(
         parsed  <- io.circe.parser.parse(rawJson).toOption // TODO error logging
         updates  = FormStateFromJson.hydrate(formView.form, parsed)
         newState = updates.foldLeft(formView.form)((acc, update) => acc.update(update))
-      } yield this.copy(jsonView = JsonView(parsed), formView = FormView(newState)) -> Cmd.None).getOrElse((this, Cmd.None))
+      } yield this.copy(jsonView = JsonView(parsed), formView = formView.copy(form = newState)) -> Cmd.None).getOrElse((this, Cmd.None))
     case Msg.Submit                   => (this, Cmd.None)
     case Msg.NoOp                     => (this, Cmd.None)
     case Msg.HydrateFormFromUrl(json) => (this, Cmd.None)
+    case Msg.FrameworkSelected(newFramework) => (this.copy(formView = formView.copy(framework = newFramework)), Cmd.None)
   }
 
   def render: Html[Msg] =
@@ -141,7 +168,7 @@ object Froms4sPlayground {
     Froms4sPlayground(
       CodeView(),
       SchemaView(schema),
-      FormView(formState),
+      FormView(formState, CssFramework.Raw),
       JsonView(json),
     )
   }
