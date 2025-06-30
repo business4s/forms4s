@@ -30,19 +30,21 @@ class SchemaView(schema: ASchema) {
 }
 
 enum CssFramework {
-  case Bulma, Bootstrap, Raw
+  case Bulma, Bootstrap, Raw, Pico
 }
 
 case class FormView(form: FormElementState, framework: CssFramework) {
   private val renderer: FormRenderer = framework match {
     case CssFramework.Bulma     => BulmaFormRenderer
     case CssFramework.Bootstrap => BootstrapFormRenderer
-    case CssFramework.Raw       => BootstrapFormRenderer // TODO
+    case CssFramework.Raw       => RawFormRenderer
+    case CssFramework.Pico   => RawFormRenderer
   }
   private val rendererLabel: String  = framework match {
     case CssFramework.Bulma     => "bulma"
     case CssFramework.Bootstrap => "bootstrap"
     case CssFramework.Raw       => "raw"
+    case CssFramework.Pico   => "picocss"
   }
   def render: Html[Msg]              = {
     div(
@@ -54,6 +56,7 @@ case class FormView(form: FormElementState, framework: CssFramework) {
           onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value))),
         )(
           Html.option(value := CssFramework.Raw.toString, selected := (framework == CssFramework.Raw))("Raw"),
+          Html.option(value := CssFramework.Pico.toString, selected := (framework == CssFramework.Pico))("Pico"),
           Html.option(value := CssFramework.Bulma.toString, selected := (framework == CssFramework.Bulma))("Bulma"),
           Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap"),
         ),
@@ -98,11 +101,11 @@ case class Froms4sPlayground(
 ) {
 
   def update: Msg => (Froms4sPlayground, Cmd[IO, Msg]) = {
-    case Msg.FormUpdated(raw)         =>
+    case Msg.FormUpdated(raw)                =>
       val newState = formView.form.update(raw)
       val newJson  = FormStateToJson.extract(newState)
       copy(formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
-    case Msg.SchemaUpdated(rawSchema) =>
+    case Msg.SchemaUpdated(rawSchema)        =>
       import sttp.apispec.openapi.circe.*
       io.circe.parser.decode[ASchema](rawSchema) match {
         case Left(value)  =>
@@ -115,15 +118,15 @@ case class Froms4sPlayground(
           copy(schemaView = SchemaView(value), formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
 
       }
-    case Msg.JsonUpdated(rawJson)     =>
+    case Msg.JsonUpdated(rawJson)            =>
       (for {
         parsed  <- io.circe.parser.parse(rawJson).toOption // TODO error logging
         updates  = FormStateFromJson.hydrate(formView.form, parsed)
         newState = updates.foldLeft(formView.form)((acc, update) => acc.update(update))
       } yield this.copy(jsonView = JsonView(parsed), formView = formView.copy(form = newState)) -> Cmd.None).getOrElse((this, Cmd.None))
-    case Msg.Submit                   => (this, Cmd.None)
-    case Msg.NoOp                     => (this, Cmd.None)
-    case Msg.HydrateFormFromUrl(json) => (this, Cmd.None)
+    case Msg.Submit                          => (this, Cmd.None)
+    case Msg.NoOp                            => (this, Cmd.None)
+    case Msg.HydrateFormFromUrl(json)        => (this, Cmd.None)
     case Msg.FrameworkSelected(newFramework) => (this.copy(formView = formView.copy(framework = newFramework)), Cmd.None)
   }
 

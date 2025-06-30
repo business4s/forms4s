@@ -3,6 +3,7 @@ import "bulma/css/bulma.min.css";
 
 import bootstrapText from 'bootstrap/dist/css/bootstrap.min.css?inline';
 import bulmaText from 'bulma/css/bulma.min.css?inline';
+import picoText from '@picocss/pico/css/pico.min.css?inline';
 
 customElements.define("css-separator", class extends HTMLElement {
     static get observedAttributes() {
@@ -33,7 +34,9 @@ customElements.define("css-separator", class extends HTMLElement {
             cssText = bootstrapText.replace(/:root,\s*\[data-bs-theme=light\]/, ':host');
         } else if (renderer === "bulma") {
             cssText = bulmaText;
-        } else if (renderer === "raw" || !renderer) {
+        } else if (renderer === "picocss") {
+            cssText = picoText;
+        } else if (renderer === "raw") {
             cssText = "";
         } else {
             throw new Error(`<css-separator> received unknown renderer '${renderer}'`);

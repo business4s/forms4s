@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@picocss/pico": "^2.1.1",
     "bootstrap": "^5.3.7",
     "bulma": "^0.9.4"
   },
