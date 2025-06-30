@@ -12,7 +12,7 @@ import tyrian.*
 import tyrian.Html.*
 
 class CodeView()                  {
-  def render: Html[Msg] = div()
+  def render: Html[Msg] = div("Nothing here yet :)")
 }
 class SchemaView(schema: ASchema) {
   def render: Html[Msg] = {
@@ -48,19 +48,19 @@ case class FormView(form: FormElementState, framework: CssFramework) {
   }
   def render: Html[Msg]              = {
     div(
-      Html.div(`class` := "framework-selector")(
-        Html.label(`for` := "css-framework")("CSS Framework:"),
+      Html.div(`class` := "select is-small")(
         Html.select(
-          id   := "css-framework",
+          id := "css-framework",
           name := "css-framework",
-          onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value))),
+          onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value)))
         )(
           Html.option(value := CssFramework.Raw.toString, selected := (framework == CssFramework.Raw))("Raw"),
           Html.option(value := CssFramework.Pico.toString, selected := (framework == CssFramework.Pico))("Pico"),
           Html.option(value := CssFramework.Bulma.toString, selected := (framework == CssFramework.Bulma))("Bulma"),
-          Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap"),
-        ),
+          Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap")
+        )
       ),
+      hr(),
       tyrian.Tag(
         "css-separator",
         List(
