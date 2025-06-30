@@ -1,3 +1,10 @@
-import Forms4sDemo from '@site/src/components/Forms4sDemo';
+---
+wrapperClassName: demo-wide
+---
 
-<Forms4sDemo />
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import Forms4sDemo from '../components/Forms4sDemo';
+
+<BrowserOnly fallback={<div>Loading demo…</div>}>
+    {() => <Forms4sDemo />}
+</BrowserOnly>

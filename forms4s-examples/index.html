@@ -1,12 +1,20 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Forms4s Example</title>
-  </head>
-  <body>
-    <div id="forms4s-demo"></div>
-    <script type="module" src="/src/frontend/main.js"></script>
-  </body>
+</head>
+<body>
+<div id="forms4s-demo"></div>
+<script type="module">
+    // import the symbol you exported
+    import {TyrianApp} from '/src/frontend/main.js';
+
+    // now explicitly mount into your <div>
+    const mount = document.getElementById('forms4s-demo');
+    if (!mount) throw new Error('Missing mount point #forms4s-demo');
+    TyrianApp.launch(mount);
+</script>
+</body>
 </html>

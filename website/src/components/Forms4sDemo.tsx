@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 export default function Forms4sDemo() {
-    const jsUrl = useBaseUrl('/example-dist/index.js');
     const cssUrl = useBaseUrl('/example-dist/index.css');
+    const TyrianApp = require("@site/static/example-dist").TyrianApp;
 
     useEffect(() => {
         // Only register once
@@ -12,7 +12,7 @@ export default function Forms4sDemo() {
         class Forms4sElement extends HTMLElement {
             constructor() {
                 super();
-                const shadow = this.attachShadow({ mode: 'open' });
+                const shadow = this.attachShadow({mode: 'open'});
 
                 // Load styles
                 const link = document.createElement('link');
@@ -24,20 +24,12 @@ export default function Forms4sDemo() {
                 const container = document.createElement('div');
                 container.id = 'forms4s-demo';
                 shadow.appendChild(container);
-
-                const script = document.createElement('script');
-                script.type = 'module';
-                script.src = jsUrl;
-                script.src = jsUrl;
-                script.onload = () => {
-                    window.TyrianApp.launch(container)
-                };
-                shadow.appendChild(script);
+                TyrianApp.launch(container);
             }
         }
 
         customElements.define('forms4s-shadow', Forms4sElement);
-    }, [jsUrl, cssUrl]);
+    }, [cssUrl]);
 
-    return <forms4s-shadow />;
+    return <forms4s-shadow/>;
 }

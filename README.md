@@ -20,8 +20,8 @@
   - [ ] Derivation from Scala types
 - Rendering
   - [x] Specialize on bulma
-  - [ ] Bootstrap renderer
-  - [ ] Raw/Pico renderer
+  - [x] Bootstrap renderer
+  - [x] Raw/Pico renderer
 - Json schema
   - [ ] `oneOf` support for sealed traits
 - Validation
