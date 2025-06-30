@@ -50,7 +50,7 @@ jobs:
           cd ../forms4s-examples
           yarn install --frozen-lockfile --non-interactive
           yarn build
-          cp dist/assets/* ../website/static/example-dist/
+          cp dist/* ../website/static/example-dist/
 
       - name: Build
         run: |
