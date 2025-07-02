@@ -2,62 +2,28 @@ package forms4s.tyrian
 
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate, FormStylesheet}
-import tyrian.{Empty, Html, Text}
+import tyrian.{Elem, Empty, Html, Text}
 import tyrian.Html.*
 
 class BootstrapFormRenderer extends FormRenderer {
 
-  override def renderTextInput(
-      state: FormElementState.Text,
-  ): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val hasError = state.errors.nonEmpty
-
-    Html.div(`class` := "mb-3")(
-      Html.label(`class` := "form-label", htmlFor := name)(state.element.core.label),
-      Html.input(
-        `type`     := "text",
-        id         := name,
-        Html.name  := name,
-        `class`    := (if hasError then "form-control is-invalid" else "form-control"),
-        Html.value := state.value,
-        onInput(value => FormElementUpdate.Text(value)),
-      ),
-      if hasError then Html.div(`class` := "invalid-feedback")(state.errors.mkString(", "))
-      else Empty,
-    )
-  }
-
-  override def renderNumberInput(
-      state: FormElementState.Number,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
-
-    Html.div(`class` := "mb-3")(
-      Html.label(`class` := "form-label", htmlFor := name)(state.element.core.label),
-      Html.input(
-        `type`     := "number",
-        id         := name,
-        Html.name  := name,
-        `class`    := "form-control",
-        Html.value := state.value.toString,
-        onInput(value => FormElementUpdate.Number(value.toDouble)),
-      ),
-    )
-  }
+  override def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInput(state, "text")
+  override def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInput(state, "number")
+  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]         = renderInput(state, "date")
+  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]         = renderInput(state, "time")
+  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate] = renderInput(state, "datetime-local")
 
   override def renderSelect(
       state: FormElementState.Select,
   ): Html[FormElementUpdate] = {
     val name = state.element.core.id
-
     Html.div(`class` := "mb-3")(
       Html.label(`class` := "form-label", htmlFor := name)(state.element.core.label),
       Html.select(
         id        := name,
         Html.name := name,
         `class`   := "form-select",
-        onChange(value => FormElementUpdate.Select(value)),
+        onChange(value => FormElementUpdate.ValueUpdate(value)),
       )(
         state.element.options.map(option =>
           Html.option(
@@ -73,7 +39,6 @@ class BootstrapFormRenderer extends FormRenderer {
       state: FormElementState.Checkbox,
   ): Html[FormElementUpdate] = {
     val name = state.element.core.id
-
     Html.div(`class` := "form-check mb-3")(
       Html.input(
         `type`    := "checkbox",
@@ -81,7 +46,7 @@ class BootstrapFormRenderer extends FormRenderer {
         Html.name := name,
         `class`   := "form-check-input",
         checked   := state.value,
-        onChange(checked => FormElementUpdate.Checkbox(checked == "true")),
+        onChange(checked => FormElementUpdate.ValueUpdate(checked == "true")),
       ),
       Html.label(`class` := "form-check-label", htmlFor := name)(state.element.core.label),
     )
@@ -120,6 +85,32 @@ class BootstrapFormRenderer extends FormRenderer {
             )("+ Add"),
           ),
         ),
+    )
+  }
+
+  protected def formWrapper(name: String, label: String)(content: Elem[FormElementUpdate]*): Html[FormElementUpdate] =
+    Html.div(`class` := "mb-3")(
+      (Html.label(`class` := "form-label", htmlFor := name)(label) +: content)*,
+    )
+
+  protected def errorFeedback(errors: Seq[String]): Elem[FormElementUpdate] =
+    if errors.nonEmpty then Html.div(`class` := "invalid-feedback")(errors.mkString(", "))
+    else tyrian.Empty
+
+  protected def renderInput(state: FormElementState.TextBased, inputType: String): Html[FormElementUpdate] = {
+    val name     = state.element.core.id
+    val hasError = state.errors.nonEmpty
+
+    formWrapper(name, state.element.core.label)(
+      Html.input(
+        id         := name,
+        Html.name  := name,
+        `class`    := (if hasError then "form-control is-invalid" else "form-control"),
+        `type`     := inputType,
+        Html.value := state.valueToString(state.value),
+        onInput(state.emitUpdate),
+      ),
+      errorFeedback(state.errors),
     )
   }
 }

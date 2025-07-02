@@ -9,17 +9,14 @@ object FormStateFromJson {
 
   private def hydrateElement(json: Json, state: FormElementState): List[FormElementUpdate] = {
     state match {
-      case FormElementState.Text(_, _, _) =>
-        json.asString.toList.map(FormElementUpdate.Text(_))
-
-      case FormElementState.Number(_, _, _) =>
-        json.asNumber.map(_.toDouble).toList.map(FormElementUpdate.Number(_))
-
-      case FormElementState.Checkbox(_, _, _) =>
-        json.asBoolean.toList.map(FormElementUpdate.Checkbox(_))
-
-      case FormElementState.Select(_, _, _) =>
-        json.asString.toList.map(FormElementUpdate.Select(_))
+      case FormElementState.Text(_, _, _)     => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
+      case FormElementState.Number(_, _, _)   => json.asNumber.map(_.toDouble).toList.map(FormElementUpdate.ValueUpdate(_))
+      case FormElementState.Checkbox(_, _, _) => json.asBoolean.toList.map(FormElementUpdate.ValueUpdate(_))
+      case FormElementState.Select(_, _, _)   => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
+      // TODO this is not correct, need to parse
+      case FormElementState.Time(_, _, _)     => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
+      case FormElementState.Date(_, _, _)     => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
+      case FormElementState.DateTime(_, _, _) => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
 
       case FormElementState.Group(_, fields, _) =>
         json.asObject.toList.flatMap { obj =>

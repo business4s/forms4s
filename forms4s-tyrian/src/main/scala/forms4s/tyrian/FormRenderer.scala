@@ -13,6 +13,9 @@ trait FormRenderer {
     case subform: FormElementState.Group     => renderGroup(subform)
     case number: FormElementState.Number     => renderNumberInput(number)
     case number: FormElementState.Multivalue => renderMultivalue(number)
+    case state: FormElementState.Time        => renderTime(state)
+    case state: FormElementState.Date        => renderDate(state)
+    case state: FormElementState.DateTime    => renderDateTime(state)
   }
 
   protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]
@@ -22,6 +25,10 @@ trait FormRenderer {
   protected def renderSelect(state: FormElementState.Select): Html[FormElementUpdate]
 
   protected def renderCheckbox(state: FormElementState.Checkbox): Html[FormElementUpdate]
+
+  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]
+  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]
+  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]
 
   protected def renderGroup(state: FormElementState.Group): Html[FormElementUpdate]
 

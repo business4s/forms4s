@@ -4,10 +4,7 @@ sealed trait FormElementUpdate
 
 object FormElementUpdate {
   sealed trait Change                                               extends FormElementUpdate
-  case class Text(value: String)                                    extends Change
-  case class Number(value: Double)                                  extends Change
-  case class Checkbox(checked: Boolean)                             extends Change
-  case class Select(value: String)                                  extends Change
+  case class ValueUpdate[T](value: T)                               extends Change
   case class Nested(field: String, value: FormElementUpdate)        extends Change
   case class MultivalueUpdate(index: Int, value: FormElementUpdate) extends Change
   case object MultivalueAppend                                      extends Change

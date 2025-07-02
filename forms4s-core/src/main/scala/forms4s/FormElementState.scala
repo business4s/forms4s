@@ -3,18 +3,23 @@ package forms4s
 import forms4s.FormElement.Validator
 import forms4s.FormElement.Validator.ExecutionTrigger
 
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZoneOffset, ZonedDateTime}
+import scala.reflect.ClassTag
+
 sealed trait FormElementState {
   type Self <: FormElementState
-  type Value
-  def element: FormElement.WithState[Value]
+  val element: FormElement
   def id: String = element.core.id
-  def value: Value
+  def value: element.State
+
+  def errors: Seq[String]
   def setErrors(errors: Seq[String]): Self
+
   protected def updatePF: PartialFunction[FormElementUpdate, Self]
 
   def update(msg: FormElementUpdate): FormElementState = msg match {
     case change: FormElementUpdate.Change  => updatePF(change).validate(ExecutionTrigger.Change)
-    // TODO this is wrong, doesnt handle recursion of groups/multivalues
+    // TODO this is wrong, doesnt handle recursion (going inside) of groups/multivalues
     case FormElementUpdate.SubmitAttempted => this.validate(ExecutionTrigger.Submit)
     case FormElementUpdate.Debounced(_)    => this.validate(ExecutionTrigger.Debounce)
     case FormElementUpdate.Unfocused(_)    => this.validate(ExecutionTrigger.Unfocus)
@@ -25,6 +30,7 @@ sealed trait FormElementState {
     val errors     = validators.flatMap(_.validate(this.value))
     setErrors(errors)
   }
+
 }
 
 object FormElementState {
@@ -36,6 +42,9 @@ object FormElementState {
     case FormElement.Group      => Group
     case FormElement.Number     => Number
     case FormElement.Multivalue => Multivalue
+    case FormElement.Time       => Time
+    case FormElement.Date       => Date
+    case FormElement.DateTime   => DateTime
   }
 
   def empty[T <: FormElement](elem: T): ForElem[T] = elem match {
@@ -45,35 +54,47 @@ object FormElementState {
     case x: FormElement.Group      => Group(x, x.elements.map(empty), Nil)
     case x: FormElement.Number     => Number(x, 0.0, Nil)
     case x: FormElement.Multivalue => Multivalue(x, Vector(), Nil)
+    case x: FormElement.Time       => Time(x, OffsetTime.ofInstant(Instant.now(), ZoneOffset.UTC), Nil)
+    case x: FormElement.Date       => Date(x, LocalDate.from(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)), Nil)
+    case x: FormElement.DateTime   => DateTime(x, OffsetDateTime.from(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)), Nil)
   }
 
-  case class Text(element: FormElement.Text, value: String, errors: Seq[String])                               extends FormElementState {
-    override type Self  = Text
-    override type Value = String
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Text(v) => copy(value = v) }
-    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+  sealed trait TextBased extends FormElementState {
+    def valueToString(value: element.State): String
+    def valueFromString(value: String): element.State
+    def emitUpdate(newValue: String): FormElementUpdate = FormElementUpdate.ValueUpdate(valueFromString(newValue))
   }
-  case class Number(element: FormElement.Number, value: Double, errors: Seq[String])                           extends FormElementState {
-    override type Self  = Number
-    override type Value = Double
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Number(v) => copy(value = v) }
+
+  case class Text(element: FormElement.Text, value: String, errors: Seq[String])                               extends TextBased        {
+    override type Self = Text
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value
+    def valueFromString(value: String): element.State                         = value
   }
-  case class Select(element: FormElement.Select, value: String, errors: Seq[String])                           extends FormElementState {
-    override type Self  = Select
-    override type Value = String
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Select(v) => copy(value = v) }
+  case class Number(element: FormElement.Number, value: Double, errors: Seq[String])                           extends TextBased        {
+    override type Self = Number
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value.toString
+    def valueFromString(value: String): element.State                         = value.toDouble
   }
-  case class Checkbox(element: FormElement.Checkbox, value: Boolean, errors: Seq[String])                      extends FormElementState {
-    override type Self  = Checkbox
-    override type Value = Boolean
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Checkbox(v) => copy(value = v) }
+  case class Select(element: FormElement.Select, value: String, errors: Seq[String])                           extends TextBased        {
+    override type Self = Select
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value
+    def valueFromString(value: String): element.State                         = value
+  }
+  case class Checkbox(element: FormElement.Checkbox, value: Boolean, errors: Seq[String])                      extends TextBased        {
+    override type Self = Checkbox
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
+    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value.toString
+    def valueFromString(value: String): element.State                         = value == "true"
   }
   case class Group(element: FormElement.Group, value: List[FormElementState], errors: Seq[String])             extends FormElementState {
-    override type Self  = Group
-    override type Value = List[FormElementState]
+    override type Self = Group
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = { case FormElementUpdate.Nested(field, newValue) =>
       val idx = value.indexWhere(_.id == field)
       copy(value = value.updated(idx, value(idx).update(newValue)))
@@ -81,8 +102,7 @@ object FormElementState {
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
   }
   case class Multivalue(element: FormElement.Multivalue, value: Vector[FormElementState], errors: Seq[String]) extends FormElementState {
-    override type Self  = Multivalue
-    override type Value = Vector[FormElementState]
+    override type Self = Multivalue
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = {
       case FormElementUpdate.MultivalueUpdate(idx, newValue) => copy(value = value.updated(idx, value(idx).update(newValue)))
       case FormElementUpdate.MultivalueAppend                => copy(value = value.appended(empty(element.item)))
@@ -90,4 +110,33 @@ object FormElementState {
     }
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
   }
+
+  case class Time(element: FormElement.Time, value: OffsetTime, errors: Seq[String]) extends TextBased {
+    override type Self = Time
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
+    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value.toLocalTime.toString
+    def valueFromString(value: String): element.State                         = OffsetTime.of(LocalTime.parse(value), this.value.getOffset)
+  }
+
+  case class Date(element: FormElement.Date, value: LocalDate, errors: Seq[String]) extends TextBased {
+    override type Self = Date
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
+    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value.toString
+    def valueFromString(value: String): element.State                         = LocalDate.parse(value)
+  }
+
+  case class DateTime(element: FormElement.DateTime, value: OffsetDateTime, errors: Seq[String]) extends TextBased {
+    override type Self = DateTime
+    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
+    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
+    def valueToString(value: element.State): String                           = value.toLocalDateTime.toString
+    def valueFromString(value: String): element.State                         = OffsetDateTime.of(LocalDateTime.parse(value), this.value.getOffset)
+  }
+
+  private def valueUpdate[T: {ClassTag as ct}, Self](f: T => Self): PartialFunction[FormElementUpdate, Self] = {
+    case FormElementUpdate.ValueUpdate(ct(value)) => f(value)
+  }
+
 }

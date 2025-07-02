@@ -1,5 +1,7 @@
 package forms4s
 
+import java.time.{LocalDate, OffsetDateTime, OffsetTime}
+
 sealed trait FormElement {
   type State
   def core: FormElement.Core[State]
@@ -25,6 +27,19 @@ object FormElement {
   }
   case class Multivalue(core: Core[Vector[FormElementState]], item: FormElement)    extends FormElement {
     type State = Vector[FormElementState]
+  }
+
+  case class Time(core: Core[OffsetTime]) extends FormElement {
+    type State = OffsetTime
+  }
+
+  case class Date(core: Core[LocalDate]) extends FormElement {
+    type State = LocalDate
+  }
+
+  case class DateTime(core: Core[OffsetDateTime]) extends FormElement {
+    // We could be using ZonedDateTime but browsers dont ship with IANA database
+    type State = OffsetDateTime
   }
 
   case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]])

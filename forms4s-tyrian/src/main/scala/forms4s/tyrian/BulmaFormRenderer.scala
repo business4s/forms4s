@@ -1,54 +1,17 @@
 package forms4s.tyrian
 
 import forms4s.FormElementUpdate.MultivalueUpdate
-import forms4s.{FormElementState, FormElementUpdate, FormStylesheet}
-import tyrian.{Empty, Html, Text}
+import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
+import tyrian.{Html, Text}
 
 class BulmaFormRenderer extends FormRenderer {
 
-  override def renderTextInput(
-      state: FormElementState.Text,
-  ): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val hasError = state.errors.nonEmpty
-
-    Html.div(`class` := "field")(
-      Html.label(`class` := "label", htmlFor := name)(state.element.core.label),
-      Html.div(`class` := "control")(
-        Html.input(
-          `type`     := "text",
-          id         := name,
-          Html.name  := name,
-          `class`    := (if hasError then "input is-danger" else "input"),
-          Html.value := state.value,
-          onInput(value => FormElementUpdate.Text(value)),
-        ),
-      ),
-      if hasError then Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
-      else tyrian.Empty,
-    )
-  }
-
-  override def renderNumberInput(
-      state: FormElementState.Number,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
-
-    Html.div(`class` := "field")(
-      Html.label(`class` := "label", htmlFor := name)(state.element.core.label),
-      Html.div(`class` := "control")(
-        Html.input(
-          `type`     := "number",
-          id         := name,
-          Html.name  := name,
-          `class`    := "input",
-          Html.value := state.value.toString,
-          onInput(value => FormElementUpdate.Number(value.toDouble)),
-        ),
-      ),
-    )
-  }
+  override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInputField(state, "text")
+  override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInputField(state, "number")
+  override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderInputField(state, "date")
+  override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderInputField(state, "time")
+  override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderInputField(state, "datetime-local")
 
   override def renderSelect(
       state: FormElementState.Select,
@@ -62,7 +25,7 @@ class BulmaFormRenderer extends FormRenderer {
           tyrian.Html.select(
             id        := name,
             Html.name := name,
-            onChange(value => FormElementUpdate.Select(value)),
+            onChange(state.emitUpdate),
           )(
             state.element.options.map(option =>
               tyrian.Html.option(
@@ -89,7 +52,7 @@ class BulmaFormRenderer extends FormRenderer {
             id        := name,
             Html.name := name,
             checked   := state.value,
-            onChange(checked => FormElementUpdate.Checkbox(checked == "true")),
+            onChange(state.emitUpdate),
           ),
           Text(" "),
           Text(state.element.core.label),
@@ -138,6 +101,31 @@ class BulmaFormRenderer extends FormRenderer {
             ),
           ),
         ),
+    )
+  }
+
+  protected def renderInputField(
+      state: FormElementState.TextBased,
+      inputType: String,
+  ): Html[FormElementUpdate] = {
+    val name     = state.element.core.id
+    val label    = state.element.core.label
+    val hasError = state.errors.nonEmpty
+
+    Html.div(`class` := "field")(
+      Html.label(`class` := "label", htmlFor := name)(label),
+      Html.div(`class` := "control")(
+        Html.input(
+          `type`     := inputType,
+          id         := name,
+          Html.name  := name,
+          `class`    := (if hasError then "input is-danger" else "input"),
+          Html.value := state.valueToString(state.value),
+          onInput(state.emitUpdate),
+        ),
+      ),
+      if hasError then Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
+      else tyrian.Empty,
     )
   }
 }

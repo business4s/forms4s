@@ -7,6 +7,8 @@ import sttp.tapir.Schema.annotations.{format, validate}
 import sttp.tapir.Validator.Pattern
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZonedDateTime}
+
 class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
   "convert derived schemas from Scala types" - {
@@ -83,6 +85,54 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       )
 
       assert(form == expected)
+    }
+
+    "time" - {
+
+      // TODO doesnt work due to missign support in tapir
+      "OffsetTime" in {
+        val form = getForm[OffsetTime]()
+        val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      // TODO doesnt work due to missign support in tapir
+      "LocalTime" in {
+        val form = getForm[LocalTime]()
+        val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      "LocalDate" in {
+        val form = getForm[LocalDate]()
+        val expected = FormElement.Date(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      "Instant" in {
+        val form = getForm[Instant]()
+        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      // TODO doesnt work due to missign support in tapir
+      "LocalDateTime" in {
+        val form = getForm[LocalDateTime]()
+        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      "OffsetDateTime" in {
+        val form = getForm[OffsetDateTime]()
+        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
+
+      "ZonedDateTime" in {
+        val form = getForm[ZonedDateTime]()
+        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        assert(form == expected)
+      }
     }
 
     "regex validator" in {

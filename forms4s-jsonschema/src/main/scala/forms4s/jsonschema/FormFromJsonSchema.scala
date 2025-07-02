@@ -97,19 +97,26 @@ object FormFromJsonSchema {
               .map(itemElem => FormElement.Multivalue(core(Seq()), itemElem))
           case SchemaType.Number | SchemaType.Integer => FormElement.Number(core(Seq())).rightIor
           case SchemaType.String                      =>
-            if (enumOptions.nonEmpty) FormElement.Select(core(Seq()), enumOptions).rightIor
-            else {
-              val maxLen           = schema.maxLength.getOrElse(100)
-              val minLen           = schema.minLength.getOrElse(100)
-              val formatHint       = schema.format.contains("multiline")
-              val patternValidator = schema.pattern.map(pattern => FormatValidator(Regex(pattern.value)))
-              val isMultiline      = formatHint || maxLen > 120 || minLen > 120
-              val validators       = Seq(
-                patternValidator,
-              ).flatten
-              FormElement
-                .Text(core(validators), multiline = isMultiline)
-                .rightIor
+            if (enumOptions.nonEmpty) {
+              FormElement.Select(core(Seq()), enumOptions).rightIor
+            } else {
+              val format      = schema.format.map(_.toLowerCase)
+              val maxLen      = schema.maxLength.getOrElse(100)
+              val minLen      = schema.minLength.getOrElse(100)
+
+              format match {
+                case Some("date")      =>
+                  FormElement.Date(core(Seq())).rightIor
+                case Some("time")      =>
+                  FormElement.Time(core(Seq())).rightIor
+                case Some("date-time") =>
+                  FormElement.DateTime(core(Seq())).rightIor
+                case _                 =>
+                  val patternOpt  = schema.pattern.map(p => FormatValidator(Regex(p.value)))
+                  val validators = patternOpt.toSeq
+                  val isMultiline = format.contains("multiline") || maxLen > 120 || minLen > 120
+                  FormElement.Text(core(validators), multiline = isMultiline).rightIor
+              }
             }
           case SchemaType.Null                        => List("Null schema for a property is not expected").leftIor
         }

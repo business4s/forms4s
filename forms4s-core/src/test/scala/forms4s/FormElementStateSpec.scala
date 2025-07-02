@@ -2,77 +2,57 @@ package forms4s
 
 import org.scalatest.freespec.AnyFreeSpec
 
+import java.time.{LocalDate, OffsetDateTime, OffsetTime, ZoneOffset}
 import scala.util.Random
 
 class FormElementStateSpec extends AnyFreeSpec {
 
-  "FormState" - {
+  "FormElementState" - {
     "update" - {
-      "should update a text field" in {
-        // Given
-        val fields @ List(field1, field2)     = List(
-          FormElement.Text(randCore(), false),
-          FormElement.Text(randCore(), false),
-        )
-        val formState: FormElementState.Group = FormElementState.empty(FormElement.Group(randCore(), fields))
-        val newValue                          = "John Doe"
+      "text field" in {
+        val field                            = FormElement.Text(randCore(), false)
+        val formState: FormElementState.Text = FormElementState.empty(field)
 
-        // When
-        val updatedState = formState.update(FormElementUpdate.Nested(field1.core.id, FormElementUpdate.Text(newValue)))
+        val newValue     = "my new value"
+        val updateCmd    = formState.emitUpdate(newValue)
+        val updatedState = formState.update(updateCmd)
 
-        // Then
-        assert(
-          updatedState.value == List(
-            FormElementState.Text(field1, newValue, Nil),
-            FormElementState.Text(field2, "", Nil),
-          ),
-        )
+        assert(updatedState == FormElementState.Text(field, newValue, List()))
       }
 
-      "should update a checkbox field" in {
-        // Given
-        val fields @ List(field1, field2) = List(
-          FormElement.Checkbox(randCore()),
-          FormElement.Checkbox(randCore()),
-        )
+      "checkbox field" in {
+        val field     = FormElement.Checkbox(randCore())
+        val formState = FormElementState.empty(field)
 
-        val formState: FormElementState.Group = FormElementState.empty(FormElement.Group(randCore(), fields))
+        {
+          val newValue     = "true"
+          val updateCmd    = formState.emitUpdate(newValue)
+          val updatedState = formState.update(updateCmd)
 
-        // When
-        val updatedState = formState.update(FormElementUpdate.Nested(field2.core.id, FormElementUpdate.Checkbox(true)))
+          assert(updatedState == FormElementState.Checkbox(field, true, List()))
+        }
 
-        // Then
-        assert(
-          updatedState.value == List(
-            FormElementState.Checkbox(field1, false, Nil),
-            FormElementState.Checkbox(field2, true, Nil),
-          ),
-        )
+        {
+          val newValue     = "false"
+          val updateCmd    = formState.emitUpdate(newValue)
+          val updatedState = formState.update(updateCmd)
+
+          assert(updatedState == FormElementState.Checkbox(field, false, List()))
+        }
       }
 
-      "should update a select field" in {
-        // Given
-        val fields @ List(field1, field2) = List(
-          FormElement.Select(randCore(), List("USA", "Canada", "UK")),
-          FormElement.Select(randCore(), List("bar", "baz")),
-        )
+      "select field" in {
+        val field     = FormElement.Select(randCore(), List("A", "B", "C"))
+        val formState = FormElementState.empty(field)
 
-        val formState: FormElementState.Group = FormElementState.empty(FormElement.Group(randCore(), fields))
-        val newValue                          = "UK"
+        val newValue     = "C"
+        val updateCmd    = formState.emitUpdate(newValue)
+        val updatedState = formState.update(updateCmd)
 
-        // When
-        val updatedState = formState.update(FormElementUpdate.Nested(field1.core.id, FormElementUpdate.Select(newValue)))
-
-        // Then
-        assert(
-          updatedState.value == List(
-            FormElementState.Select(field1, newValue, Nil),
-            FormElementState.Select(field2, "bar", Nil),
-          ),
-        )
+        assert(updatedState == FormElementState.Select(field, newValue, List()))
       }
 
-      "should update a nested field" in {
+      "nested field" in {
         // Given
         val field                             = FormElement.Text(randCore(), false)
         val fields @ List(field1, field2)     = List(
@@ -85,7 +65,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         // When
         val newValue     = "Main St"
         val updatedState =
-          formState.update(FormElementUpdate.Nested(field2.core.id, FormElementUpdate.Nested(field.core.id, FormElementUpdate.Text(newValue))))
+          formState.update(FormElementUpdate.Nested(field2.core.id, FormElementUpdate.Nested(field.core.id, FormElementUpdate.ValueUpdate(newValue))))
 
         // Then
         assert(
@@ -107,6 +87,37 @@ class FormElementStateSpec extends AnyFreeSpec {
           ),
         )
       }
+      "time field" in {
+        val field                            = FormElement.Time(randCore())
+        val formState: FormElementState.Time = FormElementState.empty(field)
+
+        val newValue     = "12:34:00"
+        val updateCmd    = formState.emitUpdate(newValue)
+        val updatedState = formState.update(updateCmd)
+
+        assert(updatedState == FormElementState.Time(field, OffsetTime.of(12, 34, 0, 0, ZoneOffset.UTC), List()))
+      }
+      "date field" in {
+        val field                            = FormElement.Date(randCore())
+        val formState: FormElementState.Date = FormElementState.empty(field)
+
+        val newValue     = "2024-01-23"
+        val updateCmd    = formState.emitUpdate(newValue)
+        val updatedState = formState.update(updateCmd)
+
+        assert(updatedState == FormElementState.Date(field, LocalDate.of(2024, 1, 23), List()))
+      }
+      "datetime field" in {
+        val field                                = FormElement.DateTime(randCore())
+        val formState: FormElementState.DateTime = FormElementState.empty(field)
+
+        val newValue     = "2025-03-01T13:45:23"
+        val updateCmd    = formState.emitUpdate(newValue)
+        val updatedState = formState.update(updateCmd)
+
+        assert(updatedState == FormElementState.DateTime(field, OffsetDateTime.of(2025, 3, 1, 13, 45, 23, 0, ZoneOffset.UTC), List()))
+      }
+
     }
   }
 
