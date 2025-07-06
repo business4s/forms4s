@@ -3,7 +3,7 @@ package forms4s
 import forms4s.FormElement.Validator
 import forms4s.FormElement.Validator.ExecutionTrigger
 
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZoneOffset, ZonedDateTime}
+import java.time.*
 import scala.reflect.ClassTag
 
 sealed trait FormElementState {
@@ -52,11 +52,11 @@ object FormElementState {
     case x: FormElement.Select     => Select(x, x.options.headOption.getOrElse(""), Nil)
     case x: FormElement.Checkbox   => Checkbox(x, false, Nil)
     case x: FormElement.Group      => Group(x, x.elements.map(empty), Nil)
-    case x: FormElement.Number     => Number(x, 0.0, Nil)
+    case x: FormElement.Number     => Number(x, None, Nil)
     case x: FormElement.Multivalue => Multivalue(x, Vector(), Nil)
-    case x: FormElement.Time       => Time(x, OffsetTime.ofInstant(Instant.now(), ZoneOffset.UTC), Nil)
-    case x: FormElement.Date       => Date(x, LocalDate.from(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)), Nil)
-    case x: FormElement.DateTime   => DateTime(x, OffsetDateTime.from(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)), Nil)
+    case x: FormElement.Time       => Time(x, OffsetTime.ofInstant(Instant.now(), localTZOffset), Nil)
+    case x: FormElement.Date       => Date(x, LocalDate.from(ZonedDateTime.ofInstant(Instant.now(), localTZOffset)), Nil)
+    case x: FormElement.DateTime   => DateTime(x, OffsetDateTime.from(ZonedDateTime.ofInstant(Instant.now(), localTZOffset)), Nil)
   }
 
   sealed trait TextBased extends FormElementState {
@@ -72,12 +72,12 @@ object FormElementState {
     def valueToString(value: element.State): String                           = value
     def valueFromString(value: String): element.State                         = value
   }
-  case class Number(element: FormElement.Number, value: Double, errors: Seq[String])                           extends TextBased        {
+  case class Number(element: FormElement.Number, value: Option[Double], errors: Seq[String])                           extends TextBased        {
     override type Self = Number
     override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
-    def valueToString(value: element.State): String                           = value.toString
-    def valueFromString(value: String): element.State                         = value.toDouble
+    def valueToString(value: element.State): String                           = value.map(_.toString).getOrElse("")
+    def valueFromString(value: String): element.State                         = if (value.isBlank) None else (Some(value.toDouble))
   }
   case class Select(element: FormElement.Select, value: String, errors: Seq[String])                           extends TextBased        {
     override type Self = Select
@@ -139,4 +139,10 @@ object FormElementState {
     case FormElementUpdate.ValueUpdate(ct(value)) => f(value)
   }
 
+  private def localTZOffset = {
+    val offsetMinutes = new scala.scalajs.js.Date().getTimezoneOffset()
+    val totalSeconds = (-offsetMinutes * 60).toInt
+    val zoneOffset = ZoneOffset.ofTotalSeconds(totalSeconds)
+    zoneOffset
+  }
 }

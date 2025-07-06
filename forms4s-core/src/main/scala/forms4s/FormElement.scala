@@ -10,16 +10,16 @@ sealed trait FormElement {
 object FormElement {
   type WithState[S] = FormElement { type State = S }
 
-  case class Text(core: Core[String], multiline: Boolean)                              extends FormElement {
+  case class Text(core: Core[String], multiline: Boolean)                           extends FormElement {
     type State = String
   }
-  case class Number(core: Core[Double])                                                extends FormElement {
-    type State = Double
+  case class Number(core: Core[Option[Double]], isInteger: Boolean)                         extends FormElement {
+    type State = Option[Double]
   }
-  case class Select(core: Core[String], options: List[String])                         extends FormElement {
+  case class Select(core: Core[String], options: List[String])                      extends FormElement {
     type State = String
   }
-  case class Checkbox(core: Core[Boolean])                                             extends FormElement {
+  case class Checkbox(core: Core[Boolean])                                          extends FormElement {
     type State = Boolean
   }
   case class Group(core: Core[List[FormElementState]], elements: List[FormElement]) extends FormElement {

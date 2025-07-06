@@ -86,23 +86,24 @@ object FormFromJsonSchema {
     tpe match {
       case Some(tpe) =>
         tpe match {
-          case SchemaType.Boolean                     => FormElement.Checkbox(core(Seq())).rightIor
-          case SchemaType.Object                      =>
+          case SchemaType.Boolean => FormElement.Checkbox(core(Seq())).rightIor
+          case SchemaType.Object  =>
             extractElements(schema, schema.required.toSet, defs)
               .map(subElems => FormElement.Group(core(Seq()), subElems))
-          case SchemaType.Array                       =>
+          case SchemaType.Array   =>
             schema.items
               .map(schema => createElement(None, schema, false, defs))
               .getOrElse(List(s"No items schema for array $name").leftIor)
               .map(itemElem => FormElement.Multivalue(core(Seq()), itemElem))
-          case SchemaType.Number | SchemaType.Integer => FormElement.Number(core(Seq())).rightIor
-          case SchemaType.String                      =>
+          case SchemaType.Number  => FormElement.Number(core(Seq()), isInteger = false).rightIor
+          case SchemaType.Integer => FormElement.Number(core(Seq()), isInteger = true).rightIor
+          case SchemaType.String  =>
             if (enumOptions.nonEmpty) {
               FormElement.Select(core(Seq()), enumOptions).rightIor
             } else {
-              val format      = schema.format.map(_.toLowerCase)
-              val maxLen      = schema.maxLength.getOrElse(100)
-              val minLen      = schema.minLength.getOrElse(100)
+              val format = schema.format.map(_.toLowerCase)
+              val maxLen = schema.maxLength.getOrElse(100)
+              val minLen = schema.minLength.getOrElse(100)
 
               format match {
                 case Some("date")      =>
@@ -113,12 +114,12 @@ object FormFromJsonSchema {
                   FormElement.DateTime(core(Seq())).rightIor
                 case _                 =>
                   val patternOpt  = schema.pattern.map(p => FormatValidator(Regex(p.value)))
-                  val validators = patternOpt.toSeq
+                  val validators  = patternOpt.toSeq
                   val isMultiline = format.contains("multiline") || maxLen > 120 || minLen > 120
                   FormElement.Text(core(validators), multiline = isMultiline).rightIor
               }
             }
-          case SchemaType.Null                        => List("Null schema for a property is not expected").leftIor
+          case SchemaType.Null    => List("Null schema for a property is not expected").leftIor
         }
       case None      => List("Schema type not specified").leftIor
     }

@@ -21,7 +21,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
         simpleCore("Simple"),
         List(
           FormElement.Text(simpleCore("a", "A"), multiline = false),
-          FormElement.Number(simpleCore("b", "B")),
+          FormElement.Number(simpleCore("b", "B"), isInteger = true),
           FormElement.Checkbox(simpleCore("c", "C")),
         ),
       )
@@ -46,6 +46,17 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
         ),
       )
 
+      assert(form == expected)
+    }
+
+    "integer" in {
+      val form     = getForm[Int]()
+      val expected = FormElement.Number(simpleCore("unknown", "Unknown"), isInteger = true)
+      assert(form == expected)
+    }
+    "double" in {
+      val form     = getForm[Int]()
+      val expected = FormElement.Number(simpleCore("unknown", "Unknown"), isInteger = false)
       assert(form == expected)
     }
 
@@ -91,45 +102,45 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
       // TODO doesnt work due to missign support in tapir
       "OffsetTime" in {
-        val form = getForm[OffsetTime]()
+        val form     = getForm[OffsetTime]()
         val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       // TODO doesnt work due to missign support in tapir
       "LocalTime" in {
-        val form = getForm[LocalTime]()
+        val form     = getForm[LocalTime]()
         val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       "LocalDate" in {
-        val form = getForm[LocalDate]()
+        val form     = getForm[LocalDate]()
         val expected = FormElement.Date(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       "Instant" in {
-        val form = getForm[Instant]()
+        val form     = getForm[Instant]()
         val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       // TODO doesnt work due to missign support in tapir
       "LocalDateTime" in {
-        val form = getForm[LocalDateTime]()
+        val form     = getForm[LocalDateTime]()
         val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       "OffsetDateTime" in {
-        val form = getForm[OffsetDateTime]()
+        val form     = getForm[OffsetDateTime]()
         val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }
 
       "ZonedDateTime" in {
-        val form = getForm[ZonedDateTime]()
+        val form     = getForm[ZonedDateTime]()
         val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
         assert(form == expected)
       }

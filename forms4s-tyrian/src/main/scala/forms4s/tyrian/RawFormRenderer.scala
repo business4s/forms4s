@@ -3,15 +3,18 @@ package forms4s.tyrian
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
-import tyrian.{Empty, Html, Text}
+import tyrian.{Attr, Attribute, Empty, Html, Text}
 
 class RawFormRenderer extends FormRenderer {
 
   override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderRawInputField(state, "text")
-  override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderRawInputField(state, "number")
   override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderRawInputField(state, "date")
   override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderRawInputField(state, "time")
   override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderRawInputField(state, "datetime-local")
+  override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = {
+    val step = Html.step := (if(state.element.isInteger) then "1" else "any")
+    renderRawInputField(state, "number",step)
+  }
 
   override def renderSelect(
       state: FormElementState.Select,
@@ -72,16 +75,19 @@ class RawFormRenderer extends FormRenderer {
   protected def renderRawInputField(
       state: FormElementState.TextBased,
       inputType: String,
+      additionalTags: Attr[FormElementUpdate]*,
   ): Html[FormElementUpdate] = {
     val name = state.element.core.id
     Html.div()(
       Html.label(htmlFor := name)(state.element.core.label),
       Html.input(
-        `type`     := inputType,
-        id         := name,
-        Html.name  := name,
-        Html.value := state.valueToString(state.value),
-        onInput(state.emitUpdate),
+        List(
+          `type`     := inputType,
+          id         := name,
+          Html.name  := name,
+          Html.value := state.valueToString(state.value),
+          onInput(state.emitUpdate),
+        ) ++ additionalTags,
       ),
       if state.errors.nonEmpty then Html.div()(Text(state.errors.mkString(", "))) else Empty,
     )

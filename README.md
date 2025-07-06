@@ -13,8 +13,7 @@
 - Core
   - [x] Multi-value field support (`List[_]`)
   - [x] Hydrate form with json (e.g. for persistent urls or other cache)
-  - [ ] Proper handling of empty and `null` values
-  - [ ] Better support for numbers (double vs integer)
+  - [x] Better support for numbers (double vs integer, empty value)
   - [ ] Adjustment of forms
   - [ ] Derivation from Scala types
   - Support for more sophisticated types
