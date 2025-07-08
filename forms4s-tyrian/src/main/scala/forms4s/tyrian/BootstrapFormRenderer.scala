@@ -1,9 +1,9 @@
 package forms4s.tyrian
 
 import forms4s.FormElementUpdate.MultivalueUpdate
-import forms4s.{FormElementState, FormElementUpdate, FormStylesheet}
-import tyrian.{Elem, Empty, Html, Text}
+import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
+import tyrian.{Elem, Html}
 
 class BootstrapFormRenderer extends FormRenderer {
 

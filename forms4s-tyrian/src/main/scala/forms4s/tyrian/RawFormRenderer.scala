@@ -3,7 +3,7 @@ package forms4s.tyrian
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
-import tyrian.{Attr, Attribute, Empty, Html, Text}
+import tyrian.{Attr, Empty, Html, Text}
 
 class RawFormRenderer extends FormRenderer {
 

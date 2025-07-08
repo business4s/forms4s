@@ -1,9 +1,5 @@
 import org.scalajs.linker.interface.ModuleSplitStyle
-
-ThisBuild / version      := "0.1.0-SNAPSHOT"
-ThisBuild / organization := "org.business4s"
-
-ThisBuild / scalaVersion := "3.7.1"
+import org.typelevel.scalacoptions.ScalacOptions
 
 lazy val root = (project in file("."))
   .settings(
@@ -30,6 +26,7 @@ lazy val `forms4s-core` = crossProject(JVMPlatform, JSPlatform)
       "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
     ),
   )
+  .settings(commonSettings)
   .enablePlugins(ScalaJSPlugin)
 
 lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
@@ -40,9 +37,9 @@ lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.9",
       "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34" % "test",
-      "org.scalatest"                 %%% "scalatest-freespec" % "3.2.19"  % "test",
     ),
   )
+  .settings(commonSettings)
   .dependsOn(`forms4s-core`)
 
 lazy val `forms4s-tyrian` = (project in file("forms4s-tyrian"))
@@ -52,6 +49,7 @@ lazy val `forms4s-tyrian` = (project in file("forms4s-tyrian"))
       "io.indigoengine" %%% "tyrian-io" % "0.14.0",
     ),
   )
+  .settings(commonSettings)
   .enablePlugins(ScalaJSPlugin)
   .dependsOn(`forms4s-core`.js)
 
@@ -62,38 +60,47 @@ lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
     name := "forms4s-circe",
     libraryDependencies ++= Seq(
       "io.circe" %%% "circe-core" % "0.14.14",
-      "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
     ),
   )
+  .settings(commonSettings)
   .dependsOn(`forms4s-core`)
 
 lazy val `forms4s-examples` =
   (project in file("forms4s-examples"))
     .enablePlugins(ScalaJSPlugin)
-    .settings( // Normal settings
-      name                            := "forms4s-examples",
+    .settings(
+      name            := "forms4s-examples",
       scalaJSLinkerConfig ~= {
         _.withModuleKind(ModuleKind.ESModule)
           .withModuleSplitStyle(
             ModuleSplitStyle.SmallModulesFor(List("forms4s")),
           )
       },
-//      scalaJSUseMainModuleInitializer := true,
-      autoAPIMappings                 := true,
+      autoAPIMappings := true,
       libraryDependencies ++= Seq(
         "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34",
         "io.circe"                      %%% "circe-parser"       % "0.14.14",
         "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.11.10",
-        "org.scalatest"                 %%% "scalatest-freespec" % "3.2.19" % "test",
       ),
     )
+    .settings(commonSettings)
     .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)
 
 // tODO check how it got here and if it should be here
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-lazy val stableVersion = taskKey[String]("stableVersion")
+lazy val commonSettings = Seq(
+  organization := "org.business4s",
+  scalaVersion := "3.7.1",
+  Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
+  libraryDependencies ++= Seq(
+    "org.scalatest" %% "scalatest" % "3.2.19" % "test",
+  ),
+  // https://users.scala-lang.org/t/scala-js-with-3-7-0-package-scala-contains-object-and-package-with-same-name-caps/10786/5
+  dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value
+)
 
+lazy val stableVersion = taskKey[String]("stableVersion")
 stableVersion := {
   if (isVersionStable.value && !isSnapshot.value) version.value
   else previousStableVersion.value.getOrElse("unreleased")

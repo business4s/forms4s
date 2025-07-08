@@ -1,14 +1,14 @@
 package forms4s.jsonschema
 
-import forms4s.{FormElement, FormElementState}
+import forms4s.FormElement
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
-import sttp.tapir.Schema.annotations.{format, validate}
+import sttp.tapir.Schema.annotations.validate
 import sttp.tapir.Validator.Pattern
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 import sttp.tapir.generic.Configuration
 
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZonedDateTime}
+import java.time.*
 
 class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
@@ -85,7 +85,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       case class Foo(x: Interim) derives TSchema
       val form1        = getForm[Foo](nullableOptions = true)
       // this doesnt work yet, its here to document the problem
-      fail("TODO")
+      assert(form1 == null)
     }
 
     "list → Multivalue with Text inside" in {

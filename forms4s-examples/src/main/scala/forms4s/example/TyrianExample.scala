@@ -1,22 +1,17 @@
 package forms4s.example
 
 import cats.effect.IO
-import forms4s.circe.FormStateFromJson
 import forms4s.circe.FormStateToJson.extractJson
 import forms4s.example.components.{CssFramework, Froms4sPlayground}
 import forms4s.jsonschema.FormFromJsonSchema
-import forms4s.tyrian.*
 import forms4s.{FormElementState, FormElementUpdate}
 import org.scalajs.dom
-import org.scalajs.dom.{URLSearchParams, document}
-import sttp.tapir.Schema.annotations.validate
-import sttp.tapir.Validator.Pattern
+import org.scalajs.dom.URLSearchParams
 import tyrian.*
 import tyrian.Html.*
 
 import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
-import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 
 @JSExportTopLevel("TyrianApp")

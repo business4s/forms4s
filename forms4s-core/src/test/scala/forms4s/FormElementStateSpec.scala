@@ -29,7 +29,7 @@ class FormElementStateSpec extends AnyFreeSpec {
           val updateCmd    = formState.emitUpdate(newValue)
           val updatedState = formState.update(updateCmd)
 
-          assert(updatedState == FormElementState.Checkbox(field, true, List()))
+          val _ = assert(updatedState == FormElementState.Checkbox(field, true, List()))
         }
 
         {

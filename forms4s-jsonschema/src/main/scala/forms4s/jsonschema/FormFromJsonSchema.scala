@@ -2,10 +2,9 @@ package forms4s.jsonschema
 
 import cats.data.Ior
 import cats.syntax.all.*
+import forms4s.FormElement
 import forms4s.FormElement.Validator
-import forms4s.jsonschema.FormFromJsonSchema.FormatValidator
-import forms4s.{FormElement, FormElementState}
-import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
+import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, SchemaLike, SchemaType, Schema as ASchema}
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
