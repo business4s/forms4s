@@ -3,7 +3,7 @@ package forms4s
 sealed trait FormElementUpdate
 
 object FormElementUpdate {
-  sealed trait Change                                     extends FormElementUpdate
+  sealed trait Change extends FormElementUpdate
 
   case class ValueUpdate[T](value: T)                     extends Change
   case class Nested(field: Int, value: FormElementUpdate) extends Change

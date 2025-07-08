@@ -17,11 +17,11 @@ object FormStateToJson {
     case FormElementState.Group(_, values, _)      => Json.fromFields(values.map(elem => elem.id -> extract(elem)))
     case FormElementState.Multivalue(_, elems, _)  => Json.fromValues(elems.map(extract))
     case FormElementState.Alternative(e, state, _) => {
-      val base = extract(state.states(state.selected))
+      val base              = extract(state.states(state.selected))
       val withDiscriminator = for {
         asObj <- base.asObject
-        disc <- e.discriminator
-      } yield asObj.+:( disc -> Json.fromString(e.variants(state.selected).core.id)).asJson
+        disc  <- e.discriminator
+      } yield asObj.+:(disc -> Json.fromString(e.variants(state.selected).core.id)).asJson
       withDiscriminator.getOrElse(base)
     }
   }

@@ -66,7 +66,7 @@ class BulmaFormRenderer extends FormRenderer {
   ): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "box")(
       Html.legend(`class` := "title is-5")(state.element.core.label) ::
-        state.value.zipWithIndex.map( (subElement, idx) =>
+        state.value.zipWithIndex.map((subElement, idx) =>
           renderElement(subElement)
             .map(x => FormElementUpdate.Nested(idx, x)),
         ),
@@ -130,21 +130,21 @@ class BulmaFormRenderer extends FormRenderer {
   }
 
   override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
-    val name = state.element.core.id
+    val name     = state.element.core.id
     val selected = state.value.selected
 
     Html.fieldset()(
       Html.legend(`class` := "label")(state.element.core.label),
       Html.div(`class` := "select mb-3")(
         Html.select(
-          id := name,
+          id        := name,
           Html.name := name,
           onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
         )(
           state.element.variants.toList.zipWithIndex.map { case (elem, idx) =>
             Html.option(value := idx.toString, Html.selected := (idx == selected))(elem.core.label)
           },
-        )
+        ),
       ),
       Html.div()(
         renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),

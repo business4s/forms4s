@@ -38,27 +38,27 @@ case class FormView(form: FormElementState, framework: CssFramework) {
     case CssFramework.Bulma     => BulmaFormRenderer
     case CssFramework.Bootstrap => BootstrapFormRenderer
     case CssFramework.Raw       => RawFormRenderer
-    case CssFramework.Pico   => RawFormRenderer
+    case CssFramework.Pico      => RawFormRenderer
   }
   private val rendererLabel: String  = framework match {
     case CssFramework.Bulma     => "bulma"
     case CssFramework.Bootstrap => "bootstrap"
     case CssFramework.Raw       => "raw"
-    case CssFramework.Pico   => "picocss"
+    case CssFramework.Pico      => "picocss"
   }
   def render: Html[Msg]              = {
     div(
       Html.div(`class` := "select is-small")(
         Html.select(
-          id := "css-framework",
+          id   := "css-framework",
           name := "css-framework",
-          onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value)))
+          onChange(value => Msg.FrameworkSelected(CssFramework.valueOf(value))),
         )(
           Html.option(value := CssFramework.Raw.toString, selected := (framework == CssFramework.Raw))("Raw"),
           Html.option(value := CssFramework.Pico.toString, selected := (framework == CssFramework.Pico))("Pico"),
           Html.option(value := CssFramework.Bulma.toString, selected := (framework == CssFramework.Bulma))("Bulma"),
-          Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap")
-        )
+          Html.option(value := CssFramework.Bootstrap.toString, selected := (framework == CssFramework.Bootstrap))("Bootstrap"),
+        ),
       ),
       hr(),
       tyrian.Tag(

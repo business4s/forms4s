@@ -115,14 +115,14 @@ class BootstrapFormRenderer extends FormRenderer {
   }
 
   override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
-    val name = state.element.core.id
+    val name     = state.element.core.id
     val selected = state.value.selected
 
     Html.fieldset(`class` := "mb-3")(
       Html.legend(`class` := "form-label")(state.element.core.label),
       Html.select(
-        `class` := "form-select",
-        id := name,
+        `class`   := "form-select",
+        id        := name,
         Html.name := name,
         onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
       )(

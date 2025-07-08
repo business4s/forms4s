@@ -13,7 +13,7 @@ object FormElement {
   case class Text(core: Core[String], multiline: Boolean)                           extends FormElement {
     type State = String
   }
-  case class Number(core: Core[Option[Double]], isInteger: Boolean)                         extends FormElement {
+  case class Number(core: Core[Option[Double]], isInteger: Boolean)                 extends FormElement {
     type State = Option[Double]
   }
   case class Select(core: Core[String], options: List[String])                      extends FormElement {
@@ -37,7 +37,7 @@ object FormElement {
     type State = LocalDate
   }
 
-  case class DateTime(core: Core[OffsetDateTime]) extends FormElement {
+  case class DateTime(core: Core[OffsetDateTime])                                                                  extends FormElement {
     // We could be using ZonedDateTime but browsers dont ship with IANA database
     type State = OffsetDateTime
   }

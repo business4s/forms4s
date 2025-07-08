@@ -171,7 +171,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
             FormElement.Group(simpleCore("A", "A"), List(FormElement.Number(simpleCore("a", "A"), true))),
             FormElement.Group(simpleCore("B", "B"), List(FormElement.Number(simpleCore("b", "B"), true))),
           ),
-          None
+          None,
         )
         assert(form == expected)
       }
@@ -188,7 +188,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
             FormElement.Group(simpleCore("A", "A"), List(FormElement.Number(simpleCore("a", "A"), true))),
             FormElement.Group(simpleCore("B", "B"), List(FormElement.Number(simpleCore("b", "B"), true))),
           ),
-          Some("tpe")
+          Some("tpe"),
         )
         assert(form == expected)
       }
