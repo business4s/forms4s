@@ -16,6 +16,7 @@ trait FormRenderer {
     case state: FormElementState.Time        => renderTime(state)
     case state: FormElementState.Date        => renderDate(state)
     case state: FormElementState.DateTime    => renderDateTime(state)
+    case state: FormElementState.Alternative => renderAlternative(state)
   }
 
   protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]
@@ -33,6 +34,9 @@ trait FormRenderer {
   protected def renderGroup(state: FormElementState.Group): Html[FormElementUpdate]
 
   protected def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate]
+
+  protected def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate]
+
 }
 
 object FormRenderer {

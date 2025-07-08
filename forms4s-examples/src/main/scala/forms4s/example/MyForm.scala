@@ -2,6 +2,7 @@ package forms4s.example
 
 import sttp.tapir.Schema.annotations.{format, validate}
 import sttp.tapir.Validator.Pattern
+import sttp.tapir.generic.Configuration
 
 import java.time.{LocalDate, OffsetDateTime, OffsetTime}
 
@@ -27,22 +28,29 @@ object MyForm {
       theme: Option[Theme],
   ) derives TSchema
 
+  given Configuration = Configuration.default.withDiscriminator("type")
+  sealed trait AuthMethod derives TSchema
+  object AuthMethod {
+    case class PasswordBased(password: String) extends AuthMethod
+    case class OAuth(provider: String)         extends AuthMethod
+  }
+
   case class User(
       name: String,
-      age: Option[Int],             // optional number
-      income: Double,               // required number
+      age: Option[Int],
+      income: Double,
       emails: List[String],
-      addresses: List[Address],     // nested subform
-      preferences: UserPreferences, // nested subform with enum and checkbox
+      addresses: List[Address],
+      preferences: UserPreferences,
       birthDate: LocalDate,
       @format("time")
       wakeupTime: OffsetTime,
       lastLogin: OffsetDateTime,
+      auth: AuthMethod,
   ) derives TSchema
 
   val jsonSchema: ASchema = TapirSchemaToJsonSchema(
     summon[TSchema[User]],
     markOptionsAsNullable = true,
   )
-
 }

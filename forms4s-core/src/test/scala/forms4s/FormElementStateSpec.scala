@@ -65,7 +65,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         // When
         val newValue     = "Main St"
         val updatedState =
-          formState.update(FormElementUpdate.Nested(field2.core.id, FormElementUpdate.Nested(field.core.id, FormElementUpdate.ValueUpdate(newValue))))
+          formState.update(FormElementUpdate.Nested(1, FormElementUpdate.Nested(0, FormElementUpdate.ValueUpdate(newValue))))
 
         // Then
         assert(

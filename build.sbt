@@ -62,6 +62,7 @@ lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
     name := "forms4s-circe",
     libraryDependencies ++= Seq(
       "io.circe" %%% "circe-core" % "0.14.14",
+      "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
     ),
   )
   .dependsOn(`forms4s-core`)

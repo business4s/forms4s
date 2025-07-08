@@ -18,7 +18,7 @@
   - [ ] Derivation from Scala types
   - Support for more sophisticated types
     - [x] Time
-    - [ ] sealed traits (`oneOf` in json schema)
+    - [x] sealed traits (`oneOf` in json schema)
     - [ ] Duration (requires custom input)
     - [ ] Email (no scala/java type)
     - [ ] uuid (no special html input, just validation)
@@ -27,6 +27,7 @@
   - [x] Bootstrap renderer
   - [x] Raw/Pico renderer
   - [x] Improved checkbox rendering
+  - [ ] Rendering help/description
 - Validation
   - [x] Infrastructure for field validation
   - [ ] Support for JSON Schema constraints

@@ -6,6 +6,7 @@ import sttp.tapir.Schema as TSchema
 import sttp.tapir.Schema.annotations.{format, validate}
 import sttp.tapir.Validator.Pattern
 import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
+import sttp.tapir.generic.Configuration
 
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZonedDateTime}
 
@@ -155,6 +156,42 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       assert(validators.head.validate("a") == None)
       assert(validators.head.validate("b") == None)
       assert(validators.head.validate("c") == Some("Value does not match format [a|b]"))
+    }
+
+    "sealed trait" - {
+      "without discriminator" in {
+        sealed trait Foo derives TSchema
+        case class A(a: Int) extends Foo
+        case class B(b: Int) extends Foo
+
+        val form     = getForm[Foo]()
+        val expected = FormElement.Alternative(
+          simpleCore("Foo", "Foo"),
+          List(
+            FormElement.Group(simpleCore("A", "A"), List(FormElement.Number(simpleCore("a", "A"), true))),
+            FormElement.Group(simpleCore("B", "B"), List(FormElement.Number(simpleCore("b", "B"), true))),
+          ),
+          None
+        )
+        assert(form == expected)
+      }
+      "with discriminator" in {
+        given Configuration = Configuration.default.withDiscriminator("tpe")
+        sealed trait Foo derives TSchema
+        case class A(a: Int) extends Foo
+        case class B(b: Int) extends Foo
+
+        val form     = getForm[Foo]()
+        val expected = FormElement.Alternative(
+          simpleCore("Foo", "Foo"),
+          List(
+            FormElement.Group(simpleCore("A", "A"), List(FormElement.Number(simpleCore("a", "A"), true))),
+            FormElement.Group(simpleCore("B", "B"), List(FormElement.Number(simpleCore("b", "B"), true))),
+          ),
+          Some("tpe")
+        )
+        assert(form == expected)
+      }
     }
 
   }

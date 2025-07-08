@@ -57,7 +57,7 @@ class BootstrapFormRenderer extends FormRenderer {
   ): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "border p-3 mb-3")(
       Html.legend(`class` := "h5")(state.element.core.label) ::
-        state.value.map(subElement => renderElement(subElement).map(x => FormElementUpdate.Nested(subElement.id, x))),
+        state.value.zipWithIndex.map((subElement, idx) => renderElement(subElement).map(x => FormElementUpdate.Nested(idx, x))),
     )
   }
 
@@ -113,6 +113,29 @@ class BootstrapFormRenderer extends FormRenderer {
       errorFeedback(state.errors),
     )
   }
+
+  override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
+    val name = state.element.core.id
+    val selected = state.value.selected
+
+    Html.fieldset(`class` := "mb-3")(
+      Html.legend(`class` := "form-label")(state.element.core.label),
+      Html.select(
+        `class` := "form-select",
+        id := name,
+        Html.name := name,
+        onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
+      )(
+        state.element.variants.toList.zipWithIndex.map { case (elem, idx) =>
+          Html.option(value := idx.toString, Html.selected := (idx == selected))(elem.core.label)
+        },
+      ),
+      Html.div(`class` := "nested mt-2")(
+        renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
+      ),
+    )
+  }
+
 }
 
 object BootstrapFormRenderer extends BootstrapFormRenderer

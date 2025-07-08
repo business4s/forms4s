@@ -12,8 +12,8 @@ class RawFormRenderer extends FormRenderer {
   override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderRawInputField(state, "time")
   override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderRawInputField(state, "datetime-local")
   override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = {
-    val step = Html.step := (if(state.element.isInteger) then "1" else "any")
-    renderRawInputField(state, "number",step)
+    val step = Html.step := (if (state.element.isInteger) then "1" else "any")
+    renderRawInputField(state, "number", step)
   }
 
   override def renderSelect(
@@ -51,7 +51,7 @@ class RawFormRenderer extends FormRenderer {
   ): Html[FormElementUpdate] = {
     Html.fieldset()(
       Html.legend()(state.element.core.label) ::
-        state.value.map(subElement => renderElement(subElement).map(x => FormElementUpdate.Nested(subElement.id, x))),
+        state.value.zipWithIndex.map((subElement, idx) => renderElement(subElement).map(x => FormElementUpdate.Nested(idx, x))),
     )
   }
 
@@ -90,6 +90,27 @@ class RawFormRenderer extends FormRenderer {
         ) ++ additionalTags,
       ),
       if state.errors.nonEmpty then Html.div()(Text(state.errors.mkString(", "))) else Empty,
+    )
+  }
+
+  override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
+    val name     = state.element.core.id
+    val selected = state.value.selected
+
+    Html.fieldset()(
+      Html.legend()(state.element.core.label),
+      Html.select(
+        id        := name,
+        Html.name := name,
+        onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
+      )(
+        state.element.variants.toList.zipWithIndex.map { case (elem, idx) =>
+          Html.option(value := idx.toString, Html.selected := (idx == selected))(elem.core.label)
+        },
+      ),
+      Html.div(`class` := "nested")(
+        renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
+      ),
     )
   }
 }

@@ -41,6 +41,12 @@ object FormElement {
     // We could be using ZonedDateTime but browsers dont ship with IANA database
     type State = OffsetDateTime
   }
+  case class Alternative(core: Core[Alternative.State], variants: Seq[FormElement], discriminator: Option[String]) extends FormElement {
+    override type State = Alternative.State
+  }
+  object Alternative {
+    case class State(selected: Int, states: Vector[FormElementState])
+  }
 
   case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]])
 
