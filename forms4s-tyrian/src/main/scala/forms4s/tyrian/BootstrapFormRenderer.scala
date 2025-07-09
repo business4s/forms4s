@@ -111,6 +111,7 @@ class BootstrapFormRenderer extends FormRenderer {
         onInput(state.emitUpdate),
       ),
       errorFeedback(state.errors),
+      renderDescription(state)
     )
   }
 
@@ -134,6 +135,11 @@ class BootstrapFormRenderer extends FormRenderer {
         renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
       ),
     )
+  }
+
+  protected def renderDescription(s: FormElementState): Elem[FormElementUpdate] = {
+    s.element.core.description.map(desc => Html.small(`class` := "form-text ")(desc))
+      .getOrElse(tyrian.Empty)
   }
 
 }

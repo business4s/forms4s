@@ -86,7 +86,7 @@ lazy val `forms4s-examples` =
     .settings(commonSettings)
     .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`.js, `forms4s-circe`.js)
 
-// tODO check how it got here and if it should be here
+// TODO check how it got here and if it should be here
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val commonSettings = Seq(

@@ -3,7 +3,7 @@ package forms4s.tyrian
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
-import tyrian.{Attr, Empty, Html, Text}
+import tyrian.{Attr, Elem, Empty, Html, Text}
 
 class RawFormRenderer extends FormRenderer {
 
@@ -89,6 +89,7 @@ class RawFormRenderer extends FormRenderer {
           onInput(state.emitUpdate),
         ) ++ additionalTags,
       ),
+      renderDescription(state),
       if state.errors.nonEmpty then Html.div()(Text(state.errors.mkString(", "))) else Empty,
     )
   }
@@ -112,6 +113,11 @@ class RawFormRenderer extends FormRenderer {
         renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
       ),
     )
+  }
+
+  protected def renderDescription(s: FormElementState): Elem[FormElementUpdate] = {
+    val descOpt = s.element.core.description
+    descOpt.map(desc => Html.small(desc)).getOrElse(Empty)
   }
 }
 

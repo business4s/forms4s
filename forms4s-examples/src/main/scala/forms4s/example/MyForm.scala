@@ -1,6 +1,6 @@
 package forms4s.example
 
-import sttp.tapir.Schema.annotations.{format, validate}
+import sttp.tapir.Schema.annotations.{description, format, validate}
 import sttp.tapir.Validator.Pattern
 import sttp.tapir.generic.Configuration
 
@@ -36,6 +36,7 @@ object MyForm {
   }
 
   case class User(
+      @description("Full name")
       name: String,
       age: Option[Int],
       income: Double,

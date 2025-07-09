@@ -3,7 +3,7 @@ package forms4s.tyrian
 import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
-import tyrian.{Html, Text}
+import tyrian.{Elem, Html, Text}
 
 class BulmaFormRenderer extends FormRenderer {
 
@@ -66,10 +66,7 @@ class BulmaFormRenderer extends FormRenderer {
   ): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "box")(
       Html.legend(`class` := "title is-5")(state.element.core.label) ::
-        state.value.zipWithIndex.map((subElement, idx) =>
-          renderElement(subElement)
-            .map(x => FormElementUpdate.Nested(idx, x)),
-        ),
+        state.value.zipWithIndex.map((subElement, idx) => renderElement(subElement).map(x => FormElementUpdate.Nested(idx, x))),
     )
   }
 
@@ -124,8 +121,8 @@ class BulmaFormRenderer extends FormRenderer {
           onInput(state.emitUpdate),
         ),
       ),
-      if hasError then Html.p(`class` := "help is-danger")(state.errors.mkString(", "))
-      else tyrian.Empty,
+      renderErrors(state),
+      renderDescription(state),
     )
   }
 
@@ -149,6 +146,16 @@ class BulmaFormRenderer extends FormRenderer {
       Html.div()(
         renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
       ),
+    )
+  }
+
+  def renderDescription(s: FormElementState): Elem[FormElementUpdate] = {
+    val description = s.element.core.description
+    description.map(d => Html.p(`class` := "help")(d)).getOrElse(tyrian.Empty)
+  }
+  def renderErrors(s: FormElementState): Html[FormElementUpdate]      = {
+    Html.div(
+      s.errors.toList.map(err => Html.p(`class` := "help is-danger")(err))
     )
   }
 }

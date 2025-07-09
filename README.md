@@ -27,7 +27,8 @@
   - [x] Bootstrap renderer
   - [x] Raw/Pico renderer
   - [x] Improved checkbox rendering
-  - [ ] Rendering help/description
+  - [x] Rendering help/description
+  - [ ] Path-based ids
 - Validation
   - [x] Infrastructure for field validation
   - [ ] Support for JSON Schema constraints
@@ -40,9 +41,12 @@
     - How to set initial values
   - [x] Interactive page with scala/jsonschema/form side by side
     - [ ] Ability to edit code
+    - [ ] Rewamped demo form with more features
+    - [ ] Predefined form state, ability to clean and reload it
 - [ ] CI/CD
+  - [ ] Fix tests
   - [ ] Artifact publishing
-  - [ ] scalafix/sbt-tpolecat
+  - [x] sbt-tpolecat
 
 ---
 
