@@ -1,6 +1,6 @@
 package forms4s.circe
 
-import forms4s.{FormElement, FormElementState}
+import forms4s.{FormElement, FormElementPath, FormElementState}
 import io.circe.Json
 import io.circe.syntax.KeyOps
 import org.scalatest.freespec.AnyFreeSpec
@@ -17,7 +17,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.Date(elem, LocalDate.parse("2025-01-07"), Seq())
+    val expected                       = FormElementState.Date(elem, LocalDate.parse("2025-01-07"), Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 
@@ -27,7 +27,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.Time(elem, OffsetTime.parse("08:57:50+02:00"), Seq())
+    val expected                       = FormElementState.Time(elem, OffsetTime.parse("08:57:50+02:00"), Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 
@@ -37,7 +37,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.DateTime(elem, OffsetDateTime.parse("2025-07-08T06:53:46.990+02:00"), Seq())
+    val expected                       = FormElementState.DateTime(elem, OffsetDateTime.parse("2025-07-08T06:53:46.990+02:00"), Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 
@@ -61,11 +61,24 @@ class FormStateFromJsonTest extends AnyFreeSpec {
         FormElement.Alternative.State(
           1,
           Vector(
-            FormElementState.Group(variantA, List(FormElementState.Number(field, None, Seq())), List()),
-            FormElementState.Group(variantB, List(FormElementState.Number(field, None, Seq())), List()),
+            FormElementState
+              .Group(
+                variantA,
+                List(FormElementState.Number(field, None, Seq(), FormElementPath.Root / "alt" / "A")),
+                List(),
+                FormElementPath.Root / "alt",
+              ),
+            FormElementState
+              .Group(
+                variantB,
+                List(FormElementState.Number(field, None, Seq(), FormElementPath.Root / "alt" / "B")),
+                List(),
+                FormElementPath.Root / "alt",
+              ),
           ),
         ),
         Seq(),
+        FormElementPath.Root,
       ),
     )
   }

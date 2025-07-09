@@ -1,144 +1,105 @@
 package forms4s.tyrian
 
-import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
 import tyrian.{Elem, Html}
 
 class BootstrapFormRenderer extends FormRenderer {
 
-  override def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInput(state, "text")
-  override def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInput(state, "number")
-  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]         = renderInput(state, "date")
-  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]         = renderInput(state, "time")
-  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate] = renderInput(state, "datetime-local")
+  override def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInput(state)
+  override def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInput(state)
+  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]         = renderInput(state)
+  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]         = renderInput(state)
+  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate] = renderInput(state)
 
-  override def renderSelect(
-      state: FormElementState.Select,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
+  override def renderSelect(state: FormElementState.Select): Html[FormElementUpdate] = {
     Html.div(`class` := "mb-3")(
-      Html.label(`class` := "form-label", htmlFor := name)(state.element.core.label),
+      Html.label(`class` := "form-label", state.htmlFor)(state.label),
       Html.select(
-        id        := name,
-        Html.name := name,
-        `class`   := "form-select",
-        onChange(value => FormElementUpdate.ValueUpdate(value)),
-      )(
-        state.element.options.map(option =>
-          Html.option(
-            value    := option,
-            selected := (state.value == option),
-          )(option),
-        ),
-      ),
+        `class` := "form-select",
+        state.htmlId,
+        state.htmlName,
+        state.htmlOnChange,
+      )(state.htmlOptions),
     )
   }
 
-  override def renderCheckbox(
-      state: FormElementState.Checkbox,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
+  override def renderCheckbox(state: FormElementState.Checkbox): Html[FormElementUpdate] = {
     Html.div(`class` := "form-check mb-3")(
       Html.input(
-        `type`    := "checkbox",
-        id        := name,
-        Html.name := name,
-        `class`   := "form-check-input",
-        checked   := state.value,
-        onChange(checked => FormElementUpdate.ValueUpdate(checked == "true")),
+        `class` := "form-check-input",
+        state.htmlType,
+        state.htmlId,
+        state.htmlName,
+        state.htmlChecked,
+        state.htmlOnChange,
       ),
-      Html.label(`class` := "form-check-label", htmlFor := name)(state.element.core.label),
+      Html.label(`class` := "form-check-label", state.htmlFor)(state.label),
     )
   }
 
-  override def renderGroup(
-      state: FormElementState.Group,
-  ): Html[FormElementUpdate] = {
+  override def renderGroup(state: FormElementState.Group): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "border p-3 mb-3")(
-      Html.legend(`class` := "h5")(state.element.core.label) ::
-        state.value.zipWithIndex.map((subElement, idx) => renderElement(subElement).map(x => FormElementUpdate.Nested(idx, x))),
+      Html.legend(`class` := "h5")(state.label) :: state.renderElements,
     )
   }
 
-  override def renderMultivalue(
-      state: FormElementState.Multivalue,
-  ): Html[FormElementUpdate] = {
+  override def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "border p-3 mb-3")(
-      Html.legend(`class` := "h4")(state.element.core.label) ::
-        state.value.toList.zipWithIndex.flatMap { case (item, idx) =>
+      Html.legend(`class` := "h4")(state.label) ::
+        state.elements.flatMap { elem =>
           List(
-            renderElement(item).map(x => MultivalueUpdate(idx, x)),
+            elem.render,
             Html.div(`class` := "d-flex justify-content-end mb-2")(
-              Html.button(
-                `class` := "btn btn-danger btn-sm",
-                onClick(FormElementUpdate.MultivalueRemove(idx)),
-              )("Remove"),
+              Html.button(`class` := "btn btn-danger btn-sm", elem.htmlOnClickRemove)("Remove"),
             ),
           )
         } ++ List(
           Html.hr(),
           Html.div(`class` := "d-flex justify-content-end")(
-            Html.button(
-              `class` := "btn btn-primary btn-sm",
-              onClick(FormElementUpdate.MultivalueAppend),
-            )("+ Add"),
+            Html.button(`class` := "btn btn-primary btn-sm", state.htmlOnClickAdd)("+ Add"),
           ),
         ),
     )
   }
 
-  protected def formWrapper(name: String, label: String)(content: Elem[FormElementUpdate]*): Html[FormElementUpdate] =
+  protected def renderInput(state: FormElementState.SimpleInputBased): Html[FormElementUpdate] = {
+    val hasError = state.errors.nonEmpty
     Html.div(`class` := "mb-3")(
-      (Html.label(`class` := "form-label", htmlFor := name)(label) +: content)*,
+      Html.label(`class` := "form-label", state.htmlFor)(state.label),
+      Html.input(
+        `class` := (if hasError then "form-control is-invalid" else "form-control"),
+        state.htmlId,
+        state.htmlName,
+        state.htmlValue,
+        state.htmlType,
+        state.htmlOnInput,
+      ),
+      errorFeedback(state.errors),
+      renderDescription(state),
     )
+  }
+
+  override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
+    Html.fieldset(`class` := "mb-3")(
+      Html.legend(`class` := "form-label")(state.label),
+      Html.select(
+        `class` := "form-select",
+        state.htmlId,
+        state.htmlName,
+        state.htmlOnChange,
+      )(state.htmlOptions),
+      Html.div(`class` := "nested mt-2")(state.renderSelected),
+    )
+  }
 
   protected def errorFeedback(errors: Seq[String]): Elem[FormElementUpdate] =
     if errors.nonEmpty then Html.div(`class` := "invalid-feedback")(errors.mkString(", "))
     else tyrian.Empty
 
-  protected def renderInput(state: FormElementState.TextBased, inputType: String): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val hasError = state.errors.nonEmpty
-
-    formWrapper(name, state.element.core.label)(
-      Html.input(
-        id         := name,
-        Html.name  := name,
-        `class`    := (if hasError then "form-control is-invalid" else "form-control"),
-        `type`     := inputType,
-        Html.value := state.valueToString(state.value),
-        onInput(state.emitUpdate),
-      ),
-      errorFeedback(state.errors),
-      renderDescription(state)
-    )
-  }
-
-  override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val selected = state.value.selected
-
-    Html.fieldset(`class` := "mb-3")(
-      Html.legend(`class` := "form-label")(state.element.core.label),
-      Html.select(
-        `class`   := "form-select",
-        id        := name,
-        Html.name := name,
-        onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
-      )(
-        state.element.variants.toList.zipWithIndex.map { case (elem, idx) =>
-          Html.option(value := idx.toString, Html.selected := (idx == selected))(elem.core.label)
-        },
-      ),
-      Html.div(`class` := "nested mt-2")(
-        renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
-      ),
-    )
-  }
-
   protected def renderDescription(s: FormElementState): Elem[FormElementUpdate] = {
-    s.element.core.description.map(desc => Html.small(`class` := "form-text ")(desc))
+    s.element.core.description
+      .map(desc => Html.small(`class` := "form-text ")(desc))
       .getOrElse(tyrian.Empty)
   }
 

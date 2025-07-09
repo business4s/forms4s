@@ -1,89 +1,60 @@
 package forms4s.tyrian
 
-import forms4s.FormElementUpdate.MultivalueUpdate
 import forms4s.{FormElementState, FormElementUpdate}
 import tyrian.Html.*
 import tyrian.{Elem, Html, Text}
 
 class BulmaFormRenderer extends FormRenderer {
 
-  override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInputField(state, "text")
-  override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInputField(state, "number")
-  override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderInputField(state, "date")
-  override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderInputField(state, "time")
-  override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderInputField(state, "datetime-local")
+  override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInputField(state)
+  override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInputField(state)
+  override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderInputField(state)
+  override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderInputField(state)
+  override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderInputField(state)
 
-  override def renderSelect(
-      state: FormElementState.Select,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
-
+  override def renderSelect(state: FormElementState.Select): Html[FormElementUpdate] = {
     Html.div(`class` := "field")(
-      Html.label(`class` := "label", htmlFor := name)(state.element.core.label),
+      Html.label(`class` := "label", state.htmlFor)(state.label),
       Html.div(`class` := "control")(
         Html.div(`class` := "select")(
-          tyrian.Html.select(
-            id        := name,
-            Html.name := name,
-            onChange(state.emitUpdate),
-          )(
-            state.element.options.map(option =>
-              tyrian.Html.option(
-                value    := option,
-                selected := (state.value == option),
-              )(option),
-            ),
-          ),
+          Html.select(state.htmlId, state.htmlName, state.htmlOnChange)(state.htmlOptions),
         ),
       ),
     )
   }
 
-  override def renderCheckbox(
-      state: FormElementState.Checkbox,
-  ): Html[FormElementUpdate] = {
-    val name = state.element.core.id
-
+  override def renderCheckbox(state: FormElementState.Checkbox): Html[FormElementUpdate] = {
     Html.div(`class` := "field")(
       Html.div(`class` := "control")(
         Html.label(`class` := "checkbox")(
           Html.input(
-            `type`    := "checkbox",
-            id        := name,
-            Html.name := name,
-            checked   := state.value,
-            onChange(state.emitUpdate),
+            state.htmlType,
+            state.htmlId,
+            state.htmlName,
+            state.htmlChecked,
+            state.htmlOnChange,
           ),
-          Text(" "),
-          Text(state.element.core.label),
+          Text(state.label),
         ),
       ),
     )
   }
 
-  override def renderGroup(
-      state: FormElementState.Group,
-  ): Html[FormElementUpdate] = {
+  override def renderGroup(state: FormElementState.Group): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "box")(
-      Html.legend(`class` := "title is-5")(state.element.core.label) ::
-        state.value.zipWithIndex.map((subElement, idx) => renderElement(subElement).map(x => FormElementUpdate.Nested(idx, x))),
+      Html.legend(`class` := "title is-5")(state.label) :: state.renderElements,
     )
   }
 
-  override def renderMultivalue(
-      state: FormElementState.Multivalue,
-  ): Html[FormElementUpdate] = {
+  override def renderMultivalue(state: FormElementState.Multivalue): Html[FormElementUpdate] = {
     Html.fieldset(`class` := "box")(
-      Html.legend(`class` := "title is-4")(state.element.core.label) ::
-        state.value.toList.zipWithIndex.flatMap { case (item, idx) =>
+      Html.legend(`class` := "title is-4")(state.label) ::
+        state.elements.flatMap { elem =>
           List(
-            renderElement(item).map(x => MultivalueUpdate(idx, x)),
+            elem.render,
             Html.div(`class` := "field is-grouped is-grouped-right")(
               Html.p(`class` := "control")(
-                Html.button(
-                  `class` := "button is-danger is-light is-small",
-                  onClick(FormElementUpdate.MultivalueRemove(idx)),
-                )("Remove"),
+                Html.button(`class` := "button is-danger is-light is-small", elem.htmlOnClickRemove)("Remove"),
               ),
             ),
           )
@@ -91,34 +62,25 @@ class BulmaFormRenderer extends FormRenderer {
           Html.hr(),
           Html.div(`class` := "field is-grouped is-grouped-right")(
             Html.p(`class` := "control")(
-              Html.button(
-                `class` := "button is-primary is-light is-small",
-                onClick(FormElementUpdate.MultivalueAppend),
-              )("+ Add"),
+              Html.button(`class` := "button is-primary is-light is-small", state.htmlOnClickAdd)("+ Add"),
             ),
           ),
         ),
     )
   }
 
-  protected def renderInputField(
-      state: FormElementState.TextBased,
-      inputType: String,
-  ): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val label    = state.element.core.label
+  protected def renderInputField(state: FormElementState.SimpleInputBased): Html[FormElementUpdate] = {
     val hasError = state.errors.nonEmpty
-
     Html.div(`class` := "field")(
-      Html.label(`class` := "label", htmlFor := name)(label),
+      Html.label(`class` := "label", state.htmlFor)(state.label),
       Html.div(`class` := "control")(
         Html.input(
-          `type`     := inputType,
-          id         := name,
-          Html.name  := name,
-          `class`    := (if hasError then "input is-danger" else "input"),
-          Html.value := state.valueToString(state.value),
-          onInput(state.emitUpdate),
+          `class` := (if hasError then "input is-danger" else "input"),
+          state.htmlType,
+          state.htmlId,
+          state.htmlName,
+          state.htmlValue,
+          state.htmlOnInput,
         ),
       ),
       renderErrors(state),
@@ -127,25 +89,16 @@ class BulmaFormRenderer extends FormRenderer {
   }
 
   override def renderAlternative(state: FormElementState.Alternative): Html[FormElementUpdate] = {
-    val name     = state.element.core.id
-    val selected = state.value.selected
-
     Html.fieldset()(
-      Html.legend(`class` := "label")(state.element.core.label),
+      Html.legend(`class` := "label")(state.label),
       Html.div(`class` := "select mb-3")(
         Html.select(
-          id        := name,
-          Html.name := name,
-          onChange(x => FormElementUpdate.AlternativeSelected(x.toInt)),
-        )(
-          state.element.variants.toList.zipWithIndex.map { case (elem, idx) =>
-            Html.option(value := idx.toString, Html.selected := (idx == selected))(elem.core.label)
-          },
-        ),
+          state.htmlId,
+          state.htmlName,
+          state.htmlOnChange,
+        )(state.htmlOptions),
       ),
-      Html.div()(
-        renderElement(state.value.states(selected)).map(update => FormElementUpdate.Nested(selected, update)),
-      ),
+      Html.div()(state.renderSelected),
     )
   }
 
@@ -155,7 +108,7 @@ class BulmaFormRenderer extends FormRenderer {
   }
   def renderErrors(s: FormElementState): Html[FormElementUpdate]      = {
     Html.div(
-      s.errors.toList.map(err => Html.p(`class` := "help is-danger")(err))
+      s.errors.toList.map(err => Html.p(`class` := "help is-danger")(err)),
     )
   }
 }

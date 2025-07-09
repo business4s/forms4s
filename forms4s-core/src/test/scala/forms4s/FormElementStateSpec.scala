@@ -17,7 +17,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         val updateCmd    = formState.emitUpdate(newValue)
         val updatedState = formState.update(updateCmd)
 
-        assert(updatedState == FormElementState.Text(field, newValue, List()))
+        assert(updatedState == FormElementState.Text(field, newValue, List(), FormElementPath.Root))
       }
 
       "checkbox field" in {
@@ -25,19 +25,19 @@ class FormElementStateSpec extends AnyFreeSpec {
         val formState = FormElementState.empty(field)
 
         {
-          val newValue     = "true"
+          val newValue     = true
           val updateCmd    = formState.emitUpdate(newValue)
           val updatedState = formState.update(updateCmd)
 
-          val _ = assert(updatedState == FormElementState.Checkbox(field, true, List()))
+          val _ = assert(updatedState == FormElementState.Checkbox(field, true, List(), FormElementPath.Root))
         }
 
         {
-          val newValue     = "false"
+          val newValue     = false
           val updateCmd    = formState.emitUpdate(newValue)
           val updatedState = formState.update(updateCmd)
 
-          assert(updatedState == FormElementState.Checkbox(field, false, List()))
+          assert(updatedState == FormElementState.Checkbox(field, false, List(), FormElementPath.Root))
         }
       }
 
@@ -49,7 +49,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         val updateCmd    = formState.emitUpdate(newValue)
         val updatedState = formState.update(updateCmd)
 
-        assert(updatedState == FormElementState.Select(field, newValue, List()))
+        assert(updatedState == FormElementState.Select(field, newValue, List(), FormElementPath.Root))
       }
 
       "nested field" in {
@@ -74,16 +74,19 @@ class FormElementStateSpec extends AnyFreeSpec {
             List(
               FormElementState.Group(
                 field1,
-                List(FormElementState.Text(field, "", Nil)),
+                List(FormElementState.Text(field, "", Nil, FormElementPath.Root)),
                 Nil,
+                FormElementPath.Root,
               ),
               FormElementState.Group(
                 field2,
-                List(FormElementState.Text(field, newValue, Nil)),
+                List(FormElementState.Text(field, newValue, Nil, FormElementPath.Root)),
                 Nil,
+                FormElementPath.Root,
               ),
             ),
             Nil,
+            FormElementPath.Root,
           ),
         )
       }
@@ -95,7 +98,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         val updateCmd    = formState.emitUpdate(newValue)
         val updatedState = formState.update(updateCmd)
 
-        assert(updatedState == FormElementState.Time(field, OffsetTime.of(12, 34, 0, 0, ZoneOffset.UTC), List()))
+        assert(updatedState == FormElementState.Time(field, OffsetTime.of(12, 34, 0, 0, ZoneOffset.UTC), List(), FormElementPath.Root))
       }
       "date field" in {
         val field                            = FormElement.Date(randCore())
@@ -105,7 +108,7 @@ class FormElementStateSpec extends AnyFreeSpec {
         val updateCmd    = formState.emitUpdate(newValue)
         val updatedState = formState.update(updateCmd)
 
-        assert(updatedState == FormElementState.Date(field, LocalDate.of(2024, 1, 23), List()))
+        assert(updatedState == FormElementState.Date(field, LocalDate.of(2024, 1, 23), List(), FormElementPath.Root))
       }
       "datetime field" in {
         val field                                = FormElement.DateTime(randCore())
@@ -115,7 +118,9 @@ class FormElementStateSpec extends AnyFreeSpec {
         val updateCmd    = formState.emitUpdate(newValue)
         val updatedState = formState.update(updateCmd)
 
-        assert(updatedState == FormElementState.DateTime(field, OffsetDateTime.of(2025, 3, 1, 13, 45, 23, 0, ZoneOffset.UTC), List()))
+        assert(
+          updatedState == FormElementState.DateTime(field, OffsetDateTime.of(2025, 3, 1, 13, 45, 23, 0, ZoneOffset.UTC), List(), FormElementPath.Root),
+        )
       }
 
     }
