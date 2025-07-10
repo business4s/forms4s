@@ -6,9 +6,6 @@ import tyrian.*
 class RawFormRenderer extends FormRenderer {
 
   override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderRawInputField(state)
-  override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderRawInputField(state)
-  override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderRawInputField(state)
-  override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderRawInputField(state)
   override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderRawInputField(state, state.htmlStep)
 
   override def renderSelect(state: FormElementState.Select): Html[FormElementUpdate] = {
@@ -56,6 +53,8 @@ class RawFormRenderer extends FormRenderer {
       state: FormElementState.SimpleInputBased,
       additionalTags: Attr[FormElementUpdate]*,
   ): Html[FormElementUpdate] = {
+    val errorsId = (state.path / "_errors").asHtmlId
+    val ariaInvalid   = if state.errors.nonEmpty then Attribute("aria-invalid", "true") else EmptyAttribute
     Html.div()(
       Html.label(state.htmlFor)(state.element.core.label),
       Html.input(
@@ -65,10 +64,12 @@ class RawFormRenderer extends FormRenderer {
           state.htmlName,
           state.htmlValue,
           state.htmlOnInput,
+          Attribute("aria-describedby", errorsId),
+          ariaInvalid,
         ) ++ additionalTags,
       ),
       renderDescription(state),
-      if state.errors.nonEmpty then Html.div()(Text(state.errors.mkString(", "))) else Empty,
+      if state.errors.nonEmpty then Html.small(Html.id := errorsId)(Text(state.errors.mkString(", "))) else Empty,
     )
   }
 

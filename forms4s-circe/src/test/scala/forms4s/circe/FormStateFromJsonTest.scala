@@ -1,11 +1,10 @@
 package forms4s.circe
 
 import forms4s.{FormElement, FormElementPath, FormElementState}
+import forms4s.FormElement.Text.Format
 import io.circe.Json
 import io.circe.syntax.KeyOps
 import org.scalatest.freespec.AnyFreeSpec
-
-import java.time.{LocalDate, OffsetDateTime, OffsetTime}
 
 class FormStateFromJsonTest extends AnyFreeSpec {
 
@@ -13,31 +12,31 @@ class FormStateFromJsonTest extends AnyFreeSpec {
 
   "date" in {
     val json                           = Json.fromString("2025-01-07")
-    val elem                           = FormElement.Date(simpleCore("x"))
+    val elem                           = FormElement.Text(simpleCore("x"), Format.Date)
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.Date(elem, LocalDate.parse("2025-01-07"), Seq(), FormElementPath.Root)
+    val expected                       = FormElementState.Text(elem, "2025-01-07", Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 
   "time" in {
     val json                           = Json.fromString("08:57:50+02:00")
-    val elem                           = FormElement.Time(simpleCore("x"))
+    val elem                           = FormElement.Text(simpleCore("x"), Format.Time)
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.Time(elem, OffsetTime.parse("08:57:50+02:00"), Seq(), FormElementPath.Root)
+    val expected                       = FormElementState.Text(elem, "08:57:50+02:00", Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 
   "datetime" in {
     val json                           = Json.fromString("2025-07-08T06:53:46.990+02:00")
-    val elem                           = FormElement.DateTime(simpleCore("x"))
+    val elem                           = FormElement.Text(simpleCore("x"), Format.DateTime)
     val initialState: FormElementState = FormElementState.empty(elem)
     val updates                        = FormStateFromJson.hydrate(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
-    val expected                       = FormElementState.DateTime(elem, OffsetDateTime.parse("2025-07-08T06:53:46.990+02:00"), Seq(), FormElementPath.Root)
+    val expected                       = FormElementState.Text(elem, "2025-07-08T06:53:46.990+02:00", Seq(), FormElementPath.Root)
     assert(result == expected)
   }
 

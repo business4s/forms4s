@@ -1,8 +1,9 @@
 package forms4s.tyrian
 
+import forms4s.FormElement.Text.Format
 import forms4s.{FormElementState, FormElementUpdate}
-import tyrian.Html.value
 import tyrian.*
+import tyrian.Html.value
 
 import scala.annotation.unused
 
@@ -16,9 +17,6 @@ trait FormRenderer {
     case subform: FormElementState.Group     => renderGroup(subform)
     case number: FormElementState.Number     => renderNumberInput(number)
     case number: FormElementState.Multivalue => renderMultivalue(number)
-    case state: FormElementState.Time        => renderTime(state)
-    case state: FormElementState.Date        => renderDate(state)
-    case state: FormElementState.DateTime    => renderDateTime(state)
     case state: FormElementState.Alternative => renderAlternative(state)
   }
 
@@ -29,10 +27,6 @@ trait FormRenderer {
   protected def renderSelect(state: FormElementState.Select): Html[FormElementUpdate]
 
   protected def renderCheckbox(state: FormElementState.Checkbox): Html[FormElementUpdate]
-
-  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]
-  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]
-  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]
 
   protected def renderGroup(state: FormElementState.Group): Html[FormElementUpdate]
 
@@ -55,11 +49,17 @@ trait FormRenderer {
 
     def htmlType: Attribute = {
       Html.`type` := (s match {
-        case _: FormElementState.Text     => "text"
-        case _: FormElementState.Number   => "number"
-        case _: FormElementState.Time     => "time"
-        case _: FormElementState.Date     => "date"
-        case _: FormElementState.DateTime => "datetime-local"
+        case x: FormElementState.Text   =>
+          x.element.format match {
+            case Format.Raw       => "text"
+            case Format.Date      => "date"
+            case Format.Time      => "time"
+            case Format.DateTime  => "datetime-local"
+            case Format.Email     => "email"
+            case Format.Multiline => "textarea"
+            case Format.Custom(_) => "text"
+          }
+        case _: FormElementState.Number => "number"
       })
     }
   }

@@ -8,9 +8,6 @@ class BulmaFormRenderer extends FormRenderer {
 
   override protected def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInputField(state)
   override protected def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInputField(state)
-  override protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]          = renderInputField(state)
-  override protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]          = renderInputField(state)
-  override protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate]  = renderInputField(state)
 
   override def renderSelect(state: FormElementState.Select): Html[FormElementUpdate] = {
     Html.div(`class` := "field")(

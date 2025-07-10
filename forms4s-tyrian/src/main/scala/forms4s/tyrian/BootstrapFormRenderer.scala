@@ -8,9 +8,6 @@ class BootstrapFormRenderer extends FormRenderer {
 
   override def renderTextInput(state: FormElementState.Text): Html[FormElementUpdate]     = renderInput(state)
   override def renderNumberInput(state: FormElementState.Number): Html[FormElementUpdate] = renderInput(state)
-  protected def renderDate(state: FormElementState.Date): Html[FormElementUpdate]         = renderInput(state)
-  protected def renderTime(state: FormElementState.Time): Html[FormElementUpdate]         = renderInput(state)
-  protected def renderDateTime(state: FormElementState.DateTime): Html[FormElementUpdate] = renderInput(state)
 
   override def renderSelect(state: FormElementState.Select): Html[FormElementUpdate] = {
     Html.div(`class` := "mb-3")(

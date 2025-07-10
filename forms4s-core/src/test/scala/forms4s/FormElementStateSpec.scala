@@ -1,8 +1,8 @@
 package forms4s
 
+import forms4s.FormElement.Text.Format
 import org.scalatest.freespec.AnyFreeSpec
 
-import java.time.{LocalDate, OffsetDateTime, OffsetTime, ZoneOffset}
 import scala.util.Random
 
 class FormElementStateSpec extends AnyFreeSpec {
@@ -10,7 +10,7 @@ class FormElementStateSpec extends AnyFreeSpec {
   "FormElementState" - {
     "update" - {
       "text field" in {
-        val field                            = FormElement.Text(randCore(), false)
+        val field                            = FormElement.Text(randCore(), Format.Raw)
         val formState: FormElementState.Text = FormElementState.empty(field)
 
         val newValue     = "my new value"
@@ -54,7 +54,7 @@ class FormElementStateSpec extends AnyFreeSpec {
 
       "nested field" in {
         // Given
-        val field                             = FormElement.Text(randCore(), false)
+        val field                             = FormElement.Text(randCore(), Format.Raw)
         val fields @ List(field1, field2)     = List(
           FormElement.Group(randCore(), List(field)),
           FormElement.Group(randCore(), List(field)),
@@ -88,38 +88,6 @@ class FormElementStateSpec extends AnyFreeSpec {
             Nil,
             FormElementPath.Root,
           ),
-        )
-      }
-      "time field" in {
-        val field                            = FormElement.Time(randCore())
-        val formState: FormElementState.Time = FormElementState.empty(field)
-
-        val newValue     = "12:34:00"
-        val updateCmd    = formState.emitUpdate(newValue)
-        val updatedState = formState.update(updateCmd)
-
-        assert(updatedState == FormElementState.Time(field, OffsetTime.of(12, 34, 0, 0, ZoneOffset.UTC), List(), FormElementPath.Root))
-      }
-      "date field" in {
-        val field                            = FormElement.Date(randCore())
-        val formState: FormElementState.Date = FormElementState.empty(field)
-
-        val newValue     = "2024-01-23"
-        val updateCmd    = formState.emitUpdate(newValue)
-        val updatedState = formState.update(updateCmd)
-
-        assert(updatedState == FormElementState.Date(field, LocalDate.of(2024, 1, 23), List(), FormElementPath.Root))
-      }
-      "datetime field" in {
-        val field                                = FormElement.DateTime(randCore())
-        val formState: FormElementState.DateTime = FormElementState.empty(field)
-
-        val newValue     = "2025-03-01T13:45:23"
-        val updateCmd    = formState.emitUpdate(newValue)
-        val updatedState = formState.update(updateCmd)
-
-        assert(
-          updatedState == FormElementState.DateTime(field, OffsetDateTime.of(2025, 3, 1, 13, 45, 23, 0, ZoneOffset.UTC), List(), FormElementPath.Root),
         )
       }
 

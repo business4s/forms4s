@@ -3,8 +3,6 @@ package forms4s.circe
 import forms4s.{FormElementState, FormElementUpdate}
 import io.circe.Json
 
-import java.time.{LocalDate, OffsetDateTime, OffsetTime}
-
 object FormStateFromJson {
 
   def hydrate(state: FormElementState, json: Json): List[FormElementUpdate] = hydrateElement(json, state)
@@ -15,10 +13,6 @@ object FormStateFromJson {
       case _: FormElementState.Number      => json.asNumber.map(_.toDouble).toList.map(FormElementUpdate.ValueUpdate(_))
       case _: FormElementState.Checkbox    => json.asBoolean.toList.map(FormElementUpdate.ValueUpdate(_))
       case _: FormElementState.Select      => json.asString.toList.map(FormElementUpdate.ValueUpdate(_))
-      // TODO this is not correct, need to parse
-      case _: FormElementState.Time        => json.asString.toList.map(x => FormElementUpdate.ValueUpdate(OffsetTime.parse(x)))
-      case _: FormElementState.Date        => json.asString.toList.map(x => FormElementUpdate.ValueUpdate(LocalDate.parse(x)))
-      case _: FormElementState.DateTime    => json.asString.toList.map(x => FormElementUpdate.ValueUpdate(OffsetDateTime.parse(x)))
       case x: FormElementState.Alternative =>
         val selection = for {
           disc        <- x.element.discriminator

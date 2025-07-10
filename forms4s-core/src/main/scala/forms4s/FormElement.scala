@@ -1,6 +1,6 @@
 package forms4s
 
-import java.time.{LocalDate, OffsetDateTime, OffsetTime}
+import forms4s.validation.Validator
 
 sealed trait FormElement {
   type State
@@ -10,8 +10,22 @@ sealed trait FormElement {
 object FormElement {
   type WithState[S] = FormElement { type State = S }
 
-  case class Text(core: Core[String], multiline: Boolean)                           extends FormElement {
+  case class Text(core: Core[String], format: Text.Format) extends FormElement {
     type State = String
+  }
+  object Text {
+
+    // Lists specialized formats, but only those supported natively by the library.
+    // By supported we mean some specialized rendering
+    enum Format {
+      case Raw
+      case Multiline
+      case Date
+      case Time
+      case DateTime
+      case Email
+      case Custom(name: String)
+    }
   }
   case class Number(core: Core[Option[Double]], isInteger: Boolean)                 extends FormElement {
     type State = Option[Double]
@@ -29,18 +43,6 @@ object FormElement {
     type State = Vector[FormElementState]
   }
 
-  case class Time(core: Core[OffsetTime]) extends FormElement {
-    type State = OffsetTime
-  }
-
-  case class Date(core: Core[LocalDate]) extends FormElement {
-    type State = LocalDate
-  }
-
-  case class DateTime(core: Core[OffsetDateTime])                                                                  extends FormElement {
-    // We could be using ZonedDateTime but browsers dont ship with IANA database
-    type State = OffsetDateTime
-  }
   case class Alternative(core: Core[Alternative.State], variants: Seq[FormElement], discriminator: Option[String]) extends FormElement {
     override type State = Alternative.State
   }
@@ -50,15 +52,6 @@ object FormElement {
 
   case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]])
 
-  trait Validator[-T] {
-    def validate(in: T): Option[String]
-    def triggers: Set[Validator.ExecutionTrigger]
-  }
 
-  object Validator {
-    enum ExecutionTrigger {
-      case Change, Submit, Debounce, Unfocus
-    }
-  }
 
 }

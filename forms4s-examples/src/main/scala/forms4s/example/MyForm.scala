@@ -5,6 +5,7 @@ import sttp.tapir.Validator.Pattern
 import sttp.tapir.generic.Configuration
 
 import java.time.{LocalDate, OffsetDateTime, OffsetTime}
+import java.util.UUID
 
 object MyForm {
 
@@ -48,6 +49,7 @@ object MyForm {
       wakeupTime: OffsetTime,
       lastLogin: OffsetDateTime,
       auth: AuthMethod,
+      uuid: UUID,
   ) derives TSchema
 
   val jsonSchema: ASchema = TapirSchemaToJsonSchema(

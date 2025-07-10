@@ -1,9 +1,9 @@
 package forms4s
 
-import forms4s.FormElement.Validator
-import forms4s.FormElement.Validator.ExecutionTrigger
 
-import java.time.*
+import forms4s.validation.Validator
+import forms4s.validation.Validator.ExecutionTrigger
+
 import scala.reflect.ClassTag
 
 sealed trait FormElementState {
@@ -44,9 +44,6 @@ object FormElementState {
     case FormElement.Group       => Group
     case FormElement.Number      => Number
     case FormElement.Multivalue  => Multivalue
-    case FormElement.Time        => Time
-    case FormElement.Date        => Date
-    case FormElement.DateTime    => DateTime
     case FormElement.Alternative => Alternative
   }
 
@@ -58,9 +55,6 @@ object FormElementState {
       case x: FormElement.Group       => Group(x, x.elements.map(go(_, parentPath / x.core.id)), Nil, parentPath)
       case x: FormElement.Number      => Number(x, None, Nil, parentPath)
       case x: FormElement.Multivalue  => Multivalue(x, Vector(), Nil, parentPath)
-      case x: FormElement.Time        => Time(x, OffsetTime.ofInstant(Instant.now(), localTZOffset), Nil, parentPath)
-      case x: FormElement.Date        => Date(x, LocalDate.from(ZonedDateTime.ofInstant(Instant.now(), localTZOffset)), Nil, parentPath)
-      case x: FormElement.DateTime    => DateTime(x, OffsetDateTime.from(ZonedDateTime.ofInstant(Instant.now(), localTZOffset)), Nil, parentPath)
       case x: FormElement.Alternative =>
         Alternative(x, FormElement.Alternative.State(0, x.variants.toVector.map(go(_, parentPath / x.core.id))), Seq(), parentPath)
     }
@@ -118,31 +112,6 @@ object FormElementState {
     override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
   }
 
-  case class Time(element: FormElement.Time, value: OffsetTime, errors: Seq[String], parentPath: FormElementPath) extends SimpleInputBased {
-    override type Self = Time
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
-    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
-    def valueToString(value: element.State): String                           = value.toLocalTime.toString
-    def valueFromString(value: String): element.State                         = OffsetTime.of(LocalTime.parse(value), this.value.getOffset)
-  }
-
-  case class Date(element: FormElement.Date, value: LocalDate, errors: Seq[String], parentPath: FormElementPath) extends SimpleInputBased {
-    override type Self = Date
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
-    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
-    def valueToString(value: element.State): String                           = value.toString
-    def valueFromString(value: String): element.State                         = LocalDate.parse(value)
-  }
-
-  case class DateTime(element: FormElement.DateTime, value: OffsetDateTime, errors: Seq[String], parentPath: FormElementPath)
-      extends SimpleInputBased {
-    override type Self = DateTime
-    override protected def updatePF: PartialFunction[FormElementUpdate, Self] = valueUpdate[element.State, Self](v => copy(value = v))
-    override def setErrors(errors: Seq[String]): Self                         = this.copy(errors = errors)
-    def valueToString(value: element.State): String                           = value.toLocalDateTime.toString
-    def valueFromString(value: String): element.State                         = OffsetDateTime.of(LocalDateTime.parse(value), this.value.getOffset)
-  }
-
   case class Alternative(element: FormElement.Alternative, value: FormElement.Alternative.State, errors: Seq[String], parentPath: FormElementPath)
       extends FormElementState {
     override type Self = Alternative
@@ -159,5 +128,4 @@ object FormElementState {
     case FormElementUpdate.ValueUpdate(ct(value)) => f(value)
   }
 
-  private def localTZOffset = TimeUtils.localTZOffset
 }

@@ -11,9 +11,6 @@ object FormStateToJson {
     case x: FormElementState.Number      => Json.fromDoubleOrNull(x.value)
     case x: FormElementState.Checkbox    => Json.fromBoolean(x.value)
     case x: FormElementState.Select      => Json.fromString(x.value)
-    case x: FormElementState.Time        => Json.fromString(x.value.toString) // assumes default ISO format
-    case x: FormElementState.Date        => Json.fromString(x.value.toString) // assumes default ISO format
-    case x: FormElementState.DateTime    => Json.fromString(x.value.toString) // assumes default ISO format
     case x: FormElementState.Group       => Json.fromFields(x.value.map(elem => elem.id -> extract(elem)))
     case x: FormElementState.Multivalue  => Json.fromValues(x.value.map(extract))
     case x: FormElementState.Alternative => {

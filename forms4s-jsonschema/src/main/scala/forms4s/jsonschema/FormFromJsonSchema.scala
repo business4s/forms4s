@@ -3,10 +3,14 @@ package forms4s.jsonschema
 import cats.data.Ior
 import cats.syntax.all.*
 import forms4s.FormElement
-import forms4s.FormElement.Validator
-import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
+import forms4s.FormElement.Text.Format
+import forms4s.validation.{FormatValidator, RegexValidator, Validator}
+import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, SchemaLike, SchemaType, Schema as ASchema}
 
+import java.time.Duration
+import java.util.UUID
 import scala.annotation.tailrec
+import scala.util.Try
 import scala.util.matching.Regex
 
 object FormFromJsonSchema {
@@ -49,7 +53,8 @@ object FormFromJsonSchema {
       case schema: AnySchema   =>
         val name = nameOverride.getOrElse("")
         schema match {
-          case AnySchema.Anything => FormElement.Text(FormElement.Core(name, capitalizeAndSplitWords(name), None, Seq()), multiline = true).rightIor
+          case AnySchema.Anything =>
+            FormElement.Text(FormElement.Core(name, capitalizeAndSplitWords(name), None, Seq()), Format.Raw).rightIor
           case AnySchema.Nothing  => List("Nothing schema for a property is not expected").leftIor
         }
       case unresolved: ASchema =>
@@ -73,7 +78,7 @@ object FormFromJsonSchema {
   ): Ior[List[String], FormElement] = {
     val name                                               = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
     val label                                              = schema.title.getOrElse(capitalizeAndSplitWords(name))
-    def core[T](validators: Seq[FormElement.Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
+    def core[T](validators: Seq[Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
 
     if (schema.oneOf.nonEmpty) {
       val discriminator = schema.discriminator.map(_.propertyName)
@@ -111,34 +116,31 @@ object FormFromJsonSchema {
                 val maxLen = schema.maxLength.getOrElse(100)
                 val minLen = schema.minLength.getOrElse(100)
 
-                format match {
-                  case Some("date")      =>
-                    FormElement.Date(core(Seq())).rightIor
-                  case Some("time")      =>
-                    FormElement.Time(core(Seq())).rightIor
-                  case Some("date-time") =>
-                    FormElement.DateTime(core(Seq())).rightIor
-                  case _                 =>
-                    val patternOpt  = schema.pattern.map(p => FormatValidator(Regex(p.value)))
-                    val validators  = patternOpt.toSeq
-                    val isMultiline = format.contains("multiline") || maxLen > 120 || minLen > 120
-                    FormElement.Text(core(validators), multiline = isMultiline).rightIor
+                // TODO validators
+                val (validators, tFormat) = format match {
+                  case Some("date")         => Seq() -> Format.Date
+                  case Some("multiline")    => Seq() -> Format.Multiline
+                  case Some("time")         => Seq() -> Format.Time
+                  case Some("date-time")    => Seq() -> Format.DateTime
+                  case Some("email")        =>
+                    Seq(FormatValidator("ISO 8601 duration", x => Try(Duration.parse(x)).isSuccess, Some("PT20H10M"))) -> Format.Email
+                  case Some(x @ "uuid")     => Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format.Custom(x)
+                  case Some(x @ "duration") => Seq() -> Format.Custom(x)
+                  case Some(x)              => Seq() -> Format.Custom(x)
+                  case None                 =>
+                    val isMultiline = maxLen > 120 || minLen > 120
+                    val format      = if (isMultiline) Format.Multiline else Format.Raw
+                    Seq() -> format
                 }
+                val patternOpt            = schema.pattern.map(p => RegexValidator(Regex(p.value)))
+                FormElement.Text(core(validators ++ patternOpt.toList), tFormat).rightIor
               }
-            case SchemaType.Null    => List("Null schema for a property is not expected").leftIor
+
+            case SchemaType.Null => List("Null schema for a property is not expected").leftIor
           }
         case None      => List("Schema type not specified").leftIor
       }
     }
-  }
-
-  class FormatValidator(format: Regex) extends FormElement.Validator[String] {
-    override def validate(in: String): Option[String] =
-      if format.matches(in) then None
-      else Some(s"Value does not match format ${format.pattern}")
-
-    override def triggers: Set[Validator.ExecutionTrigger] =
-      Set(Validator.ExecutionTrigger.Change)
   }
 
 }

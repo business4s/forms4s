@@ -1,6 +1,7 @@
 package forms4s.jsonschema
 
 import forms4s.FormElement
+import forms4s.FormElement.Text.Format
 import org.scalatest.freespec.AnyFreeSpec
 import sttp.tapir.Schema as TSchema
 import sttp.tapir.Schema.annotations.validate
@@ -9,6 +10,7 @@ import sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema
 import sttp.tapir.generic.Configuration
 
 import java.time.*
+import java.util.UUID
 
 class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
@@ -21,7 +23,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       val expected = FormElement.Group(
         simpleCore("Simple"),
         List(
-          FormElement.Text(simpleCore("a", "A"), multiline = false),
+          FormElement.Text(simpleCore("a", "A"), Format.Raw),
           FormElement.Number(simpleCore("b", "B"), isInteger = true),
           FormElement.Checkbox(simpleCore("c", "C")),
         ),
@@ -41,7 +43,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
           FormElement.Group(
             simpleCore("address", "Address"),
             List(
-              FormElement.Text(simpleCore("street", "Street"), multiline = false),
+              FormElement.Text(simpleCore("street", "Street"), Format.Raw),
             ),
           ),
         ),
@@ -93,7 +95,7 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
 
       val expected = FormElement.Multivalue(
         simpleCore("unknown", "Unknown"),
-        item = FormElement.Text(simpleCore("unknown", "Unknown"), multiline = false),
+        item = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Raw),
       )
 
       assert(form == expected)
@@ -104,45 +106,71 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       // TODO doesnt work due to missign support in tapir
       "OffsetTime" in {
         val form     = getForm[OffsetTime]()
-        val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Time)
         assert(form == expected)
       }
 
       // TODO doesnt work due to missign support in tapir
       "LocalTime" in {
         val form     = getForm[LocalTime]()
-        val expected = FormElement.Time(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Time)
         assert(form == expected)
       }
 
       "LocalDate" in {
         val form     = getForm[LocalDate]()
-        val expected = FormElement.Date(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Date)
         assert(form == expected)
       }
 
       "Instant" in {
         val form     = getForm[Instant]()
-        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.DateTime)
         assert(form == expected)
       }
 
       // TODO doesnt work due to missign support in tapir
       "LocalDateTime" in {
         val form     = getForm[LocalDateTime]()
-        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.DateTime)
         assert(form == expected)
       }
 
       "OffsetDateTime" in {
         val form     = getForm[OffsetDateTime]()
-        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.DateTime)
         assert(form == expected)
       }
 
       "ZonedDateTime" in {
         val form     = getForm[ZonedDateTime]()
-        val expected = FormElement.DateTime(simpleCore("unknown", "Unknown"))
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.DateTime)
+        assert(form == expected)
+      }
+    }
+
+    "uuid" - {
+      "through tapir" in {
+        val form     = getForm[UUID]().asInstanceOf[FormElement.Text]
+
+        assert(form.format == Format.Custom("uuid"))
+        assert(form.core.validators.forall(_.validate(UUID.randomUUID().toString).isEmpty))
+        assert(form.core.validators.exists(_.validate("ss").isDefined))
+      }
+    }
+    // TODO doesnt work in tapir
+    "java.time.Duration" - {
+      "through tapir" in {
+        val form     = getForm[java.time.Duration]()
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Custom("duration"))
+        assert(form == expected)
+      }
+    }
+    // TODO doesnt work in tapir
+    "scala.concurrent.duration.Duration" - {
+      "through tapir" in {
+        val form     = getForm[scala.concurrent.duration.Duration]()
+        val expected = FormElement.Text(simpleCore("unknown", "Unknown"), Format.Custom("duration"))
         assert(form == expected)
       }
     }
