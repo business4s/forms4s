@@ -40,7 +40,7 @@ const config: Config = {
                     beforeDefaultRemarkPlugins: [
                         [
                             require('remark-code-snippets'),
-                            {baseDir: "../forms4s-example/src/"}
+                            {baseDir: "../forms4s-examples/src/"}
                         ]
                     ],
                 },

@@ -5,7 +5,10 @@ import io.circe.Json
 
 object FormStateFromJson {
 
-  def hydrate(state: FormElementState, json: Json): List[FormElementUpdate] = hydrateElement(json, state)
+  def hydrate(state: FormElementState, json: Json): FormElementState =
+    generateUpdates(state, json).foldLeft(state)((s, up) => s.update(up))
+
+  def generateUpdates(state: FormElementState, json: Json): List[FormElementUpdate] = hydrateElement(json, state)
 
   private def hydrateElement(json: Json, state: FormElementState): List[FormElementUpdate] = {
     state match {
@@ -23,7 +26,7 @@ object FormStateFromJson {
         } yield FormElementUpdate.AlternativeSelected(selectedIdx)
         selection.toList ++ {
           val toBeUpdated = selection.map(_.index).getOrElse(x.value.selected)
-          hydrate(x.value.states(toBeUpdated), json).map(update => FormElementUpdate.Nested(toBeUpdated, update))
+          generateUpdates(x.value.states(toBeUpdated), json).map(update => FormElementUpdate.Nested(toBeUpdated, update))
         }
 
       case x: FormElementState.Group =>

@@ -14,7 +14,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val json                           = Json.fromString("2025-01-07")
     val elem                           = FormElement.Text(simpleCore("x"), Format.Date)
     val initialState: FormElementState = FormElementState.empty(elem)
-    val updates                        = FormStateFromJson.hydrate(initialState, json)
+    val updates                        = FormStateFromJson.generateUpdates(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
     val expected                       = FormElementState.Text(elem, "2025-01-07", Seq(), FormElementPath.Root)
     assert(result == expected)
@@ -24,7 +24,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val json                           = Json.fromString("08:57:50+02:00")
     val elem                           = FormElement.Text(simpleCore("x"), Format.Time)
     val initialState: FormElementState = FormElementState.empty(elem)
-    val updates                        = FormStateFromJson.hydrate(initialState, json)
+    val updates                        = FormStateFromJson.generateUpdates(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
     val expected                       = FormElementState.Text(elem, "08:57:50+02:00", Seq(), FormElementPath.Root)
     assert(result == expected)
@@ -34,7 +34,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val json                           = Json.fromString("2025-07-08T06:53:46.990+02:00")
     val elem                           = FormElement.Text(simpleCore("x"), Format.DateTime)
     val initialState: FormElementState = FormElementState.empty(elem)
-    val updates                        = FormStateFromJson.hydrate(initialState, json)
+    val updates                        = FormStateFromJson.generateUpdates(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
     val expected                       = FormElementState.Text(elem, "2025-07-08T06:53:46.990+02:00", Seq(), FormElementPath.Root)
     assert(result == expected)
@@ -52,7 +52,7 @@ class FormStateFromJsonTest extends AnyFreeSpec {
     val alternative = FormElement.Alternative(simpleCore("alt"), Seq(variantA, variantB), Some("tpe"))
 
     val initialState: FormElementState = FormElementState.empty(alternative)
-    val updates                        = FormStateFromJson.hydrate(initialState, json)
+    val updates                        = FormStateFromJson.generateUpdates(initialState, json)
     val result                         = updates.foldLeft(initialState)((s, up) => s.update(up))
     assert(
       result == FormElementState.Alternative(

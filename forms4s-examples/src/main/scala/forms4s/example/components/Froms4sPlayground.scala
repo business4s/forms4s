@@ -121,7 +121,7 @@ case class Froms4sPlayground(
     case Msg.JsonUpdated(rawJson)            =>
       (for {
         parsed  <- io.circe.parser.parse(rawJson).toOption // TODO error logging
-        updates  = FormStateFromJson.hydrate(formView.form, parsed)
+        updates  = FormStateFromJson.generateUpdates(formView.form, parsed)
         newState = updates.foldLeft(formView.form)((acc, update) => acc.update(update))
       } yield this.copy(jsonView = JsonView(parsed), formView = formView.copy(form = newState)) -> Cmd.None).getOrElse((this, Cmd.None))
     case Msg.Submit                          => (this, Cmd.None)
