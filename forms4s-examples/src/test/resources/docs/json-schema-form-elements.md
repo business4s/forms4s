@@ -11,8 +11,7 @@
 <td>Basic text field</td>
 <td><pre><code class="language-json">{
   "type" : "string"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text</td>
 </tr>
 <tr>
@@ -20,8 +19,7 @@
 <td><pre><code class="language-json">{
   "type" : "string",
   "format" : "multiline"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text (Multiline)</td>
 </tr>
 <tr>
@@ -29,8 +27,7 @@
 <td><pre><code class="language-json">{
   "type" : "string",
   "format" : "date"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text (Date)</td>
 </tr>
 <tr>
@@ -38,8 +35,7 @@
 <td><pre><code class="language-json">{
   "type" : "string",
   "format" : "time"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text (Time)</td>
 </tr>
 <tr>
@@ -47,8 +43,7 @@
 <td><pre><code class="language-json">{
   "type" : "string",
   "format" : "date-time"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text (DateTime)</td>
 </tr>
 <tr>
@@ -56,32 +51,28 @@
 <td><pre><code class="language-json">{
   "type" : "string",
   "format" : "email"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Text (Email)</td>
 </tr>
 <tr>
 <td>Integer number field</td>
 <td><pre><code class="language-json">{
   "type" : "integer"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Number (Integer)</td>
 </tr>
 <tr>
 <td>Decimal number field</td>
 <td><pre><code class="language-json">{
   "type" : "number"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Number (Decimal)</td>
 </tr>
 <tr>
 <td>Boolean checkbox field</td>
 <td><pre><code class="language-json">{
   "type" : "boolean"
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Checkbox</td>
 </tr>
 <tr>
@@ -91,8 +82,7 @@
   "items" : {
     "type" : "string"
   }
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Multivalue</td>
 </tr>
 <tr>
@@ -104,8 +94,7 @@
     "Option 2",
     "Option 3"
   ]
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Select</td>
 </tr>
 <tr>
@@ -120,8 +109,7 @@
       "type" : "string"
     }
   }
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Group
 <ul>
   <li>field1</li><li>field2</li>
@@ -150,8 +138,7 @@
       }
     }
   ]
-}
-</code></pre></td>
+}</code></pre></td>
 <td>Alternative
 <ul>
   

@@ -5,23 +5,14 @@ import io.circe.syntax.*
 import sttp.apispec.circe.*
 import sttp.apispec.{ExampleSingleValue, SchemaType, Schema as ASchema}
 
-import java.io.{File, PrintWriter}
 import scala.collection.immutable.ListMap
-import scala.util.Using
 
 object JsonSchemaDocGen {
-  
-  def generateDocumentation(
-      outputPath: String = "forms4s-examples/src/test/resources/docs/json-schema-form-elements.md",
-  ): Unit = {
-    val directory = new File(outputPath).getParentFile
-    val _         = directory.mkdirs()
 
+  def generateDocumentation(): String = {
     val entries       = examples.map(createTableEntry.tupled)
-    val markdownTable  = generateMarkdownTable(entries)
-
-    val _ = Using(new PrintWriter(outputPath))(_.write(markdownTable))
-    println(s"Documentation generated at $outputPath")
+    val markdownTable = generateMarkdownTable(entries)
+    markdownTable
   }
 
   val examples: List[(String, ASchema)] = List(
@@ -65,38 +56,24 @@ object JsonSchemaDocGen {
     properties = ListMap.from(examples),
   )
 
-  def createTableEntry(description: String, aSchema: ASchema): (String, String, String) = {
+  private def createTableEntry(description: String, aSchema: ASchema): (String, String, String) = {
     val schemaJson  = aSchema.asJson.spaces2
     val formElement = FormFromJsonSchema.convert(aSchema)
     val elementType = Utils.describeFormElement(formElement)
     (schemaJson, elementType, description)
   }
 
-  def generateMarkdownTable(examples: List[(String, String, String)]): String = {
-    val rows = examples
-      .map { case (schema, elementType, desc) =>
-        s"""<tr>
-           |<td>$desc</td>
-           |<td><pre><code class="language-json">$schema
-           |</code></pre></td>
-           |<td>$elementType</td>
-           |</tr>""".stripMargin
-      }
-      .mkString("\n")
+  private def generateMarkdownTable(examples: List[(String, String, String)]): String = {
+    val headers = List("Description", "JSON Schema", "Form Element Type")
+    val rows = examples.map { case (schema, elementType, desc) =>
+      List(
+        desc,
+        s"""<pre><code class="language-json">$schema</code></pre>""".stripMargin,
+        elementType
+      )
+    }
 
-    s"""<table>
-       |<thead>
-       |<tr>
-       |<th>Description</th>
-       |<th>JSON Schema</th>
-       |<th>Form Element Type</th>
-       |</tr>
-       |</thead>
-       |<tbody>
-       |$rows
-       |</tbody>
-       |</table>""".stripMargin
+    Utils.generateHtmlTable(headers, rows)
   }
-  
-  def main(args: Array[String]): Unit = generateDocumentation()
+
 }

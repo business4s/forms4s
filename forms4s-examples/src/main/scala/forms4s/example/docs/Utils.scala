@@ -43,7 +43,7 @@ object Utils {
              |  </ul>
              |</li>
            """.stripMargin
-        case other =>
+        case other                =>
           s"<li>${other.core.id}</li>"
       }.mkString
 
@@ -53,4 +53,29 @@ object Utils {
          |</ul>""".stripMargin
   }
 
+  def generateHtmlTable(headers: List[String], rows: List[List[String]]): String = {
+    val headerRow = headers
+      .map(header => s"<th>$header</th>")
+      .mkString("\n")
+
+    val tableRows = rows
+      .map { row =>
+        val cells = row
+          .map(cell => s"<td>$cell</td>")
+          .mkString("\n")
+        s"<tr>\n$cells\n</tr>"
+      }
+      .mkString("\n")
+
+    s"""<table>
+       |<thead>
+       |<tr>
+       |$headerRow
+       |</tr>
+       |</thead>
+       |<tbody>
+       |$tableRows
+       |</tbody>
+       |</table>""".stripMargin
+  }
 }
