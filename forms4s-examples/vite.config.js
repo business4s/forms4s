@@ -14,7 +14,7 @@ export default defineConfig({
     plugins: [
         scalaJSPlugin({
             cwd: '../',
-            projectID: 'forms4s-examples',
+            projectID: 'forms4s-examplesJS',
         }),
     ],
 });

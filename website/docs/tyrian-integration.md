@@ -1,10 +1,18 @@
 ---
 sidebar_position: 5
 ---
+import SbtDependency from '@site/src/components/SbtDependency';
 
 # Tyrian Integration
 
 forms4s is designed to be framework-agnostic, but it comes with Tyrian integration out of the box.
+
+## Usage
+
+<SbtDependency moduleName={"forms4s-tyrian"}/>
+
+```scala file=./main/scala/forms4s/example/docs/TyrianExample.scala start=start_doc end=end_doc
+```
 
 ## The FormRenderer Trait
 

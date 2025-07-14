@@ -1,0 +1,27 @@
+---
+sidebar_position: 3
+---
+import RawMarkdown from '@site/src/components/RawMarkdown';
+import SbtDependency from '@site/src/components/SbtDependency';
+
+# JSON Integration
+
+Forms4s is designed to support any json library but currently only `circe` integration is available.
+
+## Usage
+
+<SbtDependency moduleName={"forms4s-circe"}/>
+
+```scala file=./main/scala/forms4s/example/docs/JsonSupportExample.scala start=start_doc end=end_doc
+```
+
+## Limitations
+
+* Currently hydration doesn't work for non-delimited alternatives
+* Hydration errors (e.g. unmatched fields) are silently ignored
+
+## Example values
+
+Table below show json extracted from various form elements
+
+<RawMarkdown file="docs/form-state-examples.md"/>

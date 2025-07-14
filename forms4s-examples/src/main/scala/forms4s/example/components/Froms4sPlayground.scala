@@ -3,7 +3,8 @@ package forms4s.example.components
 import cats.effect.IO
 import forms4s.FormElementState
 import forms4s.circe.{FormStateFromJson, FormStateToJson}
-import forms4s.example.{Msg, MyForm}
+import forms4s.example.Msg
+import forms4s.example.docs.JsonSchemaDocGen
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
 import io.circe.Json
@@ -67,7 +68,7 @@ case class FormView(form: FormElementState, framework: CssFramework) {
           Attribute("renderer", rendererLabel),
         ),
         List(
-          renderer.renderElement(form).map(Msg.FormUpdated.apply),
+          renderer.renderForm(form).map(Msg.FormUpdated.apply),
           div(className := "form-actions")(
             button(
               onClick(Msg.Submit),
@@ -164,7 +165,8 @@ case class Froms4sPlayground(
 object Froms4sPlayground {
 
   def empty(): Froms4sPlayground = {
-    val schema    = MyForm.jsonSchema
+//    val schema    = MyForm.jsonSchema
+    val schema    = JsonSchemaDocGen.allExamplesASSingleSchema
     val form      = FormFromJsonSchema.convert(schema)
     val formState = FormElementState.empty(form)
     val json      = FormStateToJson.extract(formState)

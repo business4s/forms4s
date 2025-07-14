@@ -5,7 +5,7 @@ import cats.syntax.all.*
 import forms4s.FormElement
 import forms4s.FormElement.Text.Format
 import forms4s.validation.{FormatValidator, RegexValidator, Validator}
-import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, SchemaLike, SchemaType, Schema as ASchema}
+import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
 import java.time.Duration
 import java.util.UUID
@@ -76,8 +76,8 @@ object FormFromJsonSchema {
       defs: Map[String, SchemaLike],
       parentDiscriminator: Option[String],
   ): Ior[List[String], FormElement] = {
-    val name                                               = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
-    val label                                              = schema.title.getOrElse(capitalizeAndSplitWords(name))
+    val name                                   = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
+    val label                                  = schema.title.getOrElse(capitalizeAndSplitWords(name))
     def core[T](validators: Seq[Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
 
     if (schema.oneOf.nonEmpty) {
@@ -124,7 +124,9 @@ object FormFromJsonSchema {
                   case Some("date-time")    => Seq() -> Format.DateTime
                   case Some("email")        =>
                     Seq(FormatValidator("ISO 8601 duration", x => Try(Duration.parse(x)).isSuccess, Some("PT20H10M"))) -> Format.Email
-                  case Some(x @ "uuid")     => Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format.Custom(x)
+                  case Some(x @ "uuid")     =>
+                    Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format
+                      .Custom(x)
                   case Some(x @ "duration") => Seq() -> Format.Custom(x)
                   case Some(x)              => Seq() -> Format.Custom(x)
                   case None                 =>
