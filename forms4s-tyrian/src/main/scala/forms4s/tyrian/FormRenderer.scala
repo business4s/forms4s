@@ -88,7 +88,10 @@ trait FormRenderer {
     protected def htmlOnClickAdd = Html.onClick(FormElementUpdate.MultivalueAppend)
   }
   case class MultivalueElement(elem: FormElementState, index: Int) {
-    def render: Html[FormElementUpdate.MultivalueUpdate] = renderForm(elem).map(x => FormElementUpdate.MultivalueUpdate(index, x))
+    def render: Html[FormElementUpdate.MultivalueUpdate] = {
+      val adjusted = elem.rename(s"Item ${index+1}")
+      renderForm(adjusted).map(x => FormElementUpdate.MultivalueUpdate(index, x))
+    }
     def htmlOnClickRemove                                = Html.onClick(FormElementUpdate.MultivalueRemove(index))
   }
   extension (s: FormElementState.Multivalue) {

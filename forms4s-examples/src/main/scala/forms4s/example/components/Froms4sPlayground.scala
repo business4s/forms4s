@@ -4,19 +4,31 @@ import cats.effect.IO
 import forms4s.FormElementState
 import forms4s.circe.{FormStateFromJson, FormStateToJson}
 import forms4s.example.Msg
-import forms4s.example.docs.JsonSchemaDocGen
 import forms4s.jsonschema.FormFromJsonSchema
 import forms4s.tyrian.*
 import io.circe.Json
 import sttp.apispec.Schema as ASchema
 import tyrian.*
 import tyrian.Html.*
+import forms4s.example.MyForm
+import forms4s.example.docs.JsonSchemaDocGen
 
 class SchemaView(schema: ASchema) {
   def render: Html[Msg] = {
     import io.circe.syntax.*
     import sttp.apispec.openapi.circe.*
     div(
+      div(className := "buttons")(
+        button(
+          className := "button is-small",
+          onClick(Msg.LoadSchema(MyForm.jsonSchema)),
+        )("Simple Example"),
+        button(
+          className := "button is-small",
+          onClick(Msg.LoadSchema(JsonSchemaDocGen.allExamplesASSingleSchema)),
+        )("Full Demo"),
+      ),
+      hr(),
       textarea(
         value          := schema.asJson.spaces2,
         rows           := 20,
@@ -81,11 +93,12 @@ case class FormView(form: FormElementState, framework: CssFramework) {
 class JsonView(json: Json) {
   def render: Html[Msg] = {
     div(
+      h2(className := "title is-5")("JSON Data"),
       textarea(
         value          := json.spaces2,
         rows           := 20,
         Html.className := "textarea",
-        onChange(value => Msg.JsonUpdated(value)),
+        onInput(value => Msg.JsonUpdated(value)),
       )(),
     )
   }
@@ -125,10 +138,18 @@ case class Froms4sPlayground(
     case Msg.NoOp                            => (this, Cmd.None)
     case Msg.HydrateFormFromUrl(json)        => (this, Cmd.None)
     case Msg.FrameworkSelected(newFramework) => (this.copy(formView = formView.copy(framework = newFramework)), Cmd.None)
+    case Msg.LoadSchema(schema)               =>
+      val newForm  = FormFromJsonSchema.convert(schema)
+      val newState = FormElementState.empty(newForm)
+      val newJson  = FormStateToJson.extract(newState)
+      copy(schemaView = SchemaView(schema), formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
   }
 
   def render: Html[Msg] =
     div(className := "container")(
+      div(className := "notification is-info is-light")(
+        "You can edit all the panes, and changes will be automatically reflected in other places."
+      ),
       div(className := "columns is-multiline")(
         div(className := "column is-half")(
           section(className := "box")(
@@ -144,7 +165,6 @@ case class Froms4sPlayground(
         ),
         div(className := "column is-half")(
           section(className := "box")(
-            h2(className := "title is-5")("Extracted JSON"),
             div(id := "json-output")(jsonView.render),
           ),
         ),
@@ -155,8 +175,7 @@ case class Froms4sPlayground(
 object Froms4sPlayground {
 
   def empty(): Froms4sPlayground = {
-//    val schema    = MyForm.jsonSchema
-    val schema    = JsonSchemaDocGen.allExamplesASSingleSchema
+    val schema    = MyForm.jsonSchema
     val form      = FormFromJsonSchema.convert(schema)
     val formState = FormElementState.empty(form)
     val json      = FormStateToJson.extract(formState)

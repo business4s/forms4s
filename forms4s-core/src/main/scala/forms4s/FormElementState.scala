@@ -1,6 +1,5 @@
 package forms4s
 
-
 import forms4s.validation.Validator
 import forms4s.validation.Validator.ExecutionTrigger
 
@@ -31,6 +30,19 @@ sealed trait FormElementState {
     val validators = element.core.validators.filter(_.triggers.contains(trigger))
     val errors     = validators.flatMap(_.validate(this.value))
     setErrors(errors)
+  }
+
+  def rename(label: String): FormElementState = {
+    // TODO, we need better lenses
+    this match {
+      case x: FormElementState.Text        => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Number      => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Select      => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Checkbox    => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Group       => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Multivalue  => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+      case x: FormElementState.Alternative => x.copy(element = x.element.copy(core = x.element.core.copy(label = label)))
+    }
   }
 
 }

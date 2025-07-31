@@ -13,6 +13,7 @@ import tyrian.Html.*
 import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
 import scala.scalajs.js.annotation.*
+import sttp.apispec.Schema as ASchema
 
 @JSExportTopLevel("TyrianApp")
 object TyrianExample extends TyrianIOApp[Msg, Model] {
@@ -82,4 +83,5 @@ enum Msg {
   case NoOp
   case HydrateFormFromUrl(json: String)
   case FrameworkSelected(framework: CssFramework)
+  case LoadSchema(schema: ASchema)
 }
