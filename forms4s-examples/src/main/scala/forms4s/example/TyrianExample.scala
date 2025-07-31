@@ -53,7 +53,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
 
   def view(model: Model): Html[Msg] =
     div(className := "container")(
-      h1("Forms4s Tyrian Example"),
+      h1(className := "title")("Forms4s Tyrian Example"),
       hr(),
       model.page.render,
     )

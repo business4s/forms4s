@@ -15,7 +15,7 @@
   - [x] Hydrate form with json (e.g. for persistent urls or other cache)
   - [x] Better support for numbers (double vs integer, empty value)
   - [ ] Adjustment of forms
-  - [ ] Derivation from Scala types
+  - [x] Derivation from Scala types
   - Support for more sophisticated types
     - [x] Time
     - [x] sealed traits (`oneOf` in json schema)

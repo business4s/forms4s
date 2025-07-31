@@ -4,7 +4,13 @@ import forms4s.FormElement
 
 object JsonSchemaSupportExample {
   // start_doc
-  val jsonSchema: sttp.apispec.Schema = ???
+  // This is just an example, schema can be acquired or produced in any way
+  case class MyForm(name: String, age: Int) derives sttp.tapir.Schema
+  val jsonSchema: sttp.apispec.Schema =
+    sttp.tapir.docs.apispec.schema.TapirSchemaToJsonSchema(
+      summon[sttp.tapir.Schema[MyForm]],
+      markOptionsAsNullable = true,
+    )
 
   // Convert the JSON Schema to a form
   import forms4s.jsonschema.*

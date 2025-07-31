@@ -12,9 +12,6 @@ import sttp.apispec.Schema as ASchema
 import tyrian.*
 import tyrian.Html.*
 
-class CodeView()                  {
-  def render: Html[Msg] = div("Nothing here yet :)")
-}
 class SchemaView(schema: ASchema) {
   def render: Html[Msg] = {
     import io.circe.syntax.*
@@ -95,7 +92,6 @@ class JsonView(json: Json) {
 }
 
 case class Froms4sPlayground(
-    codeView: CodeView,
     schemaView: SchemaView,
     formView: FormView,
     jsonView: JsonView,
@@ -136,12 +132,6 @@ case class Froms4sPlayground(
       div(className := "columns is-multiline")(
         div(className := "column is-half")(
           section(className := "box")(
-            h2(className := "title is-5")("Scala Source Code"),
-            div(id := "scala-code")(codeView.render),
-          ),
-        ),
-        div(className := "column is-half")(
-          section(className := "box")(
             h2(className := "title is-5")("JSON Schema"),
             div(id := "json-schema")(schemaView.render),
           ),
@@ -171,7 +161,6 @@ object Froms4sPlayground {
     val formState = FormElementState.empty(form)
     val json      = FormStateToJson.extract(formState)
     Froms4sPlayground(
-      CodeView(),
       SchemaView(schema),
       FormView(formState, CssFramework.Raw),
       JsonView(json),

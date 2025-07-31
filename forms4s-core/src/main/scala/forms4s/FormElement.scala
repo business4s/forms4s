@@ -8,7 +8,6 @@ sealed trait FormElement {
 }
 
 object FormElement {
-  type WithState[S] = FormElement { type State = S }
 
   case class Text(core: Core[String], format: Text.Format) extends FormElement {
     type State = String

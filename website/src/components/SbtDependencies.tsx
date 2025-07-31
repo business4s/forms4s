@@ -9,7 +9,6 @@ const SbtDependencies: React.FC = () => {
         <CodeBlock className="language-scala">
             {`libraryDependencies ++= Seq(
   "io.github.forms4s" %% "forms4s-core"       % "${version}", // Core functionality
-  "io.github.forms4s" %% "forms4s-jsonschema" % "${version}", // JSON Schema support
   "io.github.forms4s" %% "forms4s-circe"      % "${version}", // JSON handling
   "io.github.forms4s" %% "forms4s-tyrian"     % "${version}"  // UI rendering
 )`}
