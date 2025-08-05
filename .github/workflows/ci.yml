@@ -42,5 +42,12 @@ jobs:
           cache-dependency-path: 'website/yarn.lock'
       - name: Install dependencies
         run: yarn install --frozen-lockfile --non-interactive
+      - name: Build examples
+        run: |
+          cd ../forms4s-examples
+          yarn install --frozen-lockfile --non-interactive
+          yarn build
+          mkdir -p ../website/static/example-dist/
+          cp dist/* ../website/static/example-dist/
       - name: Build
         run: yarn build
