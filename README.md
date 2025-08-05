@@ -1,27 +1,8 @@
 # forms4s
 
-**forms4s** is a work-in-progress Scala library for building user interfaces from data models and JSON Schema.
+![Discord](https://img.shields.io/discord/1240565362601230367?style=flat-square&logo=discord&link=https%3A%2F%2Fbit.ly%2Fbusiness4s-discord)
 
-## Roadmap / TODO
+**Forms4s** is a Scala prototype library for rapid UI form development. It
+aims to allow for capturing user input into Scala models with as little code as possible.
 
-- Core
-  - [ ] Adjustment of forms (~lenses)
-- Validation
-  - [x] Infrastructure for field validation
-  - [ ] Support for JSON Schema constraints
-  - [ ] Integration with `iron` / `neotype`
-- Website and documentation
-  - Demo
-    - [ ] Ability to edit code
-  - Demo inside docosaurus
-    - [ ] Auto build, even on local (yarn task)
-  - Docs
-    - [ ] How to set initial values
-- [ ] CI/CD
-  - [ ] Fix tests
-  - [ ] Artifact publishing
-  - [x] sbt-tpolecat
-
----
-
-> Feedback, ideas, or contributions are welcome!
+See the [**Website**](https://business4s.github.io/forms4s/) for details and join our [**Discord**](https://bit.ly/business4s-discord) for discussions.
