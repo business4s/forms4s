@@ -3,7 +3,7 @@ package forms4s.example.docs
 import forms4s.jsonschema.FormFromJsonSchema
 import io.circe.syntax.*
 import sttp.apispec.circe.*
-import sttp.apispec.{ExampleSingleValue, SchemaType, Schema as ASchema}
+import sttp.apispec.{ExampleSingleValue, Schema as ASchema, SchemaType}
 
 import scala.collection.immutable.ListMap
 
@@ -65,11 +65,11 @@ object JsonSchemaDocGen {
 
   private def generateMarkdownTable(examples: List[(String, String, String)]): String = {
     val headers = List("Description", "JSON Schema", "Form Element Type")
-    val rows = examples.map { case (schema, elementType, desc) =>
+    val rows    = examples.map { case (schema, elementType, desc) =>
       List(
         desc,
         s"""<pre><code class="language-json">$schema</code></pre>""".stripMargin,
-        elementType
+        elementType,
       )
     }
 

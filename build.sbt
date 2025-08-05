@@ -18,18 +18,17 @@ lazy val root = (project in file("."))
     `forms4s-examples`.jvm,
   )
 
-lazy val `forms4s-core` = crossProject(JVMPlatform, JSPlatform)
+lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("forms4s-core"))
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"     %%% "circe-core" % "0.14.14",
-      "org.scalatest" %% "scalatest"  % "3.2.19" % "test",
+      "io.circe"      %%% "circe-core" % "0.14.14",
+      "org.scalatest" %%% "scalatest"  % "3.2.19" % "test",
     ),
   )
   .settings(commonSettings)
-  .enablePlugins(ScalaJSPlugin)
 
 lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -94,9 +93,6 @@ lazy val `forms4s-examples` = crossProject(JSPlatform, JVMPlatform)
   )
   .dependsOn(`forms4s-tyrian`, `forms4s-jsonschema`, `forms4s-circe`)
 
-// TODO check how it got here and if it should be here
-Global / onChangedBuildSource := ReloadOnSourceChanges
-
 lazy val commonSettings = Seq(
   organization                            := "org.business4s",
   scalaVersion                            := "3.7.1",
@@ -119,3 +115,5 @@ ThisBuild / publishTo := {
   if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
   else localStaging.value
 }
+
+Global / onChangedBuildSource := ReloadOnSourceChanges

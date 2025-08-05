@@ -138,7 +138,7 @@ case class Froms4sPlayground(
     case Msg.NoOp                            => (this, Cmd.None)
     case Msg.HydrateFormFromUrl(json)        => (this, Cmd.None)
     case Msg.FrameworkSelected(newFramework) => (this.copy(formView = formView.copy(framework = newFramework)), Cmd.None)
-    case Msg.LoadSchema(schema)               =>
+    case Msg.LoadSchema(schema)              =>
       val newForm  = FormFromJsonSchema.convert(schema)
       val newState = FormElementState.empty(newForm)
       val newJson  = FormStateToJson.extract(newState)
@@ -148,7 +148,7 @@ case class Froms4sPlayground(
   def render: Html[Msg] =
     div(className := "container")(
       div(className := "notification is-info is-light")(
-        "You can edit all the panes, and changes will be automatically reflected in other places."
+        "You can edit all the panes, and changes will be automatically reflected in other places.",
       ),
       div(className := "columns is-multiline")(
         div(className := "column is-half")(

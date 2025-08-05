@@ -51,6 +51,4 @@ object FormElement {
 
   case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]])
 
-
-
 }

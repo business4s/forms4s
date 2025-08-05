@@ -16,8 +16,8 @@ import scala.util.matching.Regex
 object FormFromJsonSchema {
 
   def convert(root: ASchema): FormElement = {
-    createElement(None, root, required = true, root.$defs.getOrElse(Map()), None).right
-      .getOrElse(???) // TODO errors
+    val result = createElement(None, root, required = true, root.$defs.getOrElse(Map()), None)
+    result.right.getOrElse(???) // TODO errors
   }
 
   type Result = Ior[List[String], List[FormElement]]
@@ -80,11 +80,16 @@ object FormFromJsonSchema {
     val label                                  = schema.title.getOrElse(capitalizeAndSplitWords(name))
     def core[T](validators: Seq[Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
 
-    if (schema.oneOf.nonEmpty) {
-      val discriminator = schema.discriminator.map(_.propertyName)
-      schema.oneOf
-        .traverse { subSchema => createElement(None, subSchema, required = true, defs, discriminator) } // TODO required seems fishy
-        .map { subElems => FormElement.Alternative(core(Seq()), subElems, discriminator) }
+    val variants = schema.oneOf ++ schema.anyOf
+    if (variants.nonEmpty) {
+      if (variants.size == 2 && variants.exists(isNull)) {
+        createElement(None, variants.find(x => !isNull(x)).get, required = false, defs, None)
+      } else {
+        val discriminator = schema.discriminator.map(_.propertyName)
+        variants
+          .traverse { subSchema => createElement(None, subSchema, required = true, defs, discriminator) } // TODO required seems fishy
+          .map { subElems => FormElement.Alternative(core(Seq()), subElems, discriminator) }
+      }
     } else {
       val enumOptions = schema.`enum`.getOrElse(Nil).collect {
         case ExampleSingleValue(value)    => value.toString
@@ -143,6 +148,14 @@ object FormFromJsonSchema {
         case None      => List("Schema type not specified").leftIor
       }
     }
+  }
+
+  def isNull(schema: SchemaLike): Boolean = {
+    schema match {
+      case _: AnySchema    => false
+      case schema: ASchema => schema.`type`.contains(List(SchemaType.Null))
+    }
+
   }
 
 }

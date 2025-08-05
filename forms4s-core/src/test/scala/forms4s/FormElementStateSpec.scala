@@ -74,15 +74,15 @@ class FormElementStateSpec extends AnyFreeSpec {
             List(
               FormElementState.Group(
                 field1,
-                List(FormElementState.Text(field, "", Nil, FormElementPath.Root)),
+                List(FormElementState.Text(field, "", Nil, FormElementPath.Root / elem.core.id / field1.core.id)),
                 Nil,
-                FormElementPath.Root,
+                FormElementPath.Root / elem.core.id,
               ),
               FormElementState.Group(
                 field2,
-                List(FormElementState.Text(field, newValue, Nil, FormElementPath.Root)),
+                List(FormElementState.Text(field, newValue, Nil, FormElementPath.Root / elem.core.id / field2.core.id)),
                 Nil,
-                FormElementPath.Root,
+                FormElementPath.Root / elem.core.id,
               ),
             ),
             Nil,

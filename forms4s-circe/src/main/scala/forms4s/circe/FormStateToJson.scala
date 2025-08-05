@@ -8,7 +8,7 @@ object FormStateToJson {
 
   def extract(element: FormElementState): Json = element match {
     case x: FormElementState.Text        => Json.fromString(x.value)
-    case x: FormElementState.Number      => 
+    case x: FormElementState.Number      =>
       Json.fromDoubleOrNull(x.value)
     case x: FormElementState.Checkbox    => Json.fromBoolean(x.value)
     case x: FormElementState.Select      => Json.fromString(x.value)
