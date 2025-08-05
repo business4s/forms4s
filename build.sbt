@@ -29,7 +29,6 @@ lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
     ),
   )
   .settings(commonSettings)
-  .enablePlugins(ScalaJSPlugin)
 
 lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)

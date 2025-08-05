@@ -52,7 +52,7 @@ object ToFormElem {
     // build a Group
     StaticToFormElem(
       Group(
-        core = Core[List[FormElementState]](id = "", label = constValue[p.MirroredLabel], description = None, validators = Seq.empty),
+        core = Core[List[FormElementState]](id = constValue[p.MirroredLabel], label = constValue[p.MirroredLabel], description = None, validators = Seq.empty),
         elements = elems.zip(labels).map { (tf, name) =>
           val fe = tf.get
           // copy into each element its field‐name as id & human label
