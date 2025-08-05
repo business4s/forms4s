@@ -2,9 +2,8 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 import org.typelevel.scalacoptions.ScalacOptions
 
 lazy val root = (project in file("."))
-  .settings(
-    name := "forms4s",
-  )
+  .settings(commonSettings)
+  .settings(name := "forms4s")
   .aggregate(
     `forms4s-core`.js,
     `forms4s-core`.jvm,
@@ -102,6 +101,18 @@ lazy val commonSettings = Seq(
   ),
   // https://users.scala-lang.org/t/scala-js-with-3-7-0-package-scala-contains-object-and-package-with-same-name-caps/10786/5
   dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
+  scalacOptions ++= Seq("-no-indent"),
+  homepage                                := Some(url("https://business4s.github.io/forms4s/")),
+  licenses                                := List(License.MIT),
+  developers                              := List(
+    Developer(
+      "Krever",
+      "Voytek Pituła",
+      "w.pitula@gmail.com",
+      url("https://v.pitula.me"),
+    ),
+  ),
+  versionScheme                           := Some("semver-spec"),
 )
 
 lazy val stableVersion = taskKey[String]("stableVersion")
