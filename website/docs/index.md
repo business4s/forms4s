@@ -12,8 +12,8 @@ way to define, render, and manage forms in Scala applications.
 - **Generic form model** - Define form structure through an abstract model
 - **Generic derivation** - Derive the model from Scala types
 - **JSON Schema integration** - Derive the model from JSON Schema
-- **Generate UI components** - Create UI components (e.g., for Tyrian) from structured schemas
-- **JSON data extraction** - Extract user input as JSON data
+- **Generate UI components** - Create UI components (e.g., for Tyrian) that look well out-of-the-box (through support for CSS frameworks such as Bootstrap, Bulma, Pico.css)
+- **JSON data extraction** - Extract user input from the form as JSON data
 - **JSON data hydration** - Fill the form with JSON data
 - **Validation** - Validate form input based on schema constraints or custom logic
 

@@ -17,7 +17,20 @@ object FormFromJsonSchema {
 
   def convert(root: ASchema): FormElement = {
     val result = createElement(None, root, required = true, root.$defs.getOrElse(Map()), None)
-    result.right.getOrElse(???) // TODO errors
+    // TODO we need much better error reporting here, this is wrong on many levels
+    //  we probably should just pass errors to the client
+    result match {
+      case Ior.Right(form)        => form
+      case Ior.Left(errors)       =>
+        throw new RuntimeException(s"""Failed to generate form from JSON schema.
+                                      |${errors.mkString(", ")}""".stripMargin)
+      case Ior.Both(errors, form) =>
+        // we don't have logging dependency right now, and printlns is the only thing thats available ootb on all platforms
+        // This should be replaced with something better soon
+        println(s"""Errors spotted when generating form from JSON schema.
+                   |${errors.mkString(", ")}""".stripMargin)
+        form
+    }
   }
 
   type Result = Ior[List[String], List[FormElement]]
@@ -91,12 +104,8 @@ object FormFromJsonSchema {
           .map { subElems => FormElement.Alternative(core(Seq()), subElems, discriminator) }
       }
     } else {
-      val enumOptions = schema.`enum`.getOrElse(Nil).collect {
-        case ExampleSingleValue(value)    => value.toString
-        case ExampleMultipleValue(values) => ??? // TODO proper error
-      }
-
       // TODO we dont support alternative representations (multiple schema types)
+      //  add error at least
       val tpe = schema.`type`.flatMap(_.headOption)
 
       tpe match {
@@ -114,33 +123,40 @@ object FormFromJsonSchema {
             case SchemaType.Number  => FormElement.Number(core(Seq()), isInteger = false).rightIor
             case SchemaType.Integer => FormElement.Number(core(Seq()), isInteger = true).rightIor
             case SchemaType.String  =>
-              if (enumOptions.nonEmpty) {
-                FormElement.Select(core(Seq()), enumOptions).rightIor
-              } else {
-                val format = schema.format.map(_.toLowerCase)
-                val maxLen = schema.maxLength.getOrElse(100)
-                val minLen = schema.minLength.getOrElse(100)
+              for {
+                enumOptions <- schema.`enum`.getOrElse(Nil).traverse {
+                                 case ExampleSingleValue(value) => value.toString.rightIor
+                                 case ExampleMultipleValue(_)   => "Multivalue options not supported for enums".pure[List].leftIor
+                               }
+              } yield {
+                if (enumOptions.nonEmpty) {
+                  FormElement.Select(core(Seq()), enumOptions)
+                } else {
+                  val format = schema.format.map(_.toLowerCase)
+                  val maxLen = schema.maxLength.getOrElse(100)
+                  val minLen = schema.minLength.getOrElse(100)
 
-                // TODO validators
-                val (validators, tFormat) = format match {
-                  case Some("date")         => Seq() -> Format.Date
-                  case Some("multiline")    => Seq() -> Format.Multiline
-                  case Some("time")         => Seq() -> Format.Time
-                  case Some("date-time")    => Seq() -> Format.DateTime
-                  case Some("email")        =>
-                    Seq(FormatValidator("ISO 8601 duration", x => Try(Duration.parse(x)).isSuccess, Some("PT20H10M"))) -> Format.Email
-                  case Some(x @ "uuid")     =>
-                    Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format
-                      .Custom(x)
-                  case Some(x @ "duration") => Seq() -> Format.Custom(x)
-                  case Some(x)              => Seq() -> Format.Custom(x)
-                  case None                 =>
-                    val isMultiline = maxLen > 120 || minLen > 120
-                    val format      = if (isMultiline) Format.Multiline else Format.Raw
-                    Seq() -> format
+                  // TODO validators
+                  val (validators, tFormat) = format match {
+                    case Some("date")         => Seq() -> Format.Date
+                    case Some("multiline")    => Seq() -> Format.Multiline
+                    case Some("time")         => Seq() -> Format.Time
+                    case Some("date-time")    => Seq() -> Format.DateTime
+                    case Some("email")        =>
+                      Seq(FormatValidator("ISO 8601 duration", x => Try(Duration.parse(x)).isSuccess, Some("PT20H10M"))) -> Format.Email
+                    case Some(x @ "uuid")     =>
+                      Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format
+                        .Custom(x)
+                    case Some(x @ "duration") => Seq() -> Format.Custom(x)
+                    case Some(x)              => Seq() -> Format.Custom(x)
+                    case None                 =>
+                      val isMultiline = maxLen > 120 || minLen > 120
+                      val format      = if (isMultiline) Format.Multiline else Format.Raw
+                      Seq() -> format
+                  }
+                  val patternOpt            = schema.pattern.map(p => RegexValidator(Regex(p.value)))
+                  FormElement.Text(core(validators ++ patternOpt.toList), tFormat)
                 }
-                val patternOpt            = schema.pattern.map(p => RegexValidator(Regex(p.value)))
-                FormElement.Text(core(validators ++ patternOpt.toList), tFormat).rightIor
               }
 
             case SchemaType.Null => List("Null schema for a property is not expected").leftIor
