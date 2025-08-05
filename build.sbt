@@ -118,7 +118,7 @@ lazy val commonSettings = Seq(
 lazy val stableVersion = taskKey[String]("stableVersion")
 stableVersion := {
   if (isVersionStable.value && !isSnapshot.value) version.value
-  else previousStableVersion.value.getOrElse("unreleased")
+  else previousStableVersion.value.getOrElse(version.value)
 }
 
 ThisBuild / publishTo := {
