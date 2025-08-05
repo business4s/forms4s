@@ -1,6 +1,6 @@
 package forms4s.validation
 
-class FormatValidator(format:String, validation: String => Boolean, example: Option[String]) extends Validator[String] {
+class FormatValidator(format: String, validation: String => Boolean, example: Option[String]) extends Validator[String] {
 
   private lazy val exampleStr = example.map(ex => s", for example: $ex").getOrElse("")
 

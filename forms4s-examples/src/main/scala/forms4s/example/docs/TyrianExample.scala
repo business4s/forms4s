@@ -15,7 +15,6 @@ enum MyMsg {
 
 object TyrianExample extends TyrianIOApp[MyMsg, MyModel] {
 
-
   val myForm: FormElement = ???
 
   def init(flags: Map[String, String]): (MyModel, Cmd[IO, MyMsg]) = {
@@ -32,7 +31,7 @@ object TyrianExample extends TyrianIOApp[MyMsg, MyModel] {
     renderer.renderForm(model.form).map(update => MyMsg.FormUpdate(update))
 
   def subscriptions(model: MyModel): Sub[IO, MyMsg] = Sub.None
-  def router: Location => MyMsg = _ => MyMsg.NoOp
+  def router: Location => MyMsg                     = _ => MyMsg.NoOp
 
 }
 // end_doc

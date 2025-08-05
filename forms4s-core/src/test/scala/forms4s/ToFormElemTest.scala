@@ -29,8 +29,14 @@ class ToFormElemTest extends AnyFreeSpec {
       summon[ToFormElem[Payment]].get == FormElement.Alternative(
         FormElement.Core("", "Payment", None, List()),
         List(
-          FormElement.Group(FormElement.Core("Cash", "Cash", None, List()), List(FormElement.Number(FormElement.Core("amount", "Amount", None, List()), false))),
-          FormElement.Group(FormElement.Core("Card", "Card", None, List()), List(FormElement.Text(FormElement.Core("number", "Number", None, List()), FormElement.Text.Format.Raw))),
+          FormElement.Group(
+            FormElement.Core("Cash", "Cash", None, List()),
+            List(FormElement.Number(FormElement.Core("amount", "Amount", None, List()), false)),
+          ),
+          FormElement.Group(
+            FormElement.Core("Card", "Card", None, List()),
+            List(FormElement.Text(FormElement.Core("number", "Number", None, List()), FormElement.Text.Format.Raw)),
+          ),
         ),
         None,
       ),

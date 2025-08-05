@@ -53,8 +53,8 @@ class RawFormRenderer extends FormRenderer {
       state: FormElementState.SimpleInputBased,
       additionalTags: Attr[FormElementUpdate]*,
   ): Html[FormElementUpdate] = {
-    val errorsId = (state.path / "_errors").asHtmlId
-    val ariaInvalid   = if state.errors.nonEmpty then Attribute("aria-invalid", "true") else EmptyAttribute
+    val errorsId    = (state.path / "_errors").asHtmlId
+    val ariaInvalid = if state.errors.nonEmpty then Attribute("aria-invalid", "true") else EmptyAttribute
     Html.div()(
       Html.label(state.htmlFor)(state.element.core.label),
       Html.input(

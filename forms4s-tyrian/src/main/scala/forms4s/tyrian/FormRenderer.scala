@@ -72,7 +72,8 @@ trait FormRenderer {
   }
   extension (s: FormElementState.Select) {
     protected def htmlOnChange: Attr[FormElementUpdate] = Html.onChange(s.emitUpdate)
-    protected def htmlOptions: List[Html[Nothing]]      = s.element.options.map(option => Html.option(value := option, Html.selected := (s.value == option))(option))
+    protected def htmlOptions: List[Html[Nothing]]      =
+      s.element.options.map(option => Html.option(value := option, Html.selected := (s.value == option))(option))
   }
   extension (s: FormElementState.Checkbox) {
     protected def htmlType: Attribute                   = Html.`type`  := "checkbox"
@@ -89,7 +90,7 @@ trait FormRenderer {
   }
   case class MultivalueElement(elem: FormElementState, index: Int) {
     def render: Html[FormElementUpdate.MultivalueUpdate] = {
-      val adjusted = elem.rename(s"Item ${index+1}")
+      val adjusted = elem.rename(s"Item ${index + 1}")
       renderForm(adjusted).map(x => FormElementUpdate.MultivalueUpdate(index, x))
     }
     def htmlOnClickRemove                                = Html.onClick(FormElementUpdate.MultivalueRemove(index))
