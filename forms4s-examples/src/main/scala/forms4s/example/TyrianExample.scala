@@ -9,6 +9,7 @@ import org.scalajs.dom
 import org.scalajs.dom.URLSearchParams
 import tyrian.*
 import tyrian.Html.*
+import tyrian.Nav
 
 import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
@@ -18,6 +19,20 @@ import sttp.apispec.Schema as ASchema
 enum Tab {
   case Forms
   case Datatable
+}
+
+object Tab {
+  def fromHash(hash: String): Option[Tab] = hash.stripPrefix("#") match {
+    case "forms"     => Some(Tab.Forms)
+    case "datatable" => Some(Tab.Datatable)
+    case ""          => Some(Tab.Forms)
+    case _           => None
+  }
+
+  def toHash(tab: Tab): String = tab match {
+    case Tab.Forms     => "#forms"
+    case Tab.Datatable => "#datatable"
+  }
 }
 
 @JSExportTopLevel("TyrianApp")
@@ -48,13 +63,14 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       .toMap
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = {
-    val form = FormFromJsonSchema.convert(MyForm.jsonSchema)
+    val form       = FormFromJsonSchema.convert(MyForm.jsonSchema)
+    val initialTab = Tab.fromHash(dom.window.location.hash).getOrElse(Tab.Forms)
     (
       Model(
         formState = FormElementState.empty(form),
         formsPage = Froms4sPlayground.empty(),
         datatablePage = DatatablePlayground.empty(),
-        activeTab = Tab.Forms,
+        activeTab = initialTab,
       ),
       Cmd.None,
     )
@@ -62,6 +78,9 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = {
     case Msg.SwitchTab(tab) =>
+      (model.copy(activeTab = tab), Nav.pushUrl(Tab.toHash(tab)))
+
+    case Msg.SetTabFromUrl(tab) =>
       (model.copy(activeTab = tab), Cmd.None)
 
     case Msg.DatatableMsg(dtMsg) =>
@@ -100,7 +119,7 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
     )
 
   def subscriptions(model: Model): Sub[IO, Msg] =
-    urlParamsSub
+    Sub.Batch(urlParamsSub, hashChangeSub)
 
   def urlParamsSub: Sub[IO, Msg] =
     Sub.emit {
@@ -110,6 +129,11 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
         case Some(value) => Msg.HydrateFormFromUrl(value)
         case None        => Msg.NoOp
       }
+    }
+
+  def hashChangeSub: Sub[IO, Msg] =
+    Sub.fromEvent[IO, dom.HashChangeEvent, Msg]("hashchange", dom.window) { _ =>
+      Tab.fromHash(dom.window.location.hash).map(Msg.SetTabFromUrl.apply)
     }
 }
 
@@ -130,5 +154,6 @@ enum Msg {
   case FrameworkSelected(framework: CssFramework)
   case LoadSchema(schema: ASchema)
   case SwitchTab(tab: Tab)
+  case SetTabFromUrl(tab: Tab)
   case DatatableMsg(msg: forms4s.example.components.DatatableMsg)
 }
