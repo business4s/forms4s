@@ -1,0 +1,68 @@
+---
+sidebar_position: 1
+---
+
+# Introduction
+
+**forms4s** is a Scala library for building user interfaces from data models. It provides type-safe components for:
+
+- **[Forms](./forms/getting-started)** - Build forms from Scala types or JSON Schema with automatic rendering and validation
+- **[Datatables](./datatables/)** - Display, filter, sort, and export tabular data
+
+Try the **[interactive demo](/demo)** to see forms4s in action.
+
+## Features
+
+<div style={{display: 'flex', gap: '2rem'}}>
+<div style={{flex: 1}}>
+
+### Forms
+- Generic form model derived from Scala types or JSON Schema
+- Multiple CSS framework support (Bulma, Bootstrap, Pico)
+- JSON data extraction and hydration
+- Schema-based validation
+
+</div>
+<div style={{flex: 1}}>
+
+### Datatables
+- Column-based filtering (text, select, range, boolean)
+- Sorting and pagination
+- Row selection
+- CSV export
+
+</div>
+</div>
+
+<div style={{display: 'flex', gap: '2rem'}}>
+<div style={{flex: 1}}>
+
+```mermaid
+graph TD
+    A[Scala model] -- tapir --> B[Json Schema]
+    B --> C[Form Model]
+    A -- derivation --> C
+    C --> D[Form State]
+    D -- render --> E[Web UI]
+    E --> F[State Updates]
+    F --> D
+    D -- extract --> G[JSON]
+    G -- load --> D
+```
+
+</div>
+<div style={{flex: 1}}>
+
+```mermaid
+graph TD
+    H[Scala model] -- derivation --> I[Table Def]
+    J[Data] --> K[Table State]
+    I --> K
+    K -- render --> L[Web UI]
+    L --> M[Updates]
+    M --> K
+    K -- export --> N[CSV]
+```
+
+</div>
+</div>

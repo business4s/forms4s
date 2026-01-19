@@ -1,0 +1,62 @@
+---
+sidebar_position: 1
+---
+import SbtDependency from '@site/src/components/SbtDependency';
+
+# Datatables
+
+forms4s provides a datatable component for displaying, filtering, sorting, and exporting tabular data.
+
+## Dependencies
+
+<SbtDependency moduleName={"forms4s-core"}/>
+
+For Tyrian rendering:
+
+<SbtDependency moduleName={"forms4s-tyrian"}/>
+
+## Defining a Table
+
+Define your data model:
+
+```scala file=./main/scala/forms4s/example/docs/DatatableExample.scala start=start_model end=end_model
+```
+
+Create a table definition using `TableDefBuilder`:
+
+```scala file=./main/scala/forms4s/example/docs/DatatableExample.scala start=start_table_def end=end_table_def
+```
+
+## Table State
+
+Create runtime state from your definition and data:
+
+```scala file=./main/scala/forms4s/example/docs/DatatableExample.scala start=start_state end=end_state
+```
+
+## Filters
+
+Available filter types:
+- `ColumnFilter.text` - Free text search
+- `ColumnFilter.select` - Dropdown with unique values
+- `ColumnFilter.multiSelect` - Multiple selection
+- `ColumnFilter.numberRange` - Min/max numeric filter
+- `ColumnFilter.dateRange` - Date range filter
+- `ColumnFilter.boolean` - Yes/No/All filter
+
+## Tyrian Integration
+
+```scala file=./main/scala/forms4s/example/docs/DatatableTyrianExample.scala start=start_tyrian end=end_tyrian
+```
+
+Available renderers:
+- `BulmaTableRenderer` - Bulma CSS framework
+- `BootstrapTableRenderer` - Bootstrap 5
+- `RawTableRenderer` - Semantic HTML (works with Pico CSS)
+
+## CSV Export
+
+```scala file=./main/scala/forms4s/example/docs/DatatableExample.scala start=start_export end=end_export
+```
+
+Export respects current filters, sorting, and selection.
