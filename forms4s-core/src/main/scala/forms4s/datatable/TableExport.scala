@@ -28,7 +28,7 @@ object TableExport {
 
     // Headers
     if (includeHeaders) {
-      sb.append(columns.map(c => escapeCSV(c.label)).mkString(delimiter))
+      sb.append(columns.map(c => escapeCSV(c.label, delimiter)).mkString(delimiter))
       sb.append("\n")
     }
 
@@ -36,7 +36,7 @@ object TableExport {
     data.foreach { row =>
       val values = columns.map { col =>
         val value = col.extract(row)
-        escapeCSV(col.render(value))
+        escapeCSV(col.render(value), delimiter)
       }
       sb.append(values.mkString(delimiter))
       sb.append("\n")
@@ -52,13 +52,13 @@ object TableExport {
     val data    = state.selectedItems
 
     val sb = new StringBuilder
-    sb.append(columns.map(c => escapeCSV(c.label)).mkString(delimiter))
+    sb.append(columns.map(c => escapeCSV(c.label, delimiter)).mkString(delimiter))
     sb.append("\n")
 
     data.foreach { row =>
       val values = columns.map { col =>
         val value = col.extract(row)
-        escapeCSV(col.render(value))
+        escapeCSV(col.render(value), delimiter)
       }
       sb.append(values.mkString(delimiter))
       sb.append("\n")
@@ -67,8 +67,8 @@ object TableExport {
     sb.toString
   }
 
-  private def escapeCSV(value: String): String = {
-    if (value.contains(",") || value.contains("\"") || value.contains("\n"))
+  private def escapeCSV(value: String, delimiter: String): String = {
+    if (value.contains(delimiter) || value.contains("\"") || value.contains("\n"))
       "\"" + value.replace("\"", "\"\"") + "\""
     else value
   }

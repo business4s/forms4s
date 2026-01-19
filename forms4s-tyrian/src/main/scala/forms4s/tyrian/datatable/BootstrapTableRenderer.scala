@@ -110,19 +110,19 @@ object BootstrapTableRenderer extends TableRenderer {
     Html.nav()(
       Html.ul(className := "pagination justify-content-center")(
         Html.li(className := s"page-item${if (currentPage == 0) " disabled" else ""}")(
-          a(
+          button(
             className := "page-link",
             onClick(TableUpdate.PrevPage),
-            attribute("href", "#"),
+            disabled(currentPage == 0),
           )("Previous"),
         ) ::
           renderPaginationNumbers(currentPage, totalPages) :::
           List(
             Html.li(className := s"page-item${if (currentPage >= totalPages - 1) " disabled" else ""}")(
-              a(
+              button(
                 className := "page-link",
                 onClick(TableUpdate.NextPage),
-                attribute("href", "#"),
+                disabled(currentPage >= totalPages - 1),
               )("Next"),
             ),
           ),
@@ -133,10 +133,9 @@ object BootstrapTableRenderer extends TableRenderer {
   private def renderPaginationNumbers(current: Int, total: Int): List[Html[TableUpdate]] = {
     def pageItem(n: Int): Html[TableUpdate] =
       Html.li(className := s"page-item${if (n == current) " active" else ""}")(
-        a(
+        button(
           className := "page-link",
           onClick(TableUpdate.SetPage(n)),
-          attribute("href", "#"),
         )((n + 1).toString),
       )
 
@@ -241,12 +240,13 @@ object BootstrapTableRenderer extends TableRenderer {
         }
         val options        = state.uniqueValuesFor(column.id)
         div(
-          options.map { opt =>
+          options.zipWithIndex.map { case (opt, idx) =>
+            val checkboxId = s"${column.id}-$idx"
             div(className := "form-check form-check-inline")(
               input(
                 className := "form-check-input",
                 `type`    := "checkbox",
-                id        := s"${column.id}-$opt",
+                id        := checkboxId,
                 checked(selectedValues.contains(opt)),
                 onChange(_ =>
                   if (selectedValues.contains(opt))
@@ -255,7 +255,7 @@ object BootstrapTableRenderer extends TableRenderer {
                     TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues + opt)),
                 ),
               ),
-              label(className := "form-check-label", htmlFor := s"${column.id}-$opt")(opt),
+              label(className := "form-check-label", htmlFor := checkboxId)(opt),
             )
           },
         )

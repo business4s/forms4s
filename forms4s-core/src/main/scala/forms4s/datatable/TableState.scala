@@ -90,6 +90,28 @@ case class TableState[T](
   /** Total pages */
   def totalPages: Int = page.totalPages(totalFilteredItems)
 
+  /** Global indices (into original data) of rows that pass current filters */
+  def filteredIndices: Set[Int] = {
+    if (filters.isEmpty || filters.values.forall(_.isEmpty)) data.indices.toSet
+    else
+      data.zipWithIndex.collect {
+        case (row, idx) if definition.columns.forall { col =>
+              col.filter match {
+                case None         => true
+                case Some(filter) =>
+                  filters.get(col.id) match {
+                    case None                         => true
+                    case Some(state) if state.isEmpty => true
+                    case Some(state)                  =>
+                      val value = col.extract(row)
+                      filter.asInstanceOf[ColumnFilter[Any]].matches(value, state)
+                  }
+              }
+            } =>
+          idx
+      }.toSet
+  }
+
   /** Get unique values for a select filter column */
   def uniqueValuesFor(columnId: String): List[String] = {
     definition.columns.find(_.id == columnId) match {
@@ -159,7 +181,7 @@ case class TableState[T](
       else update(TableUpdate.SelectRow(index))
 
     case TableUpdate.SelectAll =>
-      copy(selection = (0 until totalFilteredItems).toSet)
+      copy(selection = filteredIndices)
 
     case TableUpdate.DeselectAll =>
       copy(selection = Set.empty)
@@ -176,10 +198,9 @@ case class TableState[T](
     case TableUpdate.ExportCSV => this
   }
 
-  /** Get selected items from filtered data */
+  /** Get selected items from original data using global indices */
   def selectedItems: Vector[T] = {
-    val filtered = filteredData
-    selection.toVector.sorted.flatMap(i => filtered.lift(i))
+    selection.toVector.sorted.flatMap(i => data.lift(i))
   }
 }
 

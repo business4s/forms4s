@@ -52,7 +52,6 @@ object ColumnFilter {
     */
   case class SelectFilter[V](
       render: V => String = (v: V) => String.valueOf(v),
-      includeBlank: Boolean = true,
   ) extends ColumnFilter[V] {
     def filterType: FilterType  = FilterType.Select
     def emptyState: FilterState = FilterState.emptySelect

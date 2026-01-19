@@ -138,7 +138,7 @@ object BulmaTableRenderer extends TableRenderer {
   private def renderPaginationNumbers(current: Int, total: Int): List[Html[TableUpdate]] = {
     def addPage(n: Int): Html[TableUpdate] = {
       Html.li(
-        a(
+        button(
           className := s"pagination-link${if (n == current) " is-current" else ""}",
           onClick(TableUpdate.SetPage(n)),
         )((n + 1).toString),
