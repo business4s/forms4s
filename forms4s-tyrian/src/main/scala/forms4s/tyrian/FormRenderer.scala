@@ -42,7 +42,6 @@ trait FormRenderer {
   }
   extension (s: FormElementState.SimpleInputBased) {
     protected def htmlOnInput: Attr[FormElementUpdate] = Html.onInput(x => {
-      println(s"onInput: $x")
       s.emitUpdate(x)
     })
     protected def htmlValue: PropertyString            = Html.value := s.valueToString(s.value)

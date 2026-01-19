@@ -1,0 +1,5 @@
+name: Name
+department: Department
+salary: Salary
+hireDate: Hire Date
+active: Active

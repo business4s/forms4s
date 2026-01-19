@@ -1,0 +1,5 @@
+name=Alice Smith
+department=Engineering
+salary=$95,000
+hireDate=2020-03-15
+active=Yes

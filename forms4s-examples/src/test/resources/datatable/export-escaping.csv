@@ -1,0 +1,7 @@
+Name,Description
+Normal,Just text
+With Comma,"Hello, World"
+With Quote,"He said ""Hello"""
+With Newline,"Line1
+Line2"
+All Combined,"Comma, Quote"", Newline\n"

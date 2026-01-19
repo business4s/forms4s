@@ -2,40 +2,48 @@
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-### Installation
+## Local Development
 
-```
-$ yarn
-```
+### Quick start (without embedded demo)
 
-### Local Development
-
-```
-$ yarn start
+```bash
+cd website
+yarn install
+yarn start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+This starts a local development server. The demo page will show a placeholder or broken state since the Tyrian example isn't built.
 
-### Build
+### Full setup (with embedded demo)
 
-```
-$ yarn build
-```
+The website embeds a live Tyrian demo built from `forms4s-examples`. To run locally with the demo working:
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+```bash
+# 1. Build the Scala.js example
+cd forms4s-examples
+yarn install
+yarn build                          
 
-### Deployment
+# 2. Copy built assets to website
+mkdir -p ../website/static/example-dist/
+cp dist/* ../website/static/example-dist/
 
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
+# 3. Start the website
+cd ../website
+yarn install
+yarn start
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+For active development on the example, run `sbt ~forms4s-examplesJS/fastLinkJS` in one terminal and `yarn dev` in `forms4s-examples` in another, then copy the dist when ready.
+
+## Build
+
+```bash
+yarn build
+```
+
+This generates static content into the `build` directory.
+
+## Deployment
+
+Deployment is automated via GitHub Actions on push to `main`. See `.github/workflows/website-deploy.yml`.
