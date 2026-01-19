@@ -1,11 +1,12 @@
 package forms4s.datatable
 
-/**
- * Column definition with type-safe value extraction.
- *
- * @tparam T Row type
- * @tparam V Value type for this column
- */
+/** Column definition with type-safe value extraction.
+  *
+  * @tparam T
+  *   Row type
+  * @tparam V
+  *   Value type for this column
+  */
 case class Column[T, V](
     id: String,
     label: String,

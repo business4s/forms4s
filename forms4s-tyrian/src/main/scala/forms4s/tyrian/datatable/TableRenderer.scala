@@ -3,9 +3,8 @@ package forms4s.tyrian.datatable
 import forms4s.datatable.*
 import tyrian.Html
 
-/**
- * Abstract rendering interface for datatables.
- */
+/** Abstract rendering interface for datatables.
+  */
 trait TableRenderer {
 
   /** Render complete table with all controls */
@@ -31,6 +30,6 @@ trait TableRenderer {
       state: TableState[T],
       column: Column[T, V],
       filter: ColumnFilter[V],
-      currentState: FilterState
+      currentState: FilterState,
   ): Html[TableUpdate]
 }

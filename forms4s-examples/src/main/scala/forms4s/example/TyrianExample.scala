@@ -54,9 +54,9 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
         formState = FormElementState.empty(form),
         formsPage = Froms4sPlayground.empty(),
         datatablePage = DatatablePlayground.empty(),
-        activeTab = Tab.Forms
+        activeTab = Tab.Forms,
       ),
-      Cmd.None
+      Cmd.None,
     )
   }
 
@@ -84,19 +84,19 @@ object TyrianExample extends TyrianIOApp[Msg, Model] {
       model.activeTab match {
         case Tab.Forms     => model.formsPage.render
         case Tab.Datatable => model.datatablePage.render.map(Msg.DatatableMsg.apply)
-      }
+      },
     )
 
   def renderTabs(activeTab: Tab): Html[Msg] =
     div(className := "tabs is-boxed")(
       Html.ul(
         Html.li(if (activeTab == Tab.Forms) className := "is-active" else className := "")(
-          a(onClick(Msg.SwitchTab(Tab.Forms)))("Forms Demo")
+          a(onClick(Msg.SwitchTab(Tab.Forms)))("Forms Demo"),
         ),
         Html.li(if (activeTab == Tab.Datatable) className := "is-active" else className := "")(
-          a(onClick(Msg.SwitchTab(Tab.Datatable)))("Datatable Demo")
-        )
-      )
+          a(onClick(Msg.SwitchTab(Tab.Datatable)))("Datatable Demo"),
+        ),
+      ),
     )
 
   def subscriptions(model: Model): Sub[IO, Msg] =
@@ -117,7 +117,7 @@ case class Model(
     formState: FormElementState,
     formsPage: Froms4sPlayground,
     datatablePage: DatatablePlayground,
-    activeTab: Tab
+    activeTab: Tab,
 )
 
 enum Msg {

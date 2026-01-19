@@ -1,22 +1,22 @@
 package forms4s.datatable
 
-/**
- * Static table definition - the structure of a datatable.
- *
- * @tparam T The row type
- */
+/** Static table definition - the structure of a datatable.
+  *
+  * @tparam T
+  *   The row type
+  */
 case class TableDef[T](
     id: String,
     columns: List[Column[T, ?]],
     pageSize: Int = 10,
     pageSizeOptions: List[Int] = List(10, 25, 50, 100),
     selectable: Boolean = false,
-    multiSelect: Boolean = false
+    multiSelect: Boolean = false,
 ) {
 
   /** Builder-style methods */
-  def withPageSize(size: Int): TableDef[T] = copy(pageSize = size)
-  def withPageSizeOptions(opts: List[Int]): TableDef[T] = copy(pageSizeOptions = opts)
+  def withPageSize(size: Int): TableDef[T]               = copy(pageSize = size)
+  def withPageSizeOptions(opts: List[Int]): TableDef[T]  = copy(pageSizeOptions = opts)
   def withSelection(multi: Boolean = false): TableDef[T] = copy(selectable = true, multiSelect = multi)
 
   /** Add a column */

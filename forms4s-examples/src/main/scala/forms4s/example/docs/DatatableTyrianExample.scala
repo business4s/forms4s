@@ -20,9 +20,8 @@ object DatatableTyrianExample extends TyrianIOApp[TableMsg, TableModel] {
   def init(flags: Map[String, String]): (TableModel, Cmd[IO, TableMsg]) =
     (TableModel(TableState(tableDef, data)), Cmd.None)
 
-  def update(model: TableModel): TableMsg => (TableModel, Cmd[IO, TableMsg]) = {
-    case TableMsg.Update(msg) =>
-      (model.copy(tableState = model.tableState.update(msg)), Cmd.None)
+  def update(model: TableModel): TableMsg => (TableModel, Cmd[IO, TableMsg]) = { case TableMsg.Update(msg) =>
+    (model.copy(tableState = model.tableState.update(msg)), Cmd.None)
   }
 
   val renderer: TableRenderer = BulmaTableRenderer

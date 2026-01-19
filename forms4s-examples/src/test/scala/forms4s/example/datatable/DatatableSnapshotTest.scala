@@ -16,7 +16,7 @@ class DatatableSnapshotTest extends AnyFunSuite {
       department: String,
       salary: Double,
       hireDate: LocalDate,
-      active: Boolean
+      active: Boolean,
   )
 
   val testEmployees: Vector[Employee] = Vector(
@@ -38,30 +38,30 @@ class DatatableSnapshotTest extends AnyFunSuite {
 
   test("CSV export - all data") {
     val state = TableState(tableDef, testEmployees)
-    val csv = TableExport.toCSV(state)
+    val csv   = TableExport.toCSV(state)
     SnapshotTest.testSnapshot(csv, "datatable/export-all.csv")
   }
 
   test("CSV export - filtered data") {
     val state = TableState(tableDef, testEmployees)
       .update(TableUpdate.SetFilter("department", FilterState.SelectValue(Some("Engineering"))))
-    val csv = TableExport.toCSV(state)
+    val csv   = TableExport.toCSV(state)
     SnapshotTest.testSnapshot(csv, "datatable/export-filtered.csv")
   }
 
   test("CSV export - sorted data") {
     val state = TableState(tableDef, testEmployees)
       .update(TableUpdate.SetSort("salary", SortDirection.Desc))
-    val csv = TableExport.toCSV(state)
+    val csv   = TableExport.toCSV(state)
     SnapshotTest.testSnapshot(csv, "datatable/export-sorted.csv")
   }
 
   test("CSV export - selected rows only") {
     val selectableDef = tableDef.withSelection(multi = true)
-    val state = TableState(selectableDef, testEmployees)
+    val state         = TableState(selectableDef, testEmployees)
       .update(TableUpdate.SelectRow(0))
       .update(TableUpdate.SelectRow(2))
-    val csv = TableExport.selectedToCSV(state)
+    val csv           = TableExport.selectedToCSV(state)
     SnapshotTest.testSnapshot(csv, "datatable/export-selected.csv")
   }
 
@@ -72,35 +72,39 @@ class DatatableSnapshotTest extends AnyFunSuite {
       List(
         Column[Record, String]("name", "Name", _.name),
         Column[Record, String]("description", "Description", _.description),
-      )
+      ),
     )
-    val data = Vector(
+    val data      = Vector(
       Record("Normal", "Just text"),
       Record("With Comma", "Hello, World"),
       Record("With Quote", """He said "Hello""""),
       Record("With Newline", "Line1\nLine2"),
       Record("All Combined", """Comma, Quote", Newline\n"""),
     )
-    val state = TableState(recordDef, data)
-    val csv = TableExport.toCSV(state)
+    val state     = TableState(recordDef, data)
+    val csv       = TableExport.toCSV(state)
     SnapshotTest.testSnapshot(csv, "datatable/export-escaping.csv")
   }
 
   test("derived columns from case class") {
     // This tests that TableDefBuilder correctly derives columns from a case class
-    val columns = tableDef.columns
-    val columnInfo = columns.map { col =>
-      s"${col.id}: ${col.label}"
-    }.mkString("\n")
+    val columns    = tableDef.columns
+    val columnInfo = columns
+      .map { col =>
+        s"${col.id}: ${col.label}"
+      }
+      .mkString("\n")
     SnapshotTest.testSnapshot(columnInfo, "datatable/derived-columns.txt")
   }
 
   test("column extraction works correctly") {
     // Verify that the derived extractors work
     val employee = testEmployees.head
-    val values = tableDef.columns.map { col =>
-      s"${col.id}=${col.render(col.extract(employee))}"
-    }.mkString("\n")
+    val values   = tableDef.columns
+      .map { col =>
+        s"${col.id}=${col.render(col.extract(employee))}"
+      }
+      .mkString("\n")
     SnapshotTest.testSnapshot(values, "datatable/column-extraction.txt")
   }
 }

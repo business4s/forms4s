@@ -4,23 +4,22 @@ import forms4s.datatable.*
 import tyrian.Html
 import tyrian.Html.*
 
-/**
- * Basic unstyled HTML table renderer.
- */
+/** Basic unstyled HTML table renderer.
+  */
 object RawTableRenderer extends TableRenderer {
 
   override def renderTable[T](state: TableState[T]): Html[TableUpdate] = {
     div(
       div(
         renderInfo(state),
-        button(onClick(TableUpdate.ExportCSV))("Export CSV")
+        button(onClick(TableUpdate.ExportCSV))("Export CSV"),
       ),
       renderFilters(state),
       Html.table(
         renderHeader(state),
-        renderBody(state)
+        renderBody(state),
       ),
-      renderPagination(state)
+      renderPagination(state),
     )
   }
 
@@ -35,11 +34,11 @@ object RawTableRenderer extends TableRenderer {
               val currentState = state.filters.getOrElse(col.id, filter.emptyState)
               div(
                 label(col.label + ": "),
-                renderFilterInput(state, col.asInstanceOf[Column[T, Any]], filter.asInstanceOf[ColumnFilter[Any]], currentState)
+                renderFilterInput(state, col.asInstanceOf[Column[T, Any]], filter.asInstanceOf[ColumnFilter[Any]], currentState),
               )
-            case None => div()()
+            case None         => div()()
           }
-        }
+        },
       )
   }
 
@@ -49,84 +48,84 @@ object RawTableRenderer extends TableRenderer {
         state.definition.columns.map { col =>
           val sortIndicator = state.sort match {
             case Some(SortState(colId, dir)) if colId == col.id => " " + dir.symbol
-            case _                                               => ""
+            case _                                              => ""
           }
           if (col.sortable)
             th(onClick(TableUpdate.ToggleSort(col.id)), styles("cursor" -> "pointer"))(
-              col.label + sortIndicator
+              col.label + sortIndicator,
             )
           else th(col.label)
-        }
-      )
+        },
+      ),
     )
   }
 
   override def renderBody[T](state: TableState[T]): Html[TableUpdate] = {
     Html.tbody(
       state.displayData.zipWithIndex.toList.map { case (row, idx) =>
-        val globalIdx = state.page.offset + idx
+        val globalIdx  = state.page.offset + idx
         val isSelected = state.selection.contains(globalIdx)
-        val rowAttrs = List(
+        val rowAttrs   = List(
           if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(globalIdx))) else None,
-          if (isSelected) Some(styles("background-color" -> "#e0e0e0")) else None
+          if (isSelected) Some(styles("background-color" -> "#e0e0e0")) else None,
         ).flatten
         tr(rowAttrs*)(
           state.definition.columns.map { col =>
             val value = col.extract(row)
             td(col.render(value))
-          }
+          },
         )
-      }
+      },
     )
   }
 
   override def renderPagination[T](state: TableState[T]): Html[TableUpdate] = {
-    val totalPages = state.totalPages
+    val totalPages  = state.totalPages
     val currentPage = state.page.currentPage
 
     div(
       button(
         onClick(TableUpdate.FirstPage),
-        disabled(currentPage == 0)
+        disabled(currentPage == 0),
       )("First"),
       button(
         onClick(TableUpdate.PrevPage),
-        disabled(currentPage == 0)
+        disabled(currentPage == 0),
       )("Prev"),
       span(s" Page ${currentPage + 1} of $totalPages "),
       button(
         onClick(TableUpdate.NextPage),
-        disabled(currentPage >= totalPages - 1)
+        disabled(currentPage >= totalPages - 1),
       )("Next"),
       button(
         onClick(TableUpdate.LastPage),
-        disabled(currentPage >= totalPages - 1)
+        disabled(currentPage >= totalPages - 1),
       )("Last"),
       span(" | Page size: "),
       Html.select(
-        onChange(v => TableUpdate.SetPageSize(v.toInt))
+        onChange(v => TableUpdate.SetPageSize(v.toInt)),
       )(
         state.definition.pageSizeOptions.map { size =>
           option(
             value := size.toString,
-            selected(state.page.pageSize == size)
+            selected(state.page.pageSize == size),
           )(size.toString)
-        }
-      )
+        },
+      ),
     )
   }
 
   override def renderInfo[T](state: TableState[T]): Html[TableUpdate] = {
-    val start = state.page.offset + 1
-    val end = math.min(state.page.offset + state.page.pageSize, state.totalFilteredItems)
-    val total = state.totalFilteredItems
+    val start    = state.page.offset + 1
+    val end      = math.min(state.page.offset + state.page.pageSize, state.totalFilteredItems)
+    val total    = state.totalFilteredItems
     val allTotal = state.data.size
 
     div(
       if (total == allTotal)
         s"Showing $start to $end of $total entries"
       else
-        s"Showing $start to $end of $total entries (filtered from $allTotal total)"
+        s"Showing $start to $end of $total entries (filtered from $allTotal total)",
     )
   }
 
@@ -134,19 +133,19 @@ object RawTableRenderer extends TableRenderer {
       state: TableState[T],
       column: Column[T, V],
       filter: ColumnFilter[V],
-      currentState: FilterState
+      currentState: FilterState,
   ): Html[TableUpdate] = {
     filter.filterType match {
       case FilterType.Text =>
-        val textValue = currentState match {
+        val textValue      = currentState match {
           case FilterState.TextValue(v) => v
           case _                        => ""
         }
         input(
-          `type` := "text",
-          value := textValue,
+          `type`      := "text",
+          value       := textValue,
           placeholder := s"Search ${column.label}...",
-          onInput(v => TableUpdate.SetFilter(column.id, FilterState.TextValue(v)))
+          onInput(v => TableUpdate.SetFilter(column.id, FilterState.TextValue(v))),
         )
 
       case FilterType.Select =>
@@ -154,15 +153,15 @@ object RawTableRenderer extends TableRenderer {
           case FilterState.SelectValue(v) => v.getOrElse("")
           case _                          => ""
         }
-        val options = state.uniqueValuesFor(column.id)
+        val options       = state.uniqueValuesFor(column.id)
         Html.select(
           onChange(v =>
             if (v.isEmpty) TableUpdate.ClearFilter(column.id)
-            else TableUpdate.SetFilter(column.id, FilterState.SelectValue(Some(v)))
-          )
+            else TableUpdate.SetFilter(column.id, FilterState.SelectValue(Some(v))),
+          ),
         )(
           option(value := "")("All") ::
-            options.map(opt => option(value := opt, selected(selectedValue == opt))(opt))
+            options.map(opt => option(value := opt, selected(selectedValue == opt))(opt)),
         )
 
       case FilterType.MultiSelect =>
@@ -170,7 +169,7 @@ object RawTableRenderer extends TableRenderer {
           case FilterState.MultiSelectValue(v) => v
           case _                               => Set.empty[String]
         }
-        val options = state.uniqueValuesFor(column.id)
+        val options        = state.uniqueValuesFor(column.id)
         div(
           options.map { opt =>
             label(
@@ -181,12 +180,12 @@ object RawTableRenderer extends TableRenderer {
                   if (selectedValues.contains(opt))
                     TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues - opt))
                   else
-                    TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues + opt))
-                )
+                    TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues + opt)),
+                ),
               ),
-              span(opt)
+              span(opt),
             )
-          }
+          },
         )
 
       case FilterType.NumberRange =>
@@ -196,28 +195,28 @@ object RawTableRenderer extends TableRenderer {
         }
         div(
           input(
-            `type` := "number",
+            `type`      := "number",
             placeholder := "Min",
-            value := minVal.map(_.toString).getOrElse(""),
+            value       := minVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
-                FilterState.NumberRangeValue(v.toDoubleOption, maxVal)
-              )
-            )
+                FilterState.NumberRangeValue(v.toDoubleOption, maxVal),
+              ),
+            ),
           ),
           span(" - "),
           input(
-            `type` := "number",
+            `type`      := "number",
             placeholder := "Max",
-            value := maxVal.map(_.toString).getOrElse(""),
+            value       := maxVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
-                FilterState.NumberRangeValue(minVal, v.toDoubleOption)
-              )
-            )
-          )
+                FilterState.NumberRangeValue(minVal, v.toDoubleOption),
+              ),
+            ),
+          ),
         )
 
       case FilterType.DateRange =>
@@ -228,31 +227,31 @@ object RawTableRenderer extends TableRenderer {
         div(
           input(
             `type` := "date",
-            value := fromVal.map(_.toString).getOrElse(""),
+            value  := fromVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
                 FilterState.DateRangeValue(
                   if (v.isEmpty) None else Some(java.time.LocalDate.parse(v)),
-                  toVal
-                )
-              )
-            )
+                  toVal,
+                ),
+              ),
+            ),
           ),
           span(" to "),
           input(
             `type` := "date",
-            value := toVal.map(_.toString).getOrElse(""),
+            value  := toVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
                 FilterState.DateRangeValue(
                   fromVal,
-                  if (v.isEmpty) None else Some(java.time.LocalDate.parse(v))
-                )
-              )
-            )
-          )
+                  if (v.isEmpty) None else Some(java.time.LocalDate.parse(v)),
+                ),
+              ),
+            ),
+          ),
         )
 
       case FilterType.Boolean =>
@@ -267,12 +266,12 @@ object RawTableRenderer extends TableRenderer {
               case "true"  => TableUpdate.SetFilter(column.id, FilterState.BooleanValue(Some(true)))
               case "false" => TableUpdate.SetFilter(column.id, FilterState.BooleanValue(Some(false)))
               case _       => TableUpdate.ClearFilter(column.id)
-            }
-          )
+            },
+          ),
         )(
           option(value := "", selected(boolValue.isEmpty))("All"),
           option(value := "true", selected(boolValue.contains(true)))("Yes"),
-          option(value := "false", selected(boolValue.contains(false)))("No")
+          option(value := "false", selected(boolValue.contains(false)))("No"),
         )
     }
   }

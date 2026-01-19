@@ -1,11 +1,10 @@
 package forms4s.datatable
 
-/**
- * Pagination state.
- */
+/** Pagination state.
+  */
 case class PageState(
     currentPage: Int,
-    pageSize: Int
+    pageSize: Int,
 ) {
   def offset: Int = currentPage * pageSize
 
@@ -14,26 +13,25 @@ case class PageState(
     else math.ceil(totalItems.toDouble / pageSize).toInt
 }
 
-/**
- * Sort state.
- */
+/** Sort state.
+  */
 case class SortState(
     columnId: String,
-    direction: SortDirection
+    direction: SortDirection,
 )
 
-/**
- * Complete runtime state for a datatable.
- *
- * @tparam T The row type
- */
+/** Complete runtime state for a datatable.
+  *
+  * @tparam T
+  *   The row type
+  */
 case class TableState[T](
     definition: TableDef[T],
     data: Vector[T],
     filters: Map[String, FilterState] = Map.empty,
     sort: Option[SortState] = None,
     page: PageState,
-    selection: Set[Int] = Set.empty
+    selection: Set[Int] = Set.empty,
 ) {
 
   /** Apply all filters to the data */
@@ -43,12 +41,12 @@ case class TableState[T](
       data.filter { row =>
         definition.columns.forall { col =>
           col.filter match {
-            case None => true
+            case None         => true
             case Some(filter) =>
               filters.get(col.id) match {
-                case None                        => true
+                case None                         => true
                 case Some(state) if state.isEmpty => true
-                case Some(state) =>
+                case Some(state)                  =>
                   val value = col.extract(row)
                   filter.asInstanceOf[ColumnFilter[Any]].matches(value, state)
               }
@@ -60,15 +58,15 @@ case class TableState[T](
   /** Apply sorting to filtered data */
   def sortedData: Vector[T] = {
     sort match {
-      case None => filteredData
+      case None                                 => filteredData
       case Some(SortState(columnId, direction)) =>
         definition.columns.find(_.id == columnId) match {
-          case None => filteredData
+          case None      => filteredData
           case Some(col) =>
             val sorted = col.sortBy match {
               case Some(ord) =>
                 filteredData.sortBy(row => col.extract(row))(using ord.asInstanceOf[Ordering[Any]])
-              case None =>
+              case None      =>
                 filteredData.sortBy(row => col.render(col.extract(row)))
             }
             direction match {
@@ -121,7 +119,7 @@ case class TableState[T](
       sort match {
         case Some(SortState(`columnId`, dir)) =>
           copy(sort = Some(SortState(columnId, dir.toggle)))
-        case _ =>
+        case _                                =>
           copy(sort = Some(SortState(columnId, SortDirection.Asc)))
       }
 
@@ -171,7 +169,7 @@ case class TableState[T](
       copy(
         data = newData.asInstanceOf[Vector[T]],
         selection = Set.empty,
-        page = page.copy(currentPage = 0)
+        page = page.copy(currentPage = 0),
       )
 
     // Export (no state change, handled by parent)
@@ -192,7 +190,7 @@ object TableState {
     TableState(
       definition = definition,
       data = data.toVector,
-      page = PageState(0, definition.pageSize)
+      page = PageState(0, definition.pageSize),
     )
 
   /** Create empty state from definition */

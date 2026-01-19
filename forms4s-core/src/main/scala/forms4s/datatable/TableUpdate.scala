@@ -1,8 +1,7 @@
 package forms4s.datatable
 
-/**
- * Update messages for table state transitions.
- */
+/** Update messages for table state transitions.
+  */
 enum TableUpdate {
   // Filtering
   case SetFilter(columnId: String, state: FilterState)

@@ -5,9 +5,8 @@ import scala.quoted.*
 
 object TableDerivationMacros {
 
-  /**
-   * Extract field name from a selector lambda like `_.fieldName`
-   */
+  /** Extract field name from a selector lambda like `_.fieldName`
+    */
   def extractFieldNameImpl[T: Type, V: Type](selector: Expr[T => V])(using Quotes): Expr[String] = {
     import quotes.reflect.*
 
@@ -23,33 +22,32 @@ object TableDerivationMacros {
       // Pattern: Inlined(_, _, Block(List(DefDef(_, _, _, Some(body))), _))
       case Inlined(_, _, Block(List(DefDef(_, _, _, Some(body))), _)) =>
         extractFromTerm(body).getOrElse(
-          report.errorAndAbort(s"Could not extract field name from body: ${body.show}")
+          report.errorAndAbort(s"Could not extract field name from body: ${body.show}"),
         )
       // Pattern: Block(List(DefDef(_, _, _, Some(body))), _)
-      case Block(List(DefDef(_, _, _, Some(body))), _) =>
+      case Block(List(DefDef(_, _, _, Some(body))), _)                =>
         extractFromTerm(body).getOrElse(
-          report.errorAndAbort(s"Could not extract field name from body: ${body.show}")
+          report.errorAndAbort(s"Could not extract field name from body: ${body.show}"),
         )
       // Pattern: Inlined wrapping something else
-      case Inlined(_, _, inner) =>
+      case Inlined(_, _, inner)                                       =>
         extract(inner)
       // Direct lambda
-      case Lambda(_, body) =>
+      case Lambda(_, body)                                            =>
         extractFromTerm(body).getOrElse(
-          report.errorAndAbort(s"Could not extract field name from lambda body: ${body.show}")
+          report.errorAndAbort(s"Could not extract field name from lambda body: ${body.show}"),
         )
-      case other =>
+      case other                                                      =>
         report.errorAndAbort(
-          s"Expected a lambda like `_.fieldName`, got: ${other.show}"
+          s"Expected a lambda like `_.fieldName`, got: ${other.show}",
         )
     }
 
     Expr(extract(selector.asTerm))
   }
 
-  /**
-   * Derive columns for all fields of a case class.
-   */
+  /** Derive columns for all fields of a case class.
+    */
   def deriveColumnsImpl[T: Type](using Quotes): Expr[List[Column[T, ?]]] = {
     import quotes.reflect.*
 
@@ -63,7 +61,7 @@ object TableDerivationMacros {
     val fields = sym.caseFields
 
     val columns: List[Expr[Column[T, ?]]] = fields.map { field =>
-      val fieldName = field.name
+      val fieldName  = field.name
       val fieldLabel = camelToTitle(fieldName)
 
       field.tree match {
@@ -75,7 +73,7 @@ object TableDerivationMacros {
                 Column[T, ft](
                   id = ${ Expr(fieldName) },
                   label = ${ Expr(fieldLabel) },
-                  extract = (t: T) => ${ Select.unique('t.asTerm, fieldName).asExprOf[ft] }
+                  extract = (t: T) => ${ Select.unique('t.asTerm, fieldName).asExprOf[ft] },
                 )
               }
           }

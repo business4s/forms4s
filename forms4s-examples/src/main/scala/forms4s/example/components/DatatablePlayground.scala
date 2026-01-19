@@ -19,7 +19,7 @@ case class Employee(
     department: String,
     salary: Double,
     hireDate: LocalDate,
-    active: Boolean
+    active: Boolean,
 )
 
 enum DatatableMsg {
@@ -29,7 +29,7 @@ enum DatatableMsg {
 
 case class DatatablePlayground(
     tableState: TableState[Employee],
-    framework: CssFramework
+    framework: CssFramework,
 ) {
 
   private val renderer: TableRenderer = framework match {
@@ -48,13 +48,13 @@ case class DatatablePlayground(
 
   def update: DatatableMsg => (DatatablePlayground, Cmd[IO, DatatableMsg]) = {
     case DatatableMsg.TableMsg(TableUpdate.ExportCSV) =>
-      val csv = TableExport.toCSV(tableState)
+      val csv  = TableExport.toCSV(tableState)
       // Trigger browser download
       val blob = new dom.Blob(
         js.Array(csv),
-        new dom.BlobPropertyBag { `type` = "text/csv;charset=utf-8" }
+        new dom.BlobPropertyBag { `type` = "text/csv;charset=utf-8" },
       )
-      val url = dom.URL.createObjectURL(blob)
+      val url  = dom.URL.createObjectURL(blob)
       val link = dom.document.createElement("a").asInstanceOf[dom.HTMLAnchorElement]
       link.href = url
       link.setAttribute("download", "export.csv")
@@ -72,7 +72,7 @@ case class DatatablePlayground(
   def render: Html[DatatableMsg] = {
     div(className := "container")(
       div(className := "notification is-info is-light")(
-        "Interactive datatable with filtering, sorting, and pagination. Try clicking column headers to sort, or use the filters."
+        "Interactive datatable with filtering, sorting, and pagination. Try clicking column headers to sort, or use the filters.",
       ),
       div(className := "columns")(
         div(className := "column is-full")(
@@ -80,38 +80,38 @@ case class DatatablePlayground(
             div(className := "level")(
               div(className := "level-left")(
                 div(className := "level-item")(
-                  h2(className := "title is-5")("Employee Directory")
-                )
+                  h2(className := "title is-5")("Employee Directory"),
+                ),
               ),
               div(className := "level-right")(
                 div(className := "level-item")(
                   Html.div(`class` := "select is-small")(
                     Html.select(
-                      id := "css-framework-datatable",
+                      id   := "css-framework-datatable",
                       name := "css-framework-datatable",
-                      onChange(value => DatatableMsg.FrameworkSelected(CssFramework.valueOf(value)))
+                      onChange(value => DatatableMsg.FrameworkSelected(CssFramework.valueOf(value))),
                     )(
                       Html.option(value := CssFramework.Raw.toString, selected := (framework == CssFramework.Raw))("Raw"),
                       Html.option(value := CssFramework.Pico.toString, selected := (framework == CssFramework.Pico))("Pico"),
                       Html.option(value := CssFramework.Bulma.toString, selected := (framework == CssFramework.Bulma))("Bulma"),
                       Html.option(
-                        value := CssFramework.Bootstrap.toString,
-                        selected := (framework == CssFramework.Bootstrap)
-                      )("Bootstrap")
-                    )
-                  )
-                )
-              )
+                        value    := CssFramework.Bootstrap.toString,
+                        selected := (framework == CssFramework.Bootstrap),
+                      )("Bootstrap"),
+                    ),
+                  ),
+                ),
+              ),
             ),
             hr(),
             tyrian.Tag(
               "css-separator",
               List(Attribute("renderer", rendererLabel)),
-              List(renderer.renderTable(tableState).map(DatatableMsg.TableMsg.apply))
-            )
-          )
-        )
-      )
+              List(renderer.renderTable(tableState).map(DatatableMsg.TableMsg.apply)),
+            ),
+          ),
+        ),
+      ),
     )
   }
 }
@@ -144,7 +144,7 @@ object DatatablePlayground {
     Employee(22, "Victor Young", "victor@company.com", "Sales", 71000, LocalDate.of(2021, 6, 18), true),
     Employee(23, "Wendy King", "wendy@company.com", "HR", 69000, LocalDate.of(2020, 4, 2), false),
     Employee(24, "Xavier Scott", "xavier@company.com", "Engineering", 99000, LocalDate.of(2019, 1, 15), true),
-    Employee(25, "Yara Green", "yara@company.com", "Marketing", 76000, LocalDate.of(2018, 12, 8), true)
+    Employee(25, "Yara Green", "yara@company.com", "Marketing", 76000, LocalDate.of(2018, 12, 8), true),
   )
 
   // Table definition using derivation
@@ -156,11 +156,11 @@ object DatatablePlayground {
     .modify(_.salary)(
       _.withFilter(ColumnFilter.numberRange(s => Some(s)))
         .withRender(s => f"$$$s%,.0f")
-        .withSort(Ordering.Double.TotalOrdering)
+        .withSort(Ordering.Double.TotalOrdering),
     )
     .modify(_.hireDate)(
       _.withFilter(ColumnFilter.dateRange(d => Some(d)))
-        .withRender(_.toString)
+        .withRender(_.toString),
     )
     .modify(_.active)(_.withFilter(ColumnFilter.boolean(identity)).withRender(b => if (b) "Yes" else "No"))
     .rename(_.hireDate, "Hire Date")
@@ -171,7 +171,7 @@ object DatatablePlayground {
   def empty(): DatatablePlayground = {
     DatatablePlayground(
       tableState = TableState(tableDef, employees),
-      framework = CssFramework.Bulma
+      framework = CssFramework.Bulma,
     )
   }
 }

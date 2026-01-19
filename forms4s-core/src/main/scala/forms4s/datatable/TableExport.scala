@@ -1,26 +1,28 @@
 package forms4s.datatable
 
-/**
- * Export functionality for tables.
- */
+/** Export functionality for tables.
+  */
 object TableExport {
 
-  /**
-   * Export table data to CSV format.
-   *
-   * @param state          The table state to export
-   * @param includeHeaders Whether to include column headers
-   * @param exportFiltered Whether to export only filtered data or all data
-   * @param delimiter      CSV delimiter (default comma)
-   */
+  /** Export table data to CSV format.
+    *
+    * @param state
+    *   The table state to export
+    * @param includeHeaders
+    *   Whether to include column headers
+    * @param exportFiltered
+    *   Whether to export only filtered data or all data
+    * @param delimiter
+    *   CSV delimiter (default comma)
+    */
   def toCSV[T](
       state: TableState[T],
       includeHeaders: Boolean = true,
       exportFiltered: Boolean = true,
-      delimiter: String = ","
+      delimiter: String = ",",
   ): String = {
     val columns = state.definition.columns
-    val data = if (exportFiltered) state.filteredData else state.data
+    val data    = if (exportFiltered) state.filteredData else state.data
 
     val sb = new StringBuilder
 
@@ -43,12 +45,11 @@ object TableExport {
     sb.toString
   }
 
-  /**
-   * Export selected rows only.
-   */
+  /** Export selected rows only.
+    */
   def selectedToCSV[T](state: TableState[T], delimiter: String = ","): String = {
     val columns = state.definition.columns
-    val data = state.selectedItems
+    val data    = state.selectedItems
 
     val sb = new StringBuilder
     sb.append(columns.map(c => escapeCSV(c.label)).mkString(delimiter))

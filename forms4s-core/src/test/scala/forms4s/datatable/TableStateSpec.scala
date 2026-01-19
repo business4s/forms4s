@@ -21,7 +21,7 @@ class TableStateSpec extends AnyFreeSpec {
       Column[Person, Int]("age", "Age", _.age, _.toString).withFilter(ColumnFilter.numberRange(a => Some(a.toDouble))),
       Column[Person, Boolean]("active", "Active", _.active, b => if (b) "Yes" else "No").withFilter(ColumnFilter.boolean(identity)),
     ),
-    pageSize = 2
+    pageSize = 2,
   )
 
   def initialState: TableState[Person] = TableState(tableDef, testData)
@@ -40,55 +40,67 @@ class TableStateSpec extends AnyFreeSpec {
 
       "number range filter - min only" in {
         val state = initialState.update(TableUpdate.SetFilter("age", FilterState.NumberRangeValue(Some(28), None)))
-        assert(state.filteredData == Vector(
-          Person("Alice", 30, true),
-          Person("Carol", 35, true),
-          Person("David", 28, true),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Alice", 30, true),
+            Person("Carol", 35, true),
+            Person("David", 28, true),
+          ),
+        )
       }
 
       "number range filter - max only" in {
         val state = initialState.update(TableUpdate.SetFilter("age", FilterState.NumberRangeValue(None, Some(25))))
-        assert(state.filteredData == Vector(
-          Person("Bob", 25, false),
-          Person("Eve", 22, false),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Bob", 25, false),
+            Person("Eve", 22, false),
+          ),
+        )
       }
 
       "number range filter - both min and max" in {
         val state = initialState.update(TableUpdate.SetFilter("age", FilterState.NumberRangeValue(Some(25), Some(30))))
-        assert(state.filteredData == Vector(
-          Person("Alice", 30, true),
-          Person("Bob", 25, false),
-          Person("David", 28, true),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Alice", 30, true),
+            Person("Bob", 25, false),
+            Person("David", 28, true),
+          ),
+        )
       }
 
       "boolean filter - true" in {
         val state = initialState.update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(true))))
-        assert(state.filteredData == Vector(
-          Person("Alice", 30, true),
-          Person("Carol", 35, true),
-          Person("David", 28, true),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Alice", 30, true),
+            Person("Carol", 35, true),
+            Person("David", 28, true),
+          ),
+        )
       }
 
       "boolean filter - false" in {
         val state = initialState.update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(false))))
-        assert(state.filteredData == Vector(
-          Person("Bob", 25, false),
-          Person("Eve", 22, false),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Bob", 25, false),
+            Person("Eve", 22, false),
+          ),
+        )
       }
 
       "multiple filters combine with AND" in {
         val state = initialState
           .update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(true))))
           .update(TableUpdate.SetFilter("age", FilterState.NumberRangeValue(Some(30), None)))
-        assert(state.filteredData == Vector(
-          Person("Alice", 30, true),
-          Person("Carol", 35, true),
-        ))
+        assert(
+          state.filteredData == Vector(
+            Person("Alice", 30, true),
+            Person("Carol", 35, true),
+          ),
+        )
       }
 
       "clear filter removes it" in {
@@ -207,7 +219,7 @@ class TableStateSpec extends AnyFreeSpec {
     }
 
     "selection" - {
-      val selectableDef = tableDef.withSelection(multi = true)
+      val selectableDef   = tableDef.withSelection(multi = true)
       def selectableState = TableState(selectableDef, testData)
 
       "select row" in {
@@ -252,7 +264,7 @@ class TableStateSpec extends AnyFreeSpec {
 
     "unique values" - {
       "returns distinct sorted values" in {
-        val data = Vector(
+        val data  = Vector(
           Person("Alice", 30, true),
           Person("Bob", 30, false),
           Person("Carol", 25, true),

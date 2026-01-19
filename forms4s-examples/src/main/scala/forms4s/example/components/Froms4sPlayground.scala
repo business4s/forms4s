@@ -144,8 +144,8 @@ case class Froms4sPlayground(
       val newJson  = FormStateToJson.extract(newState)
       copy(schemaView = SchemaView(schema), formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
     // These are handled at the top level, not in this component
-    case Msg.SwitchTab(_)   => (this, Cmd.None)
-    case Msg.DatatableMsg(_) => (this, Cmd.None)
+    case Msg.SwitchTab(_)                    => (this, Cmd.None)
+    case Msg.DatatableMsg(_)                 => (this, Cmd.None)
   }
 
   def render: Html[Msg] =

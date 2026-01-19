@@ -32,10 +32,10 @@ object FilterState {
     def isEmpty: Boolean = value.isEmpty
   }
 
-  def emptyText: TextValue = TextValue("")
-  def emptySelect: SelectValue = SelectValue(None)
+  def emptyText: TextValue               = TextValue("")
+  def emptySelect: SelectValue           = SelectValue(None)
   def emptyMultiSelect: MultiSelectValue = MultiSelectValue(Set.empty)
-  def emptyDateRange: DateRangeValue = DateRangeValue(None, None)
+  def emptyDateRange: DateRangeValue     = DateRangeValue(None, None)
   def emptyNumberRange: NumberRangeValue = NumberRangeValue(None, None)
-  def emptyBoolean: BooleanValue = BooleanValue(None)
+  def emptyBoolean: BooleanValue         = BooleanValue(None)
 }

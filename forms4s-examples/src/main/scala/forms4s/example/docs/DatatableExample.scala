@@ -11,7 +11,7 @@ case class Employee(
     department: String,
     salary: Double,
     hireDate: LocalDate,
-    active: Boolean
+    active: Boolean,
 )
 // end_model
 
@@ -22,12 +22,12 @@ val tableDef: TableDef[Employee] = TableDefBuilder[Employee]
   .modify(_.salary)(
     _.withFilter(ColumnFilter.numberRange(s => Some(s)))
       .withRender(s => f"$$$s%,.0f")
-      .withSort(Ordering.Double.TotalOrdering)
+      .withSort(Ordering.Double.TotalOrdering),
   )
   .modify(_.hireDate)(_.withFilter(ColumnFilter.dateRange(d => Some(d))))
   .modify(_.active)(
     _.withFilter(ColumnFilter.boolean(identity))
-      .withRender(b => if (b) "Yes" else "No")
+      .withRender(b => if (b) "Yes" else "No"),
   )
   .rename(_.hireDate, "Hire Date")
   .build("employees")

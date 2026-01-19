@@ -4,9 +4,8 @@ import forms4s.datatable.*
 import tyrian.Html
 import tyrian.Html.*
 
-/**
- * Bootstrap 5 CSS framework styled table renderer.
- */
+/** Bootstrap 5 CSS framework styled table renderer.
+  */
 object BootstrapTableRenderer extends TableRenderer {
 
   override def renderTable[T](state: TableState[T]): Html[TableUpdate] = {
@@ -18,19 +17,19 @@ object BootstrapTableRenderer extends TableRenderer {
           div(className := "col-auto")(
             button(
               className := "btn btn-primary btn-sm",
-              onClick(TableUpdate.ExportCSV)
-            )("Export CSV")
-          )
+              onClick(TableUpdate.ExportCSV),
+            )("Export CSV"),
+          ),
         ),
         renderFilters(state),
         div(className := "table-responsive")(
           Html.table(className := "table table-striped table-hover")(
             renderHeader(state),
-            renderBody(state)
-          )
+            renderBody(state),
+          ),
         ),
-        renderPagination(state)
-      )
+        renderPagination(state),
+      ),
     )
   }
 
@@ -45,11 +44,11 @@ object BootstrapTableRenderer extends TableRenderer {
               val currentState = state.filters.getOrElse(col.id, filter.emptyState)
               div(className := "col-auto")(
                 label(className := "form-label small")(col.label),
-                renderFilterInput(state, col.asInstanceOf[Column[T, Any]], filter.asInstanceOf[ColumnFilter[Any]], currentState)
+                renderFilterInput(state, col.asInstanceOf[Column[T, Any]], filter.asInstanceOf[ColumnFilter[Any]], currentState),
               )
-            case None => div()()
+            case None         => div()()
           }
-        }
+        },
       )
   }
 
@@ -60,50 +59,52 @@ object BootstrapTableRenderer extends TableRenderer {
           val sortIndicator = state.sort match {
             case Some(SortState(colId, dir)) if colId == col.id =>
               if (dir == SortDirection.Asc) " ↑" else " ↓"
-            case _ => ""
+            case _                                              => ""
           }
 
           if (col.sortable)
             th(
               attribute("scope", "col"),
               onClick(TableUpdate.ToggleSort(col.id)),
-              styles("cursor" -> "pointer", "user-select" -> "none")
+              styles("cursor" -> "pointer", "user-select" -> "none"),
             )(col.label + sortIndicator)
           else
             th(attribute("scope", "col"))(col.label)
-        }
-      )
+        },
+      ),
     )
   }
 
   override def renderBody[T](state: TableState[T]): Html[TableUpdate] = {
     Html.tbody(
       if (state.displayData.isEmpty)
-        List(tr(
-          td(attribute("colspan", state.definition.columns.size.toString), className := "text-center text-muted")(
-            "No data available"
-          )
-        ))
+        List(
+          tr(
+            td(attribute("colspan", state.definition.columns.size.toString), className := "text-center text-muted")(
+              "No data available",
+            ),
+          ),
+        )
       else
         state.displayData.zipWithIndex.toList.map { case (row, idx) =>
-          val globalIdx = state.page.offset + idx
+          val globalIdx  = state.page.offset + idx
           val isSelected = state.selection.contains(globalIdx)
-          val rowAttrs = List(
+          val rowAttrs   = List(
             if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(globalIdx))) else None,
-            if (isSelected) Some(className := "table-active") else None
+            if (isSelected) Some(className := "table-active") else None,
           ).flatten
           tr(rowAttrs*)(
             state.definition.columns.map { col =>
               val value = col.extract(row)
               td(col.render(value))
-            }
+            },
           )
-        }
+        },
     )
   }
 
   override def renderPagination[T](state: TableState[T]): Html[TableUpdate] = {
-    val totalPages = state.totalPages
+    val totalPages  = state.totalPages
     val currentPage = state.page.currentPage
 
     Html.nav()(
@@ -112,8 +113,8 @@ object BootstrapTableRenderer extends TableRenderer {
           a(
             className := "page-link",
             onClick(TableUpdate.PrevPage),
-            attribute("href", "#")
-          )("Previous")
+            attribute("href", "#"),
+          )("Previous"),
         ) ::
           renderPaginationNumbers(currentPage, totalPages) :::
           List(
@@ -121,11 +122,11 @@ object BootstrapTableRenderer extends TableRenderer {
               a(
                 className := "page-link",
                 onClick(TableUpdate.NextPage),
-                attribute("href", "#")
-              )("Next")
-            )
-          )
-      )
+                attribute("href", "#"),
+              )("Next"),
+            ),
+          ),
+      ),
     )
   }
 
@@ -135,13 +136,13 @@ object BootstrapTableRenderer extends TableRenderer {
         a(
           className := "page-link",
           onClick(TableUpdate.SetPage(n)),
-          attribute("href", "#")
-        )((n + 1).toString)
+          attribute("href", "#"),
+        )((n + 1).toString),
       )
 
     def ellipsis: Html[TableUpdate] =
       Html.li(className := "page-item disabled")(
-        span(className := "page-link")("...")
+        span(className := "page-link")("..."),
       )
 
     if (total <= 7) {
@@ -153,7 +154,7 @@ object BootstrapTableRenderer extends TableRenderer {
       if (current > 2) pages += ellipsis
 
       val start = math.max(1, current - 1)
-      val end = math.min(total - 2, current + 1)
+      val end   = math.min(total - 2, current + 1)
       (start to end).foreach(n => pages += pageItem(n))
 
       if (current < total - 3) pages += ellipsis
@@ -169,30 +170,30 @@ object BootstrapTableRenderer extends TableRenderer {
       span(className := "input-group-text")("Show"),
       Html.select(
         className := "form-select form-select-sm",
-        onChange(v => TableUpdate.SetPageSize(v.toInt))
+        onChange(v => TableUpdate.SetPageSize(v.toInt)),
       )(
         state.definition.pageSizeOptions.map { size =>
           option(
             value := size.toString,
-            selected(state.page.pageSize == size)
+            selected(state.page.pageSize == size),
           )(size.toString)
-        }
+        },
       ),
-      span(className := "input-group-text")("entries")
+      span(className := "input-group-text")("entries"),
     )
   }
 
   override def renderInfo[T](state: TableState[T]): Html[TableUpdate] = {
-    val start = if (state.totalFilteredItems == 0) 0 else state.page.offset + 1
-    val end = math.min(state.page.offset + state.page.pageSize, state.totalFilteredItems)
-    val total = state.totalFilteredItems
+    val start    = if (state.totalFilteredItems == 0) 0 else state.page.offset + 1
+    val end      = math.min(state.page.offset + state.page.pageSize, state.totalFilteredItems)
+    val total    = state.totalFilteredItems
     val allTotal = state.data.size
 
     p(className := "text-muted small mb-0")(
       if (total == allTotal)
         s"Showing $start to $end of $total entries"
       else
-        s"Showing $start to $end of $total entries (filtered from $allTotal total)"
+        s"Showing $start to $end of $total entries (filtered from $allTotal total)",
     )
   }
 
@@ -200,20 +201,20 @@ object BootstrapTableRenderer extends TableRenderer {
       state: TableState[T],
       column: Column[T, V],
       filter: ColumnFilter[V],
-      currentState: FilterState
+      currentState: FilterState,
   ): Html[TableUpdate] = {
     filter.filterType match {
       case FilterType.Text =>
-        val textValue = currentState match {
+        val textValue   = currentState match {
           case FilterState.TextValue(v) => v
           case _                        => ""
         }
         input(
-          className := "form-control form-control-sm",
-          `type` := "text",
-          value := textValue,
+          className   := "form-control form-control-sm",
+          `type`      := "text",
+          value       := textValue,
           placeholder := "Search...",
-          onInput(v => TableUpdate.SetFilter(column.id, FilterState.TextValue(v)))
+          onInput(v => TableUpdate.SetFilter(column.id, FilterState.TextValue(v))),
         )
 
       case FilterType.Select =>
@@ -221,16 +222,16 @@ object BootstrapTableRenderer extends TableRenderer {
           case FilterState.SelectValue(v) => v.getOrElse("")
           case _                          => ""
         }
-        val options = state.uniqueValuesFor(column.id)
+        val options       = state.uniqueValuesFor(column.id)
         Html.select(
           className := "form-select form-select-sm",
           onChange(v =>
             if (v.isEmpty) TableUpdate.ClearFilter(column.id)
-            else TableUpdate.SetFilter(column.id, FilterState.SelectValue(Some(v)))
-          )
+            else TableUpdate.SetFilter(column.id, FilterState.SelectValue(Some(v))),
+          ),
         )(
           option(value := "")("All") ::
-            options.map(opt => option(value := opt, selected(selectedValue == opt))(opt))
+            options.map(opt => option(value := opt, selected(selectedValue == opt))(opt)),
         )
 
       case FilterType.MultiSelect =>
@@ -238,25 +239,25 @@ object BootstrapTableRenderer extends TableRenderer {
           case FilterState.MultiSelectValue(v) => v
           case _                               => Set.empty[String]
         }
-        val options = state.uniqueValuesFor(column.id)
+        val options        = state.uniqueValuesFor(column.id)
         div(
           options.map { opt =>
             div(className := "form-check form-check-inline")(
               input(
                 className := "form-check-input",
-                `type` := "checkbox",
-                id := s"${column.id}-$opt",
+                `type`    := "checkbox",
+                id        := s"${column.id}-$opt",
                 checked(selectedValues.contains(opt)),
                 onChange(_ =>
                   if (selectedValues.contains(opt))
                     TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues - opt))
                   else
-                    TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues + opt))
-                )
+                    TableUpdate.SetFilter(column.id, FilterState.MultiSelectValue(selectedValues + opt)),
+                ),
               ),
-              label(className := "form-check-label", htmlFor := s"${column.id}-$opt")(opt)
+              label(className := "form-check-label", htmlFor := s"${column.id}-$opt")(opt),
             )
-          }
+          },
         )
 
       case FilterType.NumberRange =>
@@ -266,30 +267,30 @@ object BootstrapTableRenderer extends TableRenderer {
         }
         div(className := "input-group input-group-sm")(
           input(
-            className := "form-control",
-            `type` := "number",
+            className   := "form-control",
+            `type`      := "number",
             placeholder := "Min",
-            value := minVal.map(_.toString).getOrElse(""),
+            value       := minVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
-                FilterState.NumberRangeValue(v.toDoubleOption, maxVal)
-              )
-            )
+                FilterState.NumberRangeValue(v.toDoubleOption, maxVal),
+              ),
+            ),
           ),
           span(className := "input-group-text")("-"),
           input(
-            className := "form-control",
-            `type` := "number",
+            className   := "form-control",
+            `type`      := "number",
             placeholder := "Max",
-            value := maxVal.map(_.toString).getOrElse(""),
+            value       := maxVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
-                FilterState.NumberRangeValue(minVal, v.toDoubleOption)
-              )
-            )
-          )
+                FilterState.NumberRangeValue(minVal, v.toDoubleOption),
+              ),
+            ),
+          ),
         )
 
       case FilterType.DateRange =>
@@ -300,33 +301,33 @@ object BootstrapTableRenderer extends TableRenderer {
         div(className := "input-group input-group-sm")(
           input(
             className := "form-control",
-            `type` := "date",
-            value := fromVal.map(_.toString).getOrElse(""),
+            `type`    := "date",
+            value     := fromVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
                 FilterState.DateRangeValue(
                   if (v.isEmpty) None else Some(java.time.LocalDate.parse(v)),
-                  toVal
-                )
-              )
-            )
+                  toVal,
+                ),
+              ),
+            ),
           ),
           span(className := "input-group-text")("to"),
           input(
             className := "form-control",
-            `type` := "date",
-            value := toVal.map(_.toString).getOrElse(""),
+            `type`    := "date",
+            value     := toVal.map(_.toString).getOrElse(""),
             onInput(v =>
               TableUpdate.SetFilter(
                 column.id,
                 FilterState.DateRangeValue(
                   fromVal,
-                  if (v.isEmpty) None else Some(java.time.LocalDate.parse(v))
-                )
-              )
-            )
-          )
+                  if (v.isEmpty) None else Some(java.time.LocalDate.parse(v)),
+                ),
+              ),
+            ),
+          ),
         )
 
       case FilterType.Boolean =>
@@ -342,12 +343,12 @@ object BootstrapTableRenderer extends TableRenderer {
               case "true"  => TableUpdate.SetFilter(column.id, FilterState.BooleanValue(Some(true)))
               case "false" => TableUpdate.SetFilter(column.id, FilterState.BooleanValue(Some(false)))
               case _       => TableUpdate.ClearFilter(column.id)
-            }
-          )
+            },
+          ),
         )(
           option(value := "", selected(boolValue.isEmpty))("All"),
           option(value := "true", selected(boolValue.contains(true)))("Yes"),
-          option(value := "false", selected(boolValue.contains(false)))("No")
+          option(value := "false", selected(boolValue.contains(false)))("No"),
         )
     }
   }
