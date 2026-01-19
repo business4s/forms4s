@@ -145,6 +145,7 @@ case class Froms4sPlayground(
       copy(schemaView = SchemaView(schema), formView = formView.copy(form = newState), jsonView = JsonView(newJson)) -> Cmd.None
     // These are handled at the top level, not in this component
     case Msg.SwitchTab(_)                    => (this, Cmd.None)
+    case Msg.SetTabFromUrl(_)                => (this, Cmd.None)
     case Msg.DatatableMsg(_)                 => (this, Cmd.None)
   }
 
