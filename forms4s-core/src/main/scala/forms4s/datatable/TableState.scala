@@ -34,40 +34,46 @@ case class TableState[T](
     selection: Set[Int] = Set.empty,
 ) {
 
-  /** Apply all filters to the data */
-  def filteredData: Vector[T] = {
-    if (filters.isEmpty || filters.values.forall(_.isEmpty)) data
-    else
-      data.filter { row =>
-        definition.columns.forall { col =>
-          col.filter match {
-            case None         => true
-            case Some(filter) =>
-              filters.get(col.id) match {
-                case None                         => true
-                case Some(state) if state.isEmpty => true
-                case Some(state)                  =>
-                  val value = col.extract(row)
-                  filter.asInstanceOf[ColumnFilter[Any]].matches(value, state)
-              }
+  private def rowPassesFilters(row: T): Boolean = {
+    definition.columns.forall { col =>
+      col.filter match {
+        case None         => true
+        case Some(filter) =>
+          filters.get(col.id) match {
+            case None                         => true
+            case Some(state) if state.isEmpty => true
+            case Some(state)                  =>
+              val value = col.extract(row)
+              filter.asInstanceOf[ColumnFilter[Any]].matches(value, state)
           }
-        }
       }
+    }
   }
 
-  /** Apply sorting to filtered data */
-  def sortedData: Vector[T] = {
+  /** Apply all filters to the data, preserving original indices */
+  def filteredDataWithIndices: Vector[(T, Int)] = {
+    if (filters.isEmpty || filters.values.forall(_.isEmpty))
+      data.zipWithIndex
+    else
+      data.zipWithIndex.filter { case (row, _) => rowPassesFilters(row) }
+  }
+
+  /** Apply all filters to the data */
+  def filteredData: Vector[T] = filteredDataWithIndices.map(_._1)
+
+  /** Apply sorting to filtered data, preserving original indices */
+  def sortedDataWithIndices: Vector[(T, Int)] = {
     sort match {
-      case None                                 => filteredData
+      case None                                 => filteredDataWithIndices
       case Some(SortState(columnId, direction)) =>
         definition.columns.find(_.id == columnId) match {
-          case None      => filteredData
+          case None      => filteredDataWithIndices
           case Some(col) =>
             val sorted = col.sortBy match {
               case Some(ord) =>
-                filteredData.sortBy(row => col.extract(row))(using ord.asInstanceOf[Ordering[Any]])
+                filteredDataWithIndices.sortBy { case (row, _) => col.extract(row) }(using ord.asInstanceOf[Ordering[Any]])
               case None      =>
-                filteredData.sortBy(row => col.render(col.extract(row)))
+                filteredDataWithIndices.sortBy { case (row, _) => col.render(col.extract(row)) }
             }
             direction match {
               case SortDirection.Asc  => sorted
@@ -77,9 +83,18 @@ case class TableState[T](
     }
   }
 
+  /** Apply sorting to filtered data */
+  def sortedData: Vector[T] = sortedDataWithIndices.map(_._1)
+
+  /** Apply pagination to sorted data, preserving original indices */
+  def pagedDataWithIndices: Vector[(T, Int)] =
+    sortedDataWithIndices.slice(page.offset, page.offset + page.pageSize)
+
   /** Apply pagination to sorted data */
-  def pagedData: Vector[T] =
-    sortedData.slice(page.offset, page.offset + page.pageSize)
+  def pagedData: Vector[T] = pagedDataWithIndices.map(_._1)
+
+  /** Data to display with original indices (filtered, sorted, paged) */
+  def displayDataWithIndices: Vector[(T, Int)] = pagedDataWithIndices
 
   /** Data to display (filtered, sorted, paged) */
   def displayData: Vector[T] = pagedData
@@ -91,26 +106,7 @@ case class TableState[T](
   def totalPages: Int = page.totalPages(totalFilteredItems)
 
   /** Global indices (into original data) of rows that pass current filters */
-  def filteredIndices: Set[Int] = {
-    if (filters.isEmpty || filters.values.forall(_.isEmpty)) data.indices.toSet
-    else
-      data.zipWithIndex.collect {
-        case (row, idx) if definition.columns.forall { col =>
-              col.filter match {
-                case None         => true
-                case Some(filter) =>
-                  filters.get(col.id) match {
-                    case None                         => true
-                    case Some(state) if state.isEmpty => true
-                    case Some(state)                  =>
-                      val value = col.extract(row)
-                      filter.asInstanceOf[ColumnFilter[Any]].matches(value, state)
-                  }
-              }
-            } =>
-          idx
-      }.toSet
-  }
+  def filteredIndices: Set[Int] = filteredDataWithIndices.map(_._2).toSet
 
   /** Get unique values for a select filter column */
   def uniqueValuesFor(columnId: String): List[String] = {

@@ -86,7 +86,7 @@ object BulmaTableRenderer extends TableRenderer {
 
   override def renderBody[T](state: TableState[T]): Html[TableUpdate] = {
     Html.tbody(
-      if (state.displayData.isEmpty)
+      if (state.displayDataWithIndices.isEmpty)
         List(
           tr(
             td(attribute("colspan", state.definition.columns.size.toString))(
@@ -97,11 +97,10 @@ object BulmaTableRenderer extends TableRenderer {
           ),
         )
       else
-        state.displayData.zipWithIndex.toList.map { case (row, idx) =>
-          val globalIdx  = state.page.offset + idx
-          val isSelected = state.selection.contains(globalIdx)
+        state.displayDataWithIndices.toList.map { case (row, originalIdx) =>
+          val isSelected = state.selection.contains(originalIdx)
           val rowAttrs   = List(
-            if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(globalIdx))) else None,
+            if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(originalIdx))) else None,
             if (isSelected) Some(className := "is-selected") else None,
           ).flatten
           tr(rowAttrs*)(

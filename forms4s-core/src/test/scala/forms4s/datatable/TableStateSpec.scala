@@ -260,6 +260,46 @@ class TableStateSpec extends AnyFreeSpec {
           .update(TableUpdate.SelectRow(3))
         assert(state.selectedItems == Vector(Person("Bob", 25, false), Person("David", 28, true)))
       }
+
+      "select all with filter uses original data indices" in {
+        // Filter to only active=true: Alice(0), Carol(2), David(3)
+        val state = selectableState
+          .update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(true))))
+          .update(TableUpdate.SelectAll)
+        // Should select original indices 0, 2, 3 - NOT 0, 1, 2
+        assert(state.selection == Set(0, 2, 3))
+        assert(state.selectedItems == Vector(Person("Alice", 30, true), Person("Carol", 35, true), Person("David", 28, true)))
+      }
+
+      "selectedItems returns correct data after filter and select all" in {
+        // Filter to only active=false: Bob(1), Eve(4)
+        val state = selectableState
+          .update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(false))))
+          .update(TableUpdate.SelectAll)
+        assert(state.selection == Set(1, 4))
+        assert(state.selectedItems == Vector(Person("Bob", 25, false), Person("Eve", 22, false)))
+      }
+
+      "displayDataWithIndices preserves original indices through sort" in {
+        // Sort by name descending: Eve(4), David(3), Carol(2), Bob(1), Alice(0)
+        val state = selectableState.update(TableUpdate.SetSort("name", SortDirection.Desc))
+        val displayed = state.displayDataWithIndices
+        // First page (size 2): Eve(4), David(3)
+        assert(displayed == Vector((Person("Eve", 22, false), 4), (Person("David", 28, true), 3)))
+      }
+
+      "selection persists correctly after sorting" in {
+        // Select Alice (original index 0), then sort descending
+        val state = selectableState
+          .update(TableUpdate.SelectRow(0))
+          .update(TableUpdate.SetSort("name", SortDirection.Desc))
+        // Alice is still selected by her original index 0
+        assert(state.selection == Set(0))
+        // Alice should still be in selectedItems
+        assert(state.selectedItems == Vector(Person("Alice", 30, true)))
+        // displayDataWithIndices on page 0 shows Eve(4), David(3) - neither selected
+        assert(state.displayDataWithIndices.map(_._2) == Vector(4, 3))
+      }
     }
 
     "unique values" - {

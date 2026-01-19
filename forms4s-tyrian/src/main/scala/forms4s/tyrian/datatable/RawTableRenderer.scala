@@ -62,11 +62,10 @@ object RawTableRenderer extends TableRenderer {
 
   override def renderBody[T](state: TableState[T]): Html[TableUpdate] = {
     Html.tbody(
-      state.displayData.zipWithIndex.toList.map { case (row, idx) =>
-        val globalIdx  = state.page.offset + idx
-        val isSelected = state.selection.contains(globalIdx)
+      state.displayDataWithIndices.toList.map { case (row, originalIdx) =>
+        val isSelected = state.selection.contains(originalIdx)
         val rowAttrs   = List(
-          if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(globalIdx))) else None,
+          if (state.definition.selectable) Some(onClick(TableUpdate.ToggleRowSelection(originalIdx))) else None,
           if (isSelected) Some(styles("background-color" -> "#e0e0e0")) else None,
         ).flatten
         tr(rowAttrs*)(
