@@ -282,7 +282,7 @@ class TableStateSpec extends AnyFreeSpec {
 
       "displayDataWithIndices preserves original indices through sort" in {
         // Sort by name descending: Eve(4), David(3), Carol(2), Bob(1), Alice(0)
-        val state = selectableState.update(TableUpdate.SetSort("name", SortDirection.Desc))
+        val state     = selectableState.update(TableUpdate.SetSort("name", SortDirection.Desc))
         val displayed = state.displayDataWithIndices
         // First page (size 2): Eve(4), David(3)
         assert(displayed == Vector((Person("Eve", 22, false), 4), (Person("David", 28, true), 3)))
