@@ -9,8 +9,43 @@ import tyrian.Html.*
 object BootstrapTableRenderer extends TableRenderer {
 
   override def renderTable[T](state: TableState[T]): Html[TableUpdate] = {
-    div(className := "card")(
+    val isLoading = state.loading == LoadingState.Loading
+
+    val errorAlert = state.loading match {
+      case LoadingState.Failed(msg) =>
+        div(className := "alert alert-danger alert-dismissible fade show", attribute("role", "alert"))(
+          text(s"Error: $msg"),
+          button(`type` := "button", className := "btn-close", attribute("data-bs-dismiss", "alert"))(),
+        )
+      case _                        => div()()
+    }
+
+    val spinnerOverlay =
+      if (isLoading)
+        div(
+          styles(
+            "position"         -> "absolute",
+            "top"              -> "0",
+            "left"             -> "0",
+            "right"            -> "0",
+            "bottom"           -> "0",
+            "background-color" -> "rgba(255, 255, 255, 0.7)",
+            "display"          -> "flex",
+            "justify-content"  -> "center",
+            "align-items"      -> "center",
+            "z-index"          -> "10",
+          ),
+        )(
+          div(className := "spinner-border text-primary", attribute("role", "status"))(
+            span(className := "visually-hidden")("Loading..."),
+          ),
+        )
+      else div()()
+
+    div(className := "card", styles("position" -> "relative"))(
+      spinnerOverlay,
       div(className := "card-body")(
+        errorAlert,
         div(className := "row mb-3")(
           div(className := "col-auto")(renderInfo(state)),
           div(className := "col-auto ms-auto")(renderPageSizeSelect(state)),
@@ -18,7 +53,15 @@ object BootstrapTableRenderer extends TableRenderer {
             button(
               className := "btn btn-primary btn-sm",
               onClick(TableUpdate.ExportCSV),
-            )("Export CSV"),
+              disabled(isLoading),
+            )(
+              if (isLoading)
+                List(
+                  span(className := "spinner-border spinner-border-sm me-1", attribute("role", "status"))(),
+                  text("Export CSV"),
+                )
+              else List(text("Export CSV")),
+            ),
           ),
         ),
         renderFilters(state),

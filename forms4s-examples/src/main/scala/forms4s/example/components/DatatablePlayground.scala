@@ -9,6 +9,7 @@ import tyrian.Html.*
 import org.scalajs.dom
 
 import java.time.LocalDate
+import scala.concurrent.duration.DurationInt
 import scala.scalajs.js
 
 // Data model for the example
@@ -22,14 +23,23 @@ case class Employee(
     active: Boolean,
 )
 
+enum DataMode {
+  case Client
+  case Server
+}
+
 enum DatatableMsg {
   case TableMsg(msg: TableUpdate)
   case FrameworkSelected(framework: CssFramework)
+  case DataModeSelected(mode: DataMode)
+  case ServerDataReceived(data: Vector[Employee], totalCount: Int)
+  case ServerError(message: String)
 }
 
 case class DatatablePlayground(
     tableState: TableState[Employee],
     framework: CssFramework,
+    dataMode: DataMode,
 ) {
 
   private val renderer: TableRenderer = framework match {
@@ -63,10 +73,72 @@ case class DatatablePlayground(
       (this, Cmd.None)
 
     case DatatableMsg.TableMsg(msg) =>
-      (copy(tableState = tableState.update(msg)), Cmd.None)
+      dataMode match {
+        case DataMode.Client =>
+          (copy(tableState = tableState.update(msg)), Cmd.None)
+
+        case DataMode.Server =>
+          val newState = tableState.update(msg)
+          // Check if this update requires fetching from server
+          if (needsServerFetch(msg)) {
+            val loadingState = newState.setLoading
+            (copy(tableState = loadingState), fetchFromServer(loadingState))
+          } else {
+            (copy(tableState = newState), Cmd.None)
+          }
+      }
 
     case DatatableMsg.FrameworkSelected(newFramework) =>
       (copy(framework = newFramework), Cmd.None)
+
+    case DatatableMsg.DataModeSelected(mode) =>
+      mode match {
+        case DataMode.Client =>
+          // Switch to client mode with all data loaded locally
+          val clientState = TableState(DatatablePlayground.tableDef, DatatablePlayground.employees)
+          (copy(tableState = clientState, dataMode = DataMode.Client), Cmd.None)
+
+        case DataMode.Server =>
+          // Switch to server mode with empty data, trigger initial fetch
+          val serverState = TableState.serverMode(DatatablePlayground.tableDef).setLoading
+          (copy(tableState = serverState, dataMode = DataMode.Server), fetchFromServer(serverState))
+      }
+
+    case DatatableMsg.ServerDataReceived(data, totalCount) =>
+      (copy(tableState = tableState.setServerData(data, totalCount)), Cmd.None)
+
+    case DatatableMsg.ServerError(message) =>
+      (copy(tableState = tableState.setError(message)), Cmd.None)
+  }
+
+  // Determine if a TableUpdate requires a server fetch
+  private def needsServerFetch(msg: TableUpdate): Boolean = msg match {
+    case _: TableUpdate.SetFilter          => true
+    case _: TableUpdate.ClearFilter        => true
+    case TableUpdate.ClearAllFilters       => true
+    case _: TableUpdate.SetSort            => true
+    case _: TableUpdate.ToggleSort         => true
+    case TableUpdate.ClearSort             => true
+    case _: TableUpdate.SetPage            => true
+    case TableUpdate.NextPage              => true
+    case TableUpdate.PrevPage              => true
+    case TableUpdate.FirstPage             => true
+    case TableUpdate.LastPage              => true
+    case _: TableUpdate.SetPageSize        => true
+    case _: TableUpdate.SelectRow          => false
+    case _: TableUpdate.DeselectRow        => false
+    case _: TableUpdate.ToggleRowSelection => false
+    case TableUpdate.SelectAll             => false
+    case TableUpdate.DeselectAll           => false
+    case _: TableUpdate.SetData[?]         => false
+    case TableUpdate.ExportCSV             => false
+  }
+
+  // Simulate fetching data from server with a delay
+  private def fetchFromServer(state: TableState[Employee]): Cmd[IO, DatatableMsg] = {
+    Cmd.Run(
+      DatatablePlayground.simulateServerFetch(state),
+    )
   }
 
   def render: Html[DatatableMsg] = {
@@ -84,6 +156,27 @@ case class DatatablePlayground(
                 ),
               ),
               div(className := "level-right")(
+                // Data mode selector
+                div(className := "level-item")(
+                  div(className := "field has-addons")(
+                    div(className := "control")(
+                      span(className := "button is-static is-small")("Data Mode"),
+                    ),
+                    div(className := "control")(
+                      Html.div(`class` := "select is-small")(
+                        Html.select(
+                          id   := "data-mode",
+                          name := "data-mode",
+                          onChange(value => DatatableMsg.DataModeSelected(DataMode.valueOf(value))),
+                        )(
+                          Html.option(value := DataMode.Client.toString, selected := (dataMode == DataMode.Client))("Client"),
+                          Html.option(value := DataMode.Server.toString, selected := (dataMode == DataMode.Server))("Server"),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // CSS framework selector
                 div(className := "level-item")(
                   Html.div(`class` := "select is-small")(
                     Html.select(
@@ -103,6 +196,13 @@ case class DatatablePlayground(
                 ),
               ),
             ),
+            // Mode indicator
+            dataMode match {
+              case DataMode.Client =>
+                div(className := "tag is-light mb-3")("Client-side filtering/sorting/pagination")
+              case DataMode.Server =>
+                div(className := "tag is-warning mb-3")("Server-side filtering/sorting/pagination (simulated 300ms delay)")
+            },
             hr(),
             tyrian.Tag(
               "css-separator",
@@ -168,10 +268,88 @@ object DatatablePlayground {
     .withPageSize(10)
     .withSelection(multi = true)
 
+  /** Simulate server-side filtering, sorting, and pagination. This mimics what a real server would do - apply filters, sort, and return just the
+    * requested page.
+    */
+  def simulateServerFetch(state: TableState[Employee]): IO[DatatableMsg] = {
+    IO.sleep(300.millis) *> IO {
+      // Start with all employees
+      var filtered = employees
+
+      // Apply filters (server-side filtering simulation)
+      state.filters.foreach { case (columnId, filterState) =>
+        columnId match {
+          case "name"       =>
+            filterState match {
+              case FilterState.TextValue(v) if v.nonEmpty =>
+                filtered = filtered.filter(_.name.toLowerCase.contains(v.toLowerCase))
+              case _                                      => ()
+            }
+          case "email"      =>
+            filterState match {
+              case FilterState.TextValue(v) if v.nonEmpty =>
+                filtered = filtered.filter(_.email.toLowerCase.contains(v.toLowerCase))
+              case _                                      => ()
+            }
+          case "department" =>
+            filterState match {
+              case FilterState.SelectValue(Some(v)) =>
+                filtered = filtered.filter(_.department == v)
+              case _                                => ()
+            }
+          case "salary"     =>
+            filterState match {
+              case FilterState.NumberRangeValue(min, max) =>
+                min.foreach(m => filtered = filtered.filter(_.salary >= m))
+                max.foreach(m => filtered = filtered.filter(_.salary <= m))
+              case _                                      => ()
+            }
+          case "hireDate"   =>
+            filterState match {
+              case FilterState.DateRangeValue(from, to) =>
+                from.foreach(d => filtered = filtered.filter(!_.hireDate.isBefore(d)))
+                to.foreach(d => filtered = filtered.filter(!_.hireDate.isAfter(d)))
+              case _                                    => ()
+            }
+          case "active"     =>
+            filterState match {
+              case FilterState.BooleanValue(Some(v)) =>
+                filtered = filtered.filter(_.active == v)
+              case _                                 => ()
+            }
+          case _            => ()
+        }
+      }
+
+      val totalFiltered = filtered.size
+
+      // Apply sorting (server-side sorting simulation)
+      state.sort.foreach { case SortState(columnId, direction) =>
+        val sorted = columnId match {
+          case "name"       => filtered.sortBy(_.name)
+          case "email"      => filtered.sortBy(_.email)
+          case "department" => filtered.sortBy(_.department)
+          case "salary"     => filtered.sortBy(_.salary)
+          case "hireDate"   => filtered.sortBy(_.hireDate)
+          case "active"     => filtered.sortBy(_.active)
+          case _            => filtered
+        }
+        filtered = if (direction == SortDirection.Desc) sorted.reverse else sorted
+      }
+
+      // Apply pagination (server-side pagination simulation)
+      val offset   = state.page.currentPage * state.page.pageSize
+      val pageData = filtered.slice(offset, offset + state.page.pageSize)
+
+      DatatableMsg.ServerDataReceived(pageData, totalFiltered)
+    }.handleError(e => DatatableMsg.ServerError(e.getMessage))
+  }
+
   def empty(): DatatablePlayground = {
     DatatablePlayground(
       tableState = TableState(tableDef, employees),
       framework = CssFramework.Bulma,
+      dataMode = DataMode.Client,
     )
   }
 }

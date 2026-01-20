@@ -9,10 +9,27 @@ import tyrian.Html.*
 object RawTableRenderer extends TableRenderer {
 
   override def renderTable[T](state: TableState[T]): Html[TableUpdate] = {
-    div(
+    val isLoading = state.loading == LoadingState.Loading
+
+    val errorMessage = state.loading match {
+      case LoadingState.Failed(msg) =>
+        div(styles("color" -> "red", "padding" -> "10px", "margin-bottom" -> "10px", "border" -> "1px solid red"))(
+          s"Error: $msg",
+        )
+      case _                        => div()()
+    }
+
+    val loadingIndicator =
+      if (isLoading) span(styles("margin-left" -> "10px"))("Loading...") else span()()
+
+    val tableContent = div(
+      errorMessage,
       div(
         renderInfo(state),
-        button(onClick(TableUpdate.ExportCSV))("Export CSV"),
+        loadingIndicator,
+        button(onClick(TableUpdate.ExportCSV), disabled(isLoading))(
+          if (isLoading) "Exporting..." else "Export CSV",
+        ),
       ),
       renderFilters(state),
       Html.table(
@@ -21,6 +38,27 @@ object RawTableRenderer extends TableRenderer {
       ),
       renderPagination(state),
     )
+
+    if (isLoading)
+      div(styles("position" -> "relative"))(
+        tableContent,
+        div(
+          styles(
+            "position"         -> "absolute",
+            "top"              -> "0",
+            "left"             -> "0",
+            "right"            -> "0",
+            "bottom"           -> "0",
+            "background-color" -> "rgba(255, 255, 255, 0.7)",
+            "display"          -> "flex",
+            "justify-content"  -> "center",
+            "align-items"      -> "center",
+          ),
+        )(
+          span(styles("font-size" -> "24px"))("Loading..."),
+        ),
+      )
+    else tableContent
   }
 
   override def renderFilters[T](state: TableState[T]): Html[TableUpdate] = {

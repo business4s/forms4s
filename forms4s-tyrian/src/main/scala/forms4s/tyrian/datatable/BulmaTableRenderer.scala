@@ -9,7 +9,19 @@ import tyrian.Html.*
 object BulmaTableRenderer extends TableRenderer {
 
   override def renderTable[T](state: TableState[T]): Html[TableUpdate] = {
-    div(className := "box")(
+    val isLoading = state.loading == LoadingState.Loading
+
+    val errorNotification = state.loading match {
+      case LoadingState.Failed(msg) =>
+        div(className := "notification is-danger is-light mb-4")(
+          button(className := "delete")(),
+          text(s"Error: $msg"),
+        )
+      case _                        => div()()
+    }
+
+    val tableContent = div(className := "box")(
+      errorNotification,
       div(className := "level")(
         div(className := "level-left")(
           div(className := "level-item")(renderInfo(state)),
@@ -18,8 +30,9 @@ object BulmaTableRenderer extends TableRenderer {
           div(className := "level-item")(renderPageSizeSelect(state)),
           div(className := "level-item")(
             button(
-              className := "button is-small is-primary",
+              className := s"button is-small is-primary${if (isLoading) " is-loading" else ""}",
               onClick(TableUpdate.ExportCSV),
+              disabled(isLoading),
             )("Export CSV"),
           ),
         ),
@@ -33,6 +46,24 @@ object BulmaTableRenderer extends TableRenderer {
       ),
       renderPagination(state),
     )
+
+    if (isLoading)
+      div(styles("position" -> "relative"))(
+        tableContent,
+        div(
+          className := "is-overlay",
+          styles(
+            "background-color" -> "rgba(255, 255, 255, 0.7)",
+            "display"          -> "flex",
+            "justify-content"  -> "center",
+            "align-items"      -> "center",
+            "z-index"          -> "10",
+          ),
+        )(
+          div(className := "button is-loading is-large is-white")(),
+        ),
+      )
+    else tableContent
   }
 
   override def renderFilters[T](state: TableState[T]): Html[TableUpdate] = {

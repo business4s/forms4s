@@ -313,5 +313,105 @@ class TableStateSpec extends AnyFreeSpec {
         assert(state.uniqueValuesFor("age") == List("25", "30"))
       }
     }
+
+    "server mode" - {
+      def serverState = TableState.serverMode(tableDef)
+
+      "creates state with good deafaults" in {
+        assert(serverState.serverMode)
+        assert(serverState.data.isEmpty)
+        assert(serverState.loading == LoadingState.Idle)
+      }
+
+      "setLoading sets loading to Loading" in {
+        val state = serverState.setLoading
+        assert(state.loading == LoadingState.Loading)
+      }
+
+      "setError sets loading to Failed with message" in {
+        val state = serverState.setError("Network error")
+        assert(state.loading == LoadingState.Failed("Network error"))
+      }
+
+      "setServerData sets data, totalOverride, and resets loading" in {
+        val serverData = Vector(Person("Test", 99, true))
+        val state      = serverState.setLoading.setServerData(serverData, 100)
+
+        assert(state.data == serverData)
+        assert(state.totalOverride == Some(100))
+        assert(state.loading == LoadingState.Idle)
+        assert(state.selection.isEmpty)
+      }
+
+      "displayData returns data directly in server mode (no local filtering/paging)" in {
+        val serverData = Vector(
+          Person("Page1A", 1, true),
+          Person("Page1B", 2, true),
+        )
+        val state      = serverState.setServerData(serverData, 50)
+
+        // In server mode, displayData should return exactly what server sent
+        assert(state.displayData == serverData)
+      }
+
+      "totalFilteredItems uses totalOverride in server mode" in {
+        val serverData = Vector(Person("Test", 99, true))
+        val state      = serverState.setServerData(serverData, 150)
+
+        // data.size is 1, but totalOverride is 150
+        assert(state.totalFilteredItems == 150)
+      }
+
+      "totalPages calculated from totalOverride" in {
+        val serverData = Vector(Person("Test", 99, true))
+        val state      = serverState.setServerData(serverData, 25) // 25 items, page size 2 = 13 pages
+
+        assert(state.totalPages == 13)
+      }
+
+      "client mode still uses local data for totalFilteredItems" in {
+        val state = initialState
+        // No totalOverride, so uses filteredData.size
+        assert(state.totalFilteredItems == 5)
+        assert(state.totalOverride.isEmpty)
+      }
+
+      "update preserves serverMode flag" in {
+        val state = serverState
+          .update(TableUpdate.SetFilter("name", FilterState.TextValue("test")))
+          .update(TableUpdate.ToggleSort("age"))
+          .update(TableUpdate.SetPage(2))
+
+        assert(state.serverMode)
+      }
+
+      "filter/sort/page state tracked for query params in server mode" in {
+        val state = serverState
+          .update(TableUpdate.SetFilter("name", FilterState.TextValue("alice")))
+          .update(TableUpdate.SetSort("age", SortDirection.Desc))
+          .update(TableUpdate.SetPageSize(10))
+
+        assert(state.filters.contains("name"))
+        assert(state.sort == Some(SortState("age", SortDirection.Desc)))
+        assert(state.page.pageSize == 10)
+
+        // Can generate query params to send to server
+        val queryParams = state.toQueryParams
+        assert(queryParams.contains(("f.name", "alice")))
+        assert(queryParams.contains(("sort", "age:desc")))
+        assert(queryParams.contains(("size", "10")))
+      }
+
+      "displayDataWithIndices returns data.zipWithIndex in server mode" in {
+        val serverData = Vector(
+          Person("A", 1, true),
+          Person("B", 2, false),
+        )
+        val state      = serverState.setServerData(serverData, 10)
+
+        // In server mode, indices are 0-based for current page (not original data indices)
+        assert(state.displayDataWithIndices == Vector((Person("A", 1, true), 0), (Person("B", 2, false), 1)))
+      }
+    }
   }
 }
