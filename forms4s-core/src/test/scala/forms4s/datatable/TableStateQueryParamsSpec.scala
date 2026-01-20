@@ -4,14 +4,14 @@ import org.scalatest.freespec.AnyFreeSpec
 
 class TableStateQueryParamsSpec extends AnyFreeSpec {
 
-  case class Person(name: String, age: Int, department: String, active: Boolean)
+  case class Person(name: String, age: Int, department: String, active: Boolean, tags: Set[String])
 
   val testData: Vector[Person] = Vector(
-    Person("Alice", 30, "Engineering", true),
-    Person("Bob", 25, "Marketing", false),
-    Person("Carol", 35, "Engineering", true),
-    Person("David", 28, "Sales", true),
-    Person("Eve", 32, "Marketing", false),
+    Person("Alice", 30, "Engineering", true, Set("dev", "lead")),
+    Person("Bob", 25, "Marketing", false, Set("marketing")),
+    Person("Carol", 35, "Engineering", true, Set("dev")),
+    Person("David", 28, "Sales", true, Set("sales", "lead")),
+    Person("Eve", 32, "Marketing", false, Set("marketing", "design")),
   )
 
   val tableDef: TableDef[Person] = TableDef(
@@ -22,6 +22,7 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
       Column[Person, String]("department", "Department", _.department).withFilter(ColumnFilter.select),
       Column[Person, Boolean]("active", "Active", _.active, b => if (b) "Yes" else "No")
         .withFilter(ColumnFilter.boolean(identity)),
+      Column[Person, Set[String]]("tags", "Tags", _.tags, _.mkString(", ")).withFilter(ColumnFilter.multiSelect(_.mkString(", "))),
     ),
     pageSize = 2, // Small page size to allow pagination tests
   )
@@ -168,34 +169,24 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         assert(params.pageSize == Some(25))
       }
 
-      "parses text filter" in {
+      "parses simple filter value" in {
         val params = TableStateQueryParams.fromQueryString("f.name=alice")
-        assert(params.filters("name") == FilterState.TextValue("alice"))
+        assert(params.filters("name") == ParsedFilterValue.SimpleValues(Seq("alice")))
       }
 
-      "parses multi-select filter from repeated params" in {
+      "parses multi-value filter from repeated params" in {
         val params = TableStateQueryParams.fromQueryString("f.department=Engineering&f.department=Marketing")
-        assert(params.filters("department") == FilterState.MultiSelectValue(Set("Engineering", "Marketing")))
+        assert(params.filters("department") == ParsedFilterValue.SimpleValues(Seq("Engineering", "Marketing")))
       }
 
-      "parses boolean filter true" in {
-        val params = TableStateQueryParams.fromQueryString("f.active=true")
-        assert(params.filters("active") == FilterState.BooleanValue(Some(true)))
-      }
-
-      "parses boolean filter false" in {
-        val params = TableStateQueryParams.fromQueryString("f.active=false")
-        assert(params.filters("active") == FilterState.BooleanValue(Some(false)))
-      }
-
-      "parses number range filter" in {
+      "parses range filter" in {
         val params = TableStateQueryParams.fromQueryString("f.age.min=25&f.age.max=30")
-        assert(params.filters("age") == FilterState.NumberRangeValue(Some(25.0), Some(30.0)))
+        assert(params.filters("age") == ParsedFilterValue.RangeValue(Some("25"), Some("30")))
       }
 
       "handles URL-encoded values" in {
         val params = TableStateQueryParams.fromQueryString("f.name=John%20Doe")
-        assert(params.filters("name") == FilterState.TextValue("John Doe"))
+        assert(params.filters("name") == ParsedFilterValue.SimpleValues(Seq("John Doe")))
       }
 
       "handles invalid sort gracefully" in {
@@ -295,16 +286,47 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
           "f.department" -> "Sales",
         )
         val parsed = TableStateQueryParams.fromQueryParams(params)
-        assert(parsed.filters("department") == FilterState.MultiSelectValue(Set("Engineering", "Marketing", "Sales")))
+        assert(parsed.filters("department") == ParsedFilterValue.SimpleValues(Seq("Engineering", "Marketing", "Sales")))
       }
     }
 
     "loadFromQueryParams extension" - {
-      "applies params to state" in {
+      "applies params to state using column filter type" in {
         val params   = Seq("sort" -> "name:asc", "page" -> "1", "f.active" -> "true")
         val newState = initialState.loadFromQueryParams(params)
         assert(newState.sort == Some(SortState("name", SortDirection.Asc)))
         assert(newState.page.currentPage == 1)
+        // The BooleanValue is determined by the column's filter type in TableDef
+        assert(newState.filters("active") == FilterState.BooleanValue(Some(true)))
+      }
+    }
+
+    "filter type inference from TableDef" - {
+      "text filter roundtrip preserves type" in {
+        val state    = initialState.update(TableUpdate.SetFilter("name", FilterState.TextValue("alice")))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("name") == FilterState.TextValue("alice"))
+      }
+
+      "select filter roundtrip preserves type" in {
+        val state    = initialState.update(TableUpdate.SetFilter("department", FilterState.SelectValue(Some("Engineering"))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("department") == FilterState.SelectValue(Some("Engineering")))
+      }
+
+      "multi-select filter roundtrip preserves type" in {
+        val state    = initialState.update(TableUpdate.SetFilter("tags", FilterState.MultiSelectValue(Set("dev", "lead"))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("tags") == FilterState.MultiSelectValue(Set("dev", "lead")))
+      }
+
+      "boolean filter roundtrip preserves type" in {
+        val state    = initialState.update(TableUpdate.SetFilter("active", FilterState.BooleanValue(Some(true))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
         assert(newState.filters("active") == FilterState.BooleanValue(Some(true)))
       }
     }

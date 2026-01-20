@@ -67,3 +67,13 @@ Persist and share table state via URL query parameters:
 
 ```scala file=./main/scala/forms4s/example/docs/DatatableExample.scala start=start_query_params end=end_query_params
 ```
+
+Query parameter format:
+- `sort=column:asc` or `sort=column:desc` - Sorting
+- `page=0` - Current page (0-indexed)
+- `size=25` - Page size
+- `f.column=value` - Text, select, or boolean filter
+- `f.column=a&f.column=b` - Multi-select filter (repeated params)
+- `f.column.min=10&f.column.max=100` - Range filter (number or date)
+
+The correct FilterState type is determined automatically from the column's filter definition in the TableDef.

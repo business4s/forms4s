@@ -59,6 +59,7 @@ val queryParams: Seq[(String, String)] = tableState.toQueryParams
 // => Seq("sort" -> "name:asc", "page" -> "1", ...)
 
 // Load state from URL query string (e.g., from browser URL)
+// Filter types are inferred from the TableDef
 val restoredState: TableState[Employee] = tableState.loadFromQueryString(queryString)
 
 // Load state from params (e.g., from request object)
