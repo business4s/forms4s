@@ -198,6 +198,44 @@ case class TableState[T](
   def selectedItems: Vector[T] = {
     selection.toVector.sorted.flatMap(i => data.lift(i))
   }
+
+  /** Convert current state to URL query string.
+    *
+    * @return
+    *   URL query string (without leading '?')
+    */
+  def toQueryString: String = TableStateQueryParams.toQueryString(this)
+
+  /** Convert current state to query parameters.
+    *
+    * @return
+    *   Sequence of key-value pairs (supports repeated keys for multi-select)
+    */
+  def toQueryParams: Seq[(String, String)] = TableStateQueryParams.toQueryParams(this)
+
+  /** Load state from URL query string.
+    *
+    * @param queryString
+    *   URL query string (with or without leading '?')
+    * @return
+    *   Updated table state with applied parameters
+    */
+  def loadFromQueryString(queryString: String): TableState[T] = {
+    val params = TableStateQueryParams.fromQueryString(queryString)
+    TableStateQueryParams.applyToState(this, params)
+  }
+
+  /** Load state from query parameters.
+    *
+    * @param params
+    *   Sequence of key-value pairs
+    * @return
+    *   Updated table state with applied parameters
+    */
+  def loadFromQueryParams(params: Seq[(String, String)]): TableState[T] = {
+    val parsed = TableStateQueryParams.fromQueryParams(params)
+    TableStateQueryParams.applyToState(this, parsed)
+  }
 }
 
 object TableState {

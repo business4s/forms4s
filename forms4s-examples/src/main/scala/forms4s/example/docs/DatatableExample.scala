@@ -48,3 +48,19 @@ val tableState: TableState[Employee] = TableState(tableDef, employees)
 // start_export
 val csv: String = TableExport.toCSV(tableState)
 // end_export
+
+// start_query_params
+// Convert table state to URL query string
+val queryString: String = tableState.toQueryString
+// => "sort=name:asc&page=1&f.department=Engineering&f.salary.min=50000"
+
+// Convert to individual params (useful for framework URL builders)
+val queryParams: Seq[(String, String)] = tableState.toQueryParams
+// => Seq("sort" -> "name:asc", "page" -> "1", ...)
+
+// Load state from URL query string (e.g., from browser URL)
+val restoredState: TableState[Employee] = tableState.loadFromQueryString(queryString)
+
+// Load state from params (e.g., from request object)
+val restoredState2: TableState[Employee] = tableState.loadFromQueryParams(queryParams)
+// end_query_params
