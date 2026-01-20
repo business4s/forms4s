@@ -2,16 +2,18 @@ package forms4s.datatable
 
 import org.scalatest.freespec.AnyFreeSpec
 
+import java.time.LocalDate
+
 class TableStateQueryParamsSpec extends AnyFreeSpec {
 
-  case class Person(name: String, age: Int, department: String, active: Boolean, tags: Set[String])
+  case class Person(name: String, age: Int, department: String, active: Boolean, tags: Set[String], hireDate: LocalDate)
 
   val testData: Vector[Person] = Vector(
-    Person("Alice", 30, "Engineering", true, Set("dev", "lead")),
-    Person("Bob", 25, "Marketing", false, Set("marketing")),
-    Person("Carol", 35, "Engineering", true, Set("dev")),
-    Person("David", 28, "Sales", true, Set("sales", "lead")),
-    Person("Eve", 32, "Marketing", false, Set("marketing", "design")),
+    Person("Alice", 30, "Engineering", true, Set("dev", "lead"), LocalDate.of(2020, 3, 15)),
+    Person("Bob", 25, "Marketing", false, Set("marketing"), LocalDate.of(2019, 7, 22)),
+    Person("Carol", 35, "Engineering", true, Set("dev"), LocalDate.of(2018, 1, 10)),
+    Person("David", 28, "Sales", true, Set("sales", "lead"), LocalDate.of(2021, 5, 1)),
+    Person("Eve", 32, "Marketing", false, Set("marketing", "design"), LocalDate.of(2020, 11, 30)),
   )
 
   val tableDef: TableDef[Person] = TableDef(
@@ -23,6 +25,7 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
       Column[Person, Boolean]("active", "Active", _.active, b => if (b) "Yes" else "No")
         .withFilter(ColumnFilter.boolean(identity)),
       Column[Person, Set[String]]("tags", "Tags", _.tags, _.mkString(", ")).withFilter(ColumnFilter.multiSelect(_.mkString(", "))),
+      Column[Person, LocalDate]("hireDate", "Hire Date", _.hireDate, _.toString).withFilter(ColumnFilter.dateRange(d => Some(d))),
     ),
     pageSize = 2, // Small page size to allow pagination tests
   )
@@ -115,6 +118,25 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         assert(qs.contains("f.age.max=30"))
       }
 
+      "serializes date range filter - min only" in {
+        val state = initialState.update(TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(Some(LocalDate.of(2020, 1, 1)), None)))
+        assert(state.toQueryString == "f.hireDate.min=2020-01-01")
+      }
+
+      "serializes date range filter - max only" in {
+        val state = initialState.update(TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(None, Some(LocalDate.of(2021, 12, 31)))))
+        assert(state.toQueryString == "f.hireDate.max=2021-12-31")
+      }
+
+      "serializes date range filter - both" in {
+        val state = initialState.update(
+          TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(Some(LocalDate.of(2020, 1, 1)), Some(LocalDate.of(2021, 12, 31)))),
+        )
+        val qs = state.toQueryString
+        assert(qs.contains("f.hireDate.min=2020-01-01"))
+        assert(qs.contains("f.hireDate.max=2021-12-31"))
+      }
+
       "serializes complex state" in {
         val state = initialState
           .update(TableUpdate.SetSort("name", SortDirection.Desc))
@@ -184,6 +206,11 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         assert(params.filters("age") == ParsedFilterValue.RangeValue(Some("25"), Some("30")))
       }
 
+      "parses date range filter" in {
+        val params = TableStateQueryParams.fromQueryString("f.hireDate.min=2020-01-01&f.hireDate.max=2021-12-31")
+        assert(params.filters("hireDate") == ParsedFilterValue.RangeValue(Some("2020-01-01"), Some("2021-12-31")))
+      }
+
       "handles URL-encoded values" in {
         val params = TableStateQueryParams.fromQueryString("f.name=John%20Doe")
         assert(params.filters("name") == ParsedFilterValue.SimpleValues(Seq("John Doe")))
@@ -232,6 +259,15 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         val qs       = state.toQueryString
         val newState = initialState.loadFromQueryString(qs)
         assert(newState.filters("age") == FilterState.NumberRangeValue(Some(25.0), Some(30.0)))
+      }
+
+      "date range filter roundtrip" in {
+        val from     = LocalDate.of(2020, 1, 1)
+        val to       = LocalDate.of(2021, 12, 31)
+        val state    = initialState.update(TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(Some(from), Some(to))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("hireDate") == FilterState.DateRangeValue(Some(from), Some(to)))
       }
 
       "sort roundtrip" in {
@@ -328,6 +364,22 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         val qs       = state.toQueryString
         val newState = initialState.loadFromQueryString(qs)
         assert(newState.filters("active") == FilterState.BooleanValue(Some(true)))
+      }
+
+      "number range filter roundtrip preserves type" in {
+        val state    = initialState.update(TableUpdate.SetFilter("age", FilterState.NumberRangeValue(Some(25), Some(35))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("age") == FilterState.NumberRangeValue(Some(25.0), Some(35.0)))
+      }
+
+      "date range filter roundtrip preserves type" in {
+        val from     = LocalDate.of(2019, 1, 1)
+        val to       = LocalDate.of(2022, 12, 31)
+        val state    = initialState.update(TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(Some(from), Some(to))))
+        val qs       = state.toQueryString
+        val newState = initialState.loadFromQueryString(qs)
+        assert(newState.filters("hireDate") == FilterState.DateRangeValue(Some(from), Some(to)))
       }
     }
   }
