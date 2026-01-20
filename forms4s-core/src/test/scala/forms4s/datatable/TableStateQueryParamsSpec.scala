@@ -132,7 +132,7 @@ class TableStateQueryParamsSpec extends AnyFreeSpec {
         val state = initialState.update(
           TableUpdate.SetFilter("hireDate", FilterState.DateRangeValue(Some(LocalDate.of(2020, 1, 1)), Some(LocalDate.of(2021, 12, 31)))),
         )
-        val qs = state.toQueryString
+        val qs    = state.toQueryString
         assert(qs.contains("f.hireDate.min=2020-01-01"))
         assert(qs.contains("f.hireDate.max=2021-12-31"))
       }
