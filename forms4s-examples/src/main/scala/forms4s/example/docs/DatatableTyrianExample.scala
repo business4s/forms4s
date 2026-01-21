@@ -34,36 +34,35 @@ object DatatableTyrianExample extends TyrianIOApp[TableMsg, TableModel] {
 }
 // end_tyrian
 
-// start_tyrian_server
-enum Msg:
-  case TableMsg(msg: TableUpdate)
-  case DataLoaded(data: Vector[Employee], totalCount: Int)
-  case DataFailed(error: String)
+// start_server_tyrian
+object ServerModeExample {
+  case class Model(tableState: TableState[Employee])
 
-def update(model: Model, msg: Msg): (Model, Cmd[IO, Msg]) = msg match {
-  case Msg.TableMsg(tableMsg) =>
-    val newState = model.tableState.update(tableMsg)
-    // Check if this message requires server fetch
-    if (needsServerFetch(tableMsg)) {
-      val loadingState = newState.setLoading
-      (model.copy(tableState = loadingState), fetchFromServer(loadingState))
-    } else {
-      (model.copy(tableState = newState), Cmd.None)
-    }
+  enum Msg {
+    case TableMsg(msg: TableUpdate)
+    case DataLoaded(data: Vector[Employee], totalCount: Int)
+    case DataFailed(error: String)
+  }
 
-  case Msg.DataLoaded(data, totalCount) =>
-    (model.copy(tableState = model.tableState.setServerData(data, totalCount)), Cmd.None)
+  def needsServerFetch(msg: TableUpdate): Boolean = ???
+  def fetchFromServer(state: TableState[Employee]): Cmd[IO, Msg] = ???
 
-  case Msg.DataFailed(error) =>
-    (model.copy(tableState = model.tableState.setError(error)), Cmd.None)
+  def update(model: Model, msg: Msg): (Model, Cmd[IO, Msg]) = msg match {
+    case Msg.TableMsg(tableMsg) =>
+      val newState = model.tableState.update(tableMsg)
+      // Check if this message requires server fetch
+      if (needsServerFetch(tableMsg)) {
+        val loadingState = newState.setLoading
+        (model.copy(tableState = loadingState), fetchFromServer(loadingState))
+      } else {
+        (model.copy(tableState = newState), Cmd.None)
+      }
+
+    case Msg.DataLoaded(data, totalCount) =>
+      (model.copy(tableState = model.tableState.setServerData(data, totalCount)), Cmd.None)
+
+    case Msg.DataFailed(error) =>
+      (model.copy(tableState = model.tableState.setError(error)), Cmd.None)
+  }
 }
-
-def fetchFromServer(state: TableState[Employee]): Cmd[IO, Msg] = {
-  // Send queryParams to your API and return DataLoaded or DataFailed
-  Cmd.Run(
-    httpClient.get(s"/api/employees?${state.toQueryString}")
-      .map(response => Msg.DataLoaded(response.data, response.totalCount))
-      .handleError(e => Msg.DataFailed(e.getMessage))
-  )
-}
-// end_tyrian_server
+// end_server_tyrian
