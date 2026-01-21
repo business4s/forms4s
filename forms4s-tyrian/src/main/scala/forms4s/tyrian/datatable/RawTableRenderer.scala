@@ -153,7 +153,7 @@ object RawTableRenderer extends TableRenderer {
   }
 
   override def renderInfo[T](state: TableState[T]): Html[TableUpdate] = {
-    val start    = state.page.offset + 1
+    val start    = if (state.totalFilteredItems == 0) 0 else state.page.offset + 1
     val end      = math.min(state.page.offset + state.page.pageSize, state.totalFilteredItems)
     val total    = state.totalFilteredItems
     val allTotal = state.data.size
