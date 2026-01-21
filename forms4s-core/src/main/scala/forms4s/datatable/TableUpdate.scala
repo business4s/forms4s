@@ -33,4 +33,29 @@ enum TableUpdate {
 
   // Export
   case ExportCSV
+
+  /** Returns true if this update affects server-side data (filtering, sorting, pagination) and thus requires fetching fresh data from the server in
+    * server-data mode.
+    */
+  def needsServerFetch: Boolean = this match {
+    case _: SetFilter          => true
+    case _: ClearFilter        => true
+    case ClearAllFilters       => true
+    case _: SetSort            => true
+    case _: ToggleSort         => true
+    case ClearSort             => true
+    case _: SetPage            => true
+    case NextPage              => true
+    case PrevPage              => true
+    case FirstPage             => true
+    case LastPage              => true
+    case _: SetPageSize        => true
+    case _: SelectRow          => false
+    case _: DeselectRow        => false
+    case _: ToggleRowSelection => false
+    case SelectAll             => false
+    case DeselectAll           => false
+    case _: SetData[?]         => false
+    case ExportCSV             => false
+  }
 }

@@ -44,14 +44,13 @@ object ServerModeExample {
     case DataFailed(error: String)
   }
 
-  def needsServerFetch(msg: TableUpdate): Boolean = ???
   def fetchFromServer(state: TableState[Employee]): Cmd[IO, Msg] = ???
 
   def update(model: Model, msg: Msg): (Model, Cmd[IO, Msg]) = msg match {
     case Msg.TableMsg(tableMsg) =>
       val newState = model.tableState.update(tableMsg)
       // Check if this message requires server fetch
-      if (needsServerFetch(tableMsg)) {
+      if (tableMsg.needsServerFetch) {
         val loadingState = newState.setLoading
         (model.copy(tableState = loadingState), fetchFromServer(loadingState))
       } else {

@@ -80,7 +80,7 @@ case class DatatablePlayground(
         case DataMode.Server =>
           val newState = tableState.update(msg)
           // Check if this update requires fetching from server
-          if (needsServerFetch(msg)) {
+          if (msg.needsServerFetch) {
             val loadingState = newState.setLoading
             (copy(tableState = loadingState), fetchFromServer(loadingState))
           } else {
@@ -109,29 +109,6 @@ case class DatatablePlayground(
 
     case DatatableMsg.ServerError(message) =>
       (copy(tableState = tableState.setError(message)), Cmd.None)
-  }
-
-  // Determine if a TableUpdate requires a server fetch
-  private def needsServerFetch(msg: TableUpdate): Boolean = msg match {
-    case _: TableUpdate.SetFilter          => true
-    case _: TableUpdate.ClearFilter        => true
-    case TableUpdate.ClearAllFilters       => true
-    case _: TableUpdate.SetSort            => true
-    case _: TableUpdate.ToggleSort         => true
-    case TableUpdate.ClearSort             => true
-    case _: TableUpdate.SetPage            => true
-    case TableUpdate.NextPage              => true
-    case TableUpdate.PrevPage              => true
-    case TableUpdate.FirstPage             => true
-    case TableUpdate.LastPage              => true
-    case _: TableUpdate.SetPageSize        => true
-    case _: TableUpdate.SelectRow          => false
-    case _: TableUpdate.DeselectRow        => false
-    case _: TableUpdate.ToggleRowSelection => false
-    case TableUpdate.SelectAll             => false
-    case TableUpdate.DeselectAll           => false
-    case _: TableUpdate.SetData[?]         => false
-    case TableUpdate.ExportCSV             => false
   }
 
   // Simulate fetching data from server with a delay
