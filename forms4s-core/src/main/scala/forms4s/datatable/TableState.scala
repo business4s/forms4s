@@ -24,6 +24,11 @@ case class SortState(
   *
   * @tparam T
   *   The row type
+  * @param serverMode
+  *   When true, assumes data is already filtered/sorted/paged by server. Local filtering/sorting/pagination logic is bypassed and displayData returns
+  *   data as-is.
+  * @param totalOverride
+  *   Server-provided total count of filtered records. Used for pagination when serverMode is true.
   */
 case class TableState[T](
     definition: TableDef[T],
@@ -32,6 +37,9 @@ case class TableState[T](
     sort: Option[SortState] = None,
     page: PageState,
     selection: Set[Int] = Set.empty,
+    serverMode: Boolean = false,
+    totalOverride: Option[Int] = None,
+    loading: LoadingState = LoadingState.Idle,
 ) {
 
   private def rowPassesFilters(row: T): Boolean = {
@@ -94,13 +102,17 @@ case class TableState[T](
   def pagedData: Vector[T] = pagedDataWithIndices.map(_._1)
 
   /** Data to display with original indices (filtered, sorted, paged) */
-  def displayDataWithIndices: Vector[(T, Int)] = pagedDataWithIndices
+  def displayDataWithIndices: Vector[(T, Int)] =
+    if serverMode then data.zipWithIndex else pagedDataWithIndices
 
-  /** Data to display (filtered, sorted, paged) */
-  def displayData: Vector[T] = pagedData
+  /** Data to display (filtered, sorted, paged). In server mode, returns data as-is (server already did filtering/sorting/paging).
+    */
+  def displayData: Vector[T] =
+    if serverMode then data else pagedData
 
-  /** Total items after filtering */
-  def totalFilteredItems: Int = filteredData.size
+  /** Total items after filtering. In server mode, uses totalOverride if provided.
+    */
+  def totalFilteredItems: Int = totalOverride.getOrElse(filteredData.size)
 
   /** Total pages */
   def totalPages: Int = page.totalPages(totalFilteredItems)
@@ -236,11 +248,34 @@ case class TableState[T](
     val parsed = TableStateQueryParams.fromQueryParams(params)
     TableStateQueryParams.applyToState(this, parsed)
   }
+
+  // === Server mode helpers ===
+
+  /** Set loading state to Loading. */
+  def setLoading: TableState[T] = copy(loading = LoadingState.Loading)
+
+  /** Set loading state to Failed with error message. */
+  def setError(message: String): TableState[T] = copy(loading = LoadingState.Failed(message))
+
+  /** Apply server response data.
+    *
+    * @param newData
+    *   The page of data returned by server
+    * @param totalCount
+    *   Total count of filtered records (for pagination)
+    */
+  def setServerData(newData: Vector[T], totalCount: Int): TableState[T] =
+    copy(
+      data = newData,
+      totalOverride = Some(totalCount),
+      loading = LoadingState.Idle,
+      selection = Set.empty,
+    )
 }
 
 object TableState {
 
-  /** Create initial state from definition and data */
+  /** Create initial state from definition and data (client-side mode) */
   def apply[T](definition: TableDef[T], data: Seq[T]): TableState[T] =
     TableState(
       definition = definition,
@@ -248,7 +283,32 @@ object TableState {
       page = PageState(0, definition.pageSize),
     )
 
-  /** Create empty state from definition */
+  /** Create empty state from definition (client-side mode) */
   def empty[T](definition: TableDef[T]): TableState[T] =
     apply(definition, Vector.empty)
+
+  /** Create state for server-side mode.
+    *
+    * In server mode, filtering/sorting/pagination is handled by the server. The table state tracks UI state (filters, sort, page) for sending to
+    * server and rendering, but displayData returns data as-is without local processing.
+    *
+    * Typical usage:
+    * {{{
+    * val table = TableState.serverMode(tableDef)
+    *
+    * // On filter/sort/page change:
+    * val newTable = table.update(msg).setLoading
+    * fetchFromServer(newTable.toQueryParams).map { response =>
+    *   newTable.setServerData(response.data, response.totalCount)
+    * }
+    * }}}
+    */
+  def serverMode[T](definition: TableDef[T]): TableState[T] =
+    TableState(
+      definition = definition,
+      data = Vector.empty,
+      page = PageState(0, definition.pageSize),
+      serverMode = true,
+      loading = LoadingState.Idle,
+    )
 }

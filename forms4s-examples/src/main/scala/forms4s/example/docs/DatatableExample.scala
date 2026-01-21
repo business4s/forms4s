@@ -65,3 +65,34 @@ val restoredState: TableState[Employee] = tableState.loadFromQueryString(querySt
 // Load state from params (e.g., from request object)
 val restoredState2: TableState[Employee] = tableState.loadFromQueryParams(queryParams)
 // end_query_params
+
+// start_server_mode
+// Create table in server mode - filtering/sorting/pagination handled by server
+val serverTableState: TableState[Employee] = TableState.serverMode(tableDef)
+
+// Set loading state before fetching
+val loadingState: TableState[Employee] = serverTableState.setLoading
+
+// After receiving server response, apply the data
+// totalCount is the total number of filtered records (for pagination)
+val withData: TableState[Employee] = loadingState.setServerData(
+  newData = Vector(Employee("Alice", "Engineering", 95000, LocalDate.of(2020, 3, 15), true)),
+  totalCount = 150,
+)
+
+// On error, set error state
+val withError: TableState[Employee] = loadingState.setError("Network error")
+
+// In server mode, displayData returns data as-is (no local processing)
+val displayedData: Vector[Employee] = withData.displayData
+
+// totalFilteredItems uses server-provided totalCount
+val total: Int = withData.totalFilteredItems // => 150
+
+// Query params still work for sending to server
+val serverQueryParams: Seq[(String, String)] = serverTableState
+  .update(TableUpdate.SetFilter("name", FilterState.TextValue("alice")))
+  .update(TableUpdate.SetSort("salary", SortDirection.Desc))
+  .toQueryParams
+// => Seq("sort" -> "salary:desc", "page" -> "0", "size" -> "10", "f.name" -> "alice")
+// end_server_mode
