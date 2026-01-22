@@ -7,7 +7,6 @@ import forms4s.FormElement.Text.Format
 import forms4s.validation.{FormatValidator, RegexValidator, Validator}
 import sttp.apispec.{AnySchema, ExampleMultipleValue, ExampleSingleValue, Schema as ASchema, SchemaLike, SchemaType}
 
-import java.time.Duration
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.Try
@@ -143,7 +142,8 @@ object FormFromJsonSchema {
                     case Some("time")         => Seq() -> Format.Time
                     case Some("date-time")    => Seq() -> Format.DateTime
                     case Some("email")        =>
-                      Seq(FormatValidator("ISO 8601 duration", x => Try(Duration.parse(x)).isSuccess, Some("PT20H10M"))) -> Format.Email
+                      val emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$".r
+                      Seq(FormatValidator("email", x => emailRegex.matches(x), Some("user@example.com"))) -> Format.Email
                     case Some(x @ "uuid")     =>
                       Seq(FormatValidator("UUIDv4", x => Try(UUID.fromString(x)).isSuccess, Some("d3399597-a3b6-4813-ac0a-23bb84a95e11"))) -> Format
                         .Custom(x)
