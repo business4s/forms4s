@@ -48,6 +48,7 @@ object ToFormElem {
     // get compile-time labels & ToFormElem instances
     val labels = elemLabels[p.MirroredElemLabels]
     val elems  = summonAll[p.MirroredElemTypes]
+    val defaults = DefaultValues.extract[T]
 
     // build a Group
     StaticToFormElem(
@@ -60,8 +61,9 @@ object ToFormElem {
         ),
         elements = elems.zip(labels).map { (tf, name) =>
           val fe = tf.get
+          val defaultValue = defaults.get(name)
           // copy into each element its field‐name as id & human label
-          updateCore(fe)(id = name, label = name.capitalize)
+          updateCore(fe)(id = name, label = name.capitalize, defaultValue = defaultValue)
         },
       ),
     )
@@ -101,13 +103,13 @@ object ToFormElem {
     }
 
   // –– Helpers: update the Core.id & Core.label of any FormElement –––
-  private def updateCore(fe: FormElement)(id: String, label: String): FormElement = fe match {
-    case Text(core, fmt)          => Text(core.copy(id = id, label = label), fmt)
-    case Number(core, isInt)      => Number(core.copy(id = id, label = label), isInt)
-    case Select(core, opts)       => Select(core.copy(id = id, label = label), opts)
-    case Checkbox(core)           => Checkbox(core.copy(id = id, label = label))
-    case Group(core, elems)       => Group(core.copy(id = id, label = label), elems)
-    case Multivalue(core, item)   => Multivalue(core.copy(id = id, label = label), item)
-    case Alternative(core, vs, d) => Alternative(core.copy(id = id, label = label), vs, d)
+  private def updateCore(fe: FormElement)(id: String, label: String, defaultValue: Option[Any]): FormElement = fe match {
+    case Text(core, fmt)          => Text(core.copy(id = id, label = label, defaultValue = defaultValue), fmt)
+    case Number(core, isInt)      => Number(core.copy(id = id, label = label, defaultValue = defaultValue), isInt)
+    case Select(core, opts)       => Select(core.copy(id = id, label = label, defaultValue = defaultValue), opts)
+    case Checkbox(core)           => Checkbox(core.copy(id = id, label = label, defaultValue = defaultValue))
+    case Group(core, elems)       => Group(core.copy(id = id, label = label, defaultValue = defaultValue), elems)
+    case Multivalue(core, item)   => Multivalue(core.copy(id = id, label = label, defaultValue = defaultValue), item)
+    case Alternative(core, vs, d) => Alternative(core.copy(id = id, label = label, defaultValue = defaultValue), vs, d)
   }
 }

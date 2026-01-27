@@ -12,6 +12,8 @@ class ToFormElemTest extends AnyFreeSpec {
     case class Card(number: String) extends Payment derives ToFormElem
   }
 
+  case class PersonWithDefaults(name: String = "John Doe", age: Int = 30, isMember: Boolean = true) derives ToFormElem
+
   "group" in {
     assert(
       summon[ToFormElem[Person]].get == FormElement.Group(
@@ -41,6 +43,29 @@ class ToFormElemTest extends AnyFreeSpec {
         None,
       ),
     )
+  }
+
+  "default values in form elements" in {
+    val formElem = summon[ToFormElem[PersonWithDefaults]].get
+    formElem match {
+      case FormElement.Group(_, elements) =>
+        assert(elements(0).core.defaultValue.contains("John Doe"))
+        assert(elements(1).core.defaultValue.contains(30))
+        assert(elements(2).core.defaultValue.contains(true))
+      case _ => fail("Expected Group")
+    }
+  }
+
+  "default values in form state" in {
+    val formElem = summon[ToFormElem[PersonWithDefaults]].get
+    val state = FormElementState.empty(formElem)
+    state match {
+      case FormElementState.Group(_, values, _, _) =>
+        assert(values(0).asInstanceOf[FormElementState.Text].value == "John Doe")
+        assert(values(1).asInstanceOf[FormElementState.Number].value.contains(30.0))
+        assert(values(2).asInstanceOf[FormElementState.Checkbox].value == true)
+      case _ => fail("Expected Group")
+    }
   }
 
 }
