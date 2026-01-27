@@ -90,7 +90,13 @@ object FormFromJsonSchema {
   ): Ior[List[String], FormElement] = {
     val name                                   = nameOverride.getOrElse(schema.title.getOrElse("unknown"))
     val label                                  = schema.title.getOrElse(capitalizeAndSplitWords(name))
-    def core[T](validators: Seq[Validator[T]]) = FormElement.Core(name, label, schema.description, validators)
+
+    val defaultValue = schema.default.flatMap {
+      case ExampleSingleValue(v) => Some(v)
+      case _                     => None
+    }
+
+    def core[T](validators: Seq[Validator[T]]) = FormElement.Core(name, label, schema.description, validators, defaultValue)
 
     val variants = schema.oneOf ++ schema.anyOf
     if (variants.nonEmpty) {
