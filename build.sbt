@@ -97,7 +97,7 @@ lazy val `forms4s-examples` = crossProject(JSPlatform, JVMPlatform)
 
 lazy val commonSettings = Seq(
   organization                            := "org.business4s",
-  scalaVersion                            := "3.7.1",
+  scalaVersion                            := "3.7.4",
   Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
