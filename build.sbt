@@ -23,7 +23,7 @@ lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"      %%% "circe-core" % "0.14.14",
+      "io.circe"      %%% "circe-core" % "0.14.15",
       "org.scalatest" %%% "scalatest"  % "3.2.19" % "test",
     ),
   )
@@ -38,10 +38,10 @@ lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-jsonschema",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.9",
+      "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.10",
       "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.11.10",
-      "io.circe"                      %%% "circe-parser"       % "0.14.14",
-      "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34" % "test",
+      "io.circe"                      %%% "circe-parser"       % "0.14.15",
+      "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.50" % "test",
     ),
   )
   .settings(commonSettings)
@@ -67,7 +67,7 @@ lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-circe",
     libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.14.14",
+      "io.circe" %%% "circe-core" % "0.14.15",
     ),
   )
   .settings(commonSettings)
@@ -80,8 +80,8 @@ lazy val `forms4s-examples` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-examples",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34",
-      "io.circe"                      %%% "circe-parser"       % "0.14.14",
+      "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.50",
+      "io.circe"                      %%% "circe-parser"       % "0.14.15",
       "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.11.10",
     ),
   )
@@ -97,7 +97,7 @@ lazy val `forms4s-examples` = crossProject(JSPlatform, JVMPlatform)
 
 lazy val commonSettings = Seq(
   organization                            := "org.business4s",
-  scalaVersion                            := "3.7.1",
+  scalaVersion                            := "3.7.4",
   Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
