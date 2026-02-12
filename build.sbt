@@ -38,7 +38,7 @@ lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-jsonschema",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.9",
+      "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.11.10",
       "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.11.10",
       "io.circe"                      %%% "circe-parser"       % "0.14.14",
       "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.11.34" % "test",
