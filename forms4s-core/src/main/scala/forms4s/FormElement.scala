@@ -49,6 +49,6 @@ object FormElement {
     case class State(selected: Int, states: Vector[FormElementState])
   }
 
-  case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]])
+  case class Core[-T](id: String, label: String, description: Option[String], validators: Seq[Validator[T]], defaultValue: Option[Any] = None)
 
 }

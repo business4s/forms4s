@@ -61,11 +61,32 @@ object FormElementState {
 
   def empty[T <: FormElement](elem: T): ForElem[T] = {
     def go[T <: FormElement](elem: T, parentPath: FormElementPath): ForElem[T] = elem match {
-      case x: FormElement.Text        => Text(x, "", Nil, parentPath)
-      case x: FormElement.Select      => Select(x, x.options.headOption.getOrElse(""), Nil, parentPath)
-      case x: FormElement.Checkbox    => Checkbox(x, false, Nil, parentPath)
+      case x: FormElement.Text        =>
+        val defaultValue = x.core.defaultValue.flatMap {
+          case s: String => Some(s)
+          case _ => None
+        }.getOrElse("")
+        Text(x, defaultValue, Nil, parentPath)
+      case x: FormElement.Select      =>
+        val defaultValue = x.core.defaultValue.flatMap {
+          case s: String => Some(s)
+          case _ => None
+        }.getOrElse(x.options.headOption.getOrElse(""))
+        Select(x, defaultValue, Nil, parentPath)
+      case x: FormElement.Checkbox    =>
+        val defaultValue = x.core.defaultValue.flatMap {
+          case b: Boolean => Some(b)
+          case _ => None
+        }.getOrElse(false)
+        Checkbox(x, defaultValue, Nil, parentPath)
       case x: FormElement.Group       => Group(x, x.elements.map(go(_, parentPath / x.core.id)), Nil, parentPath)
-      case x: FormElement.Number      => Number(x, None, Nil, parentPath)
+      case x: FormElement.Number      =>
+        val defaultValue = x.core.defaultValue.flatMap {
+          case i: Int => Some(i.toDouble)
+          case d: Double => Some(d)
+          case _ => None
+        }
+        Number(x, defaultValue, Nil, parentPath)
       case x: FormElement.Multivalue  => Multivalue(x, Vector(), Nil, parentPath)
       case x: FormElement.Alternative =>
         Alternative(x, FormElement.Alternative.State(0, x.variants.toVector.map(go(_, parentPath / x.core.id))), Seq(), parentPath)

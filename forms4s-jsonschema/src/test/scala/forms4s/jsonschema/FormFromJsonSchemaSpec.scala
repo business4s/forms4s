@@ -237,6 +237,33 @@ class FormFromJsonSchemaSpec extends AnyFreeSpec {
       }
     }
 
+    "default values" in {
+      import sttp.apispec.{Schema => ASchema, ExampleSingleValue, SchemaType}
+      import scala.collection.immutable.ListMap
+
+      val schema = ASchema(
+        title = Some("WithDefaults"),
+        `type` = Some(List(SchemaType.Object)),
+        properties = ListMap(
+          "a" -> ASchema(
+            `type` = Some(List(SchemaType.String)),
+            default = Some(ExampleSingleValue("default"))
+          )
+        )
+      )
+      
+      val form = FormFromJsonSchema.convert(schema)
+
+      val expected = FormElement.Group(
+        simpleCore("WithDefaults"),
+        List(
+          FormElement.Text(simpleCore("a", "A").copy(defaultValue = Some("default")), Format.Raw),
+        ),
+      )
+
+      assert(form == expected)
+    }
+
   }
 
   def getForm[T](nullableOptions: Boolean = false)(implicit tschema: TSchema[T]): FormElement = {
