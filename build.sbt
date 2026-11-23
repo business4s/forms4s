@@ -23,12 +23,12 @@ lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-core",
     libraryDependencies ++= Seq(
-      "io.circe"      %%% "circe-core" % "0.14.14",
-      "org.scalatest" %%% "scalatest"  % "3.2.19" % "test",
+      "io.circe"      %%% "circe-core" % "0.14.17",
+      "org.scalatest" %%% "scalatest"  % "3.2.20" % "test",
     ),
   )
   .jsSettings(
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.6.0",
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.11.0",
   )
   .settings(commonSettings)
 
@@ -40,7 +40,7 @@ lazy val `forms4s-jsonschema` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.apispec" %%% "apispec-model"      % "0.12.1",
       "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.12.1",
-      "io.circe"                      %%% "circe-parser"       % "0.14.14",
+      "io.circe"                      %%% "circe-parser"       % "0.14.17",
       "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.14.1" % "test",
     ),
   )
@@ -67,7 +67,7 @@ lazy val `forms4s-circe` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "forms4s-circe",
     libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.14.14",
+      "io.circe" %%% "circe-core" % "0.14.17",
     ),
   )
   .settings(commonSettings)
@@ -81,7 +81,7 @@ lazy val `forms4s-examples` = crossProject(JSPlatform, JVMPlatform)
     name := "forms4s-examples",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir"   %%% "tapir-apispec-docs" % "1.14.1",
-      "io.circe"                      %%% "circe-parser"       % "0.14.14",
+      "io.circe"                      %%% "circe-parser"       % "0.14.17",
       "com.softwaremill.sttp.apispec" %%% "openapi-circe"      % "0.12.1",
     ),
   )
@@ -100,7 +100,7 @@ lazy val commonSettings = Seq(
   scalaVersion                            := "3.9.0",
   Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.19" % "test",
+    "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   ),
   // https://users.scala-lang.org/t/scala-js-with-3-7-0-package-scala-contains-object-and-package-with-same-name-caps/10786/5
   dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
