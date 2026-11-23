@@ -76,7 +76,11 @@ object TableDerivationMacros {
                   extract = (t: T) => ${ Select.unique('t.asTerm, fieldName).asExprOf[ft] },
                 )
               }
+            case _     =>
+              report.errorAndAbort(s"Unsupported type of field ${fieldName} in ${sym.name}")
           }
+        case _                 =>
+          report.errorAndAbort(s"Field ${fieldName} of ${sym.name} is not a value definition")
       }
     }
 
