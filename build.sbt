@@ -24,7 +24,7 @@ lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
     name := "forms4s-core",
     libraryDependencies ++= Seq(
       "io.circe"      %%% "circe-core" % "0.14.17",
-      "org.scalatest" %%% "scalatest"  % "3.2.19" % "test",
+      "org.scalatest" %%% "scalatest"  % "3.2.20" % "test",
     ),
   )
   .jsSettings(
@@ -100,7 +100,7 @@ lazy val commonSettings = Seq(
   scalaVersion                            := "3.9.0",
   Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement,
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.19" % "test",
+    "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   ),
   // https://users.scala-lang.org/t/scala-js-with-3-7-0-package-scala-contains-object-and-package-with-same-name-caps/10786/5
   dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
