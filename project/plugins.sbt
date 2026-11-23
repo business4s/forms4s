@@ -1,4 +1,4 @@
-addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.22.0")
+addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.23.0")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.4.0")
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.5.4")
 addSbtPlugin("com.github.sbt"     % "sbt-dynver"               % "5.1.1")
