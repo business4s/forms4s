@@ -28,7 +28,7 @@ lazy val `forms4s-core` = crossProject(JSPlatform, JVMPlatform)
     ),
   )
   .jsSettings(
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.6.0",
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.11.0",
   )
   .settings(commonSettings)
 
